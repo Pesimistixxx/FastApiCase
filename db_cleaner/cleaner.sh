@@ -1,0 +1,1 @@
+PGPASSWORD=$DB_PASSWORD psql -h $DB_HOST -U $DB_USER -d $DB_NAME -c "DELETE FROM sessions WHERE expires_at < NOW();"

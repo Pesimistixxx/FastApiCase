@@ -20,6 +20,7 @@ class User_model(Base):
     is_active: Mapped[bool] = mapped_column(default=True)
 
     sessions: Mapped[List["Session_model"]] = relationship(back_populates="user")
+    skins = relationship("User_Skin_model", back_populates="user")
 
 
 class Session_model(Base):

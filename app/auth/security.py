@@ -15,6 +15,11 @@ async def verify_session(session_id: str,
         Session_model.session_token == session_id
     ))
 
+    if not session:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail='You are not authorized'
+        )
     if session.expires <= datetime.datetime.now():
         await db.execute(delete(Session_model).where(
             Session_model.id==session.id
@@ -28,7 +33,7 @@ async def verify_session(session_id: str,
         User_model.is_active == True
     ))
 
-    return user.username
+    return user
 
 
 async def get_user(request: Request,

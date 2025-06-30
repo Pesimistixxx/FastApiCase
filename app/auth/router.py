@@ -27,13 +27,13 @@ async def get_all_users(db: Annotated[AsyncSession, Depends(get_db)]):
 
 @authRouter.post('/register')
 async def post_create_user(db: Annotated[AsyncSession, Depends(get_db)],
-                           user_inp: UserRegister):
+                           register_inp: UserRegister):
     try:
         await db.execute(insert(User_model).values(
-            username=user_inp.username,
-            name=user_inp.name,
-            email=user_inp.email,
-            password=bcrypt_context.hash(user_inp.password),
+            username=register_inp.username,
+            name=register_inp.name,
+            email=register_inp.email,
+            password=bcrypt_context.hash(register_inp.password),
         ))
         await db.commit()
     except IntegrityError as e:
@@ -48,14 +48,14 @@ async def post_create_user(db: Annotated[AsyncSession, Depends(get_db)],
 
 @authRouter.post('/login')
 async def post_login_user(db: Annotated[AsyncSession, Depends(get_db)],
-                          user_inp: UserLogin,
+                          login_inp: UserLogin,
                           response: Response):
     user = await db.scalar(select(User_model)
-                           .where(user_inp.username == User_model.username))
+                           .where(login_inp.username == User_model.username))
     if not user:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND)
 
-    if not bcrypt.checkpw(user_inp.password.encode('utf-8'), user.password.encode('utf-8')):
+    if not bcrypt.checkpw(login_inp.password.encode('utf-8'), user.password.encode('utf-8')):
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN)
 
     session_token = secrets.token_hex(16)
@@ -77,5 +77,5 @@ async def post_login_user(db: Annotated[AsyncSession, Depends(get_db)],
 
 
 @authRouter.get('/profile')
-async def get_user_profile(user: str = Depends(get_user)):
-    return f"hello {user}"
+async def get_user_profile(user: User_model = Depends(get_user)):
+    return f"hello {user.name}"

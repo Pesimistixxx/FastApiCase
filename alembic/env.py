@@ -28,6 +28,8 @@ if config.config_file_name is not None:
 # target_metadata = mymodel.Base.metadata
 from app.auth.models import User_model, Session_model
 from app.skin.models import Skin_model
+from app.case.models import Case_model
+from app import models_associations
 target_metadata = Base.metadata
 
 # other values from the config, defined by the needs of env.py,

@@ -79,3 +79,9 @@ async def post_login_user(db: Annotated[AsyncSession, Depends(get_db)],
 @authRouter.get('/profile')
 async def get_user_profile(user: User_model = Depends(get_user)):
     return f"hello {user.name}"
+
+
+@authRouter.get('/sessions')
+async def get_sessions_list(db: Annotated[AsyncSession, Depends(get_db)]):
+    sessions = await db.scalars((select(Session_model)))
+    return sessions.all()

@@ -1,3 +1,4 @@
+from typing import List
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.models_associations import case_skin_association
@@ -19,4 +20,4 @@ class Skin_model(Base):
                          secondary=case_skin_association,
                          back_populates="skins")
 
-    users = relationship("User_Skin_model", back_populates="skin")
+    users: Mapped[List["User_Skin_model"]] = relationship("User_Skin_model", back_populates="skin")

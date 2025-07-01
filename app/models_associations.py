@@ -16,5 +16,5 @@ class User_Skin_model(Base):
     skin_id: Mapped[int] = mapped_column(ForeignKey('skins.id'), primary_key=True)
     is_active: Mapped[bool] = mapped_column(nullable=False, default=True)
 
-    user = relationship("User_model", back_populates="skins")
-    skin = relationship("Skin_model", back_populates="users")
+    user: Mapped["User_model"] = relationship("User_model", back_populates="skins")
+    skin: Mapped["Skin_model"] = relationship("Skin_model", back_populates="users")

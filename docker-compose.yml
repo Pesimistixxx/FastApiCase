@@ -10,7 +10,6 @@ services:
     image: db_cleaner:latest
     build:
       context: .
-
       dockerfile: db_cleaner/Dockerfile
     environment:
       POSTGRES_HOST: db

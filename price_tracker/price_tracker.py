@@ -7,10 +7,14 @@ from apscheduler.schedulers.asyncio import AsyncIOScheduler
 import httpx
 from dotenv import load_dotenv
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select
+from sqlalchemy import select, Column, Integer, String, Float, Boolean
+from sqlalchemy.orm import declarative_base
 
-from app.skin.models import Skin_model
 from db.db_depends import get_db
+
+load_dotenv()
+
+Base = declarative_base()
 
 logging.basicConfig(
     level=logging.INFO,
@@ -19,11 +23,17 @@ logging.basicConfig(
 
 logger = logging.getLogger(__name__)
 
-load_dotenv()
+
+class Skin_model(Base):
+    __tablename__ = 'skins'
+
+    id = Column(Integer, primary_key=True, index=True)
+    tag = Column(String)
+    price = Column(Float)
+    is_active = Column(Boolean, default=True)
 
 
 async def fetch_steam_prices(db: AsyncSession, client: httpx.AsyncClient):
-    logger.info("Начало обновления цен на скины")
     try:
         result = await db.execute(select(Skin_model).where(Skin_model.is_active == True))
         items = result.scalars().all()
@@ -66,20 +76,20 @@ async def start_scheduler():
                 await fetch_steam_prices(db=db, client=client)
         logger.info("Задача обновления цен завершена")
 
-    # scheduler.add_job(job, 'interval', minutes=60, next_run_time=datetime.datetime.now())
+    #scheduler.add_job(job, 'interval', minutes=60, next_run_time=datetime.datetime.now())
     scheduler.add_job(job, 'interval', minutes=60)
     scheduler.start()
 
 
-async def main():
-    logger.info("Запуск основного цикла")
+async def price_tracker_scheduler():
+    logger.info("Запуск основного цикла(обновление цен)")
     await start_scheduler()
     try:
         while True:
             await asyncio.sleep(1)
     except KeyboardInterrupt:
-        logger.info("Шедулер остановлен.")
+        logger.info("Шедулер остановлен(обновление цен)")
 
 
 if __name__ == "__main__":
-    asyncio.run(main())
+    asyncio.run(price_tracker_scheduler())

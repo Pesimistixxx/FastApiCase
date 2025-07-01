@@ -1,10 +1,13 @@
-FROM alpine:latest
+FROM python:3.12.0-alpine
 
-RUN apk add --no-cache postgresql-client bash cronie
+WORKDIR /app
 
-COPY db_cleaner/cleaner.sh /usr/local/bin/cleanup.sh
-RUN chmod +x /usr/local/bin/cleanup.sh
+COPY requirements.txt .
 
-COPY db_cleaner/cleaner-cron /etc/crontabs/root
+RUN pip install -r requirements.txt
 
-CMD ["crond", "-f"]
+COPY . /app
+
+ENV PYTHONPATH=/app
+
+CMD ["python", "db_cleaner/db_cleaner.py"]

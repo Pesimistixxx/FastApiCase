@@ -1,6 +1,8 @@
+from typing import List
+
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
-from app.models_associations import case_skin_association
+from app.models_associations import Case_Skin_model
 from db.db import Base
 
 
@@ -15,6 +17,11 @@ class Case_model(Base):
     sigma: Mapped[int] = mapped_column(nullable=False, server_default='1')
     image: Mapped[str] = mapped_column(default='default.png')
 
-    skins = relationship("Skin_model",
-                         secondary=case_skin_association,
-                         back_populates="cases")
+    skin_associations: Mapped[List["Case_Skin_model"]] = relationship("Case_Skin_model", back_populates="case")
+
+    # Для прямого доступа к скинам:
+    skins: Mapped[List["Skin_model"]] = relationship(
+        "Skin_model",
+        secondary="case_models",
+        viewonly=True,
+        overlaps="skin_associations")

@@ -1,7 +1,7 @@
 from typing import List
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
-from app.models_associations import case_skin_association
+from app.models_associations import Case_Skin_model
 from db.db import Base
 
 
@@ -16,8 +16,13 @@ class Skin_model(Base):
     is_active: Mapped[bool] = mapped_column(default=True)
     image: Mapped[str]
 
-    cases = relationship("Case_model",
-                         secondary=case_skin_association,
-                         back_populates="skins")
+    case_associations: Mapped[List["Case_Skin_model"]] = relationship("Case_Skin_model", back_populates="skin")
+
+    cases: Mapped[List["Case_model"]] = relationship(
+        "Case_model",
+        secondary="case_models",
+        viewonly=True,
+        overlaps="case_associations"
+    )
 
     users: Mapped[List["User_Skin_model"]] = relationship("User_Skin_model", back_populates="skin")

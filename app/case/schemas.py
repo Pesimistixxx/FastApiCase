@@ -11,5 +11,11 @@ class CaseCreate(BaseModel):
     skins: List[int]
 
 
+class CaseCalculateProbability(BaseModel):
+    math_exception: int = Field(ge=1, le=1000000)
+    sigma: int = Field(ge=1, le=1000000)
+    skins: List[int]
+
+
 class CaseOpen(BaseModel):
     cnt: int = Field(ge=1, le=10)

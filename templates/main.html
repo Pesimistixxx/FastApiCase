@@ -1,10 +1,457 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="ru">
 <head>
-  <meta charset="UTF-8">
-  <title>$Title$</title>
+    <meta charset="UTF-8">
+    <title>Кейсы</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #121212;
+            margin: 0;
+            padding: 0;
+            color: #ffffff;
+            overflow-x: hidden;
+        }
+
+        /* Навигационная панель */
+        .navbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background-color: #1e1e1e;
+            padding: 15px 30px;
+            border-bottom: 1px solid #333;
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+        }
+        .nav-left {
+            font-size: 20px;
+            font-weight: bold;
+            color: #2979ff;
+            cursor: pointer;
+            text-decoration: none;
+        }
+        .nav-buttons {
+            display: flex;
+            gap: 40px;
+        }
+        .nav-buttons button {
+            background-color: #2979ff;
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            font-size: 14px;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        .nav-buttons button:hover {
+            background-color: #1c54b2;
+        }
+
+        /* Профиль пользователя */
+        .user-profile {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            position: relative;
+        }
+        .user-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 2px solid #2979ff;
+            cursor: pointer;
+        }
+        .user-info {
+            text-align: left;
+            font-size: 14px;
+        }
+        .user-username {
+            font-weight: bold;
+        }
+        .user-balance {
+            color: #aeeaff;
+            font-size: 12px;
+        }
+        .add-balance-button {
+            background-color: #4caf50;
+            color: white;
+            border: none;
+            width: 30px;
+            height: 30px;
+            font-size: 20px;
+            border-radius: 50%;
+            cursor: pointer;
+            margin-left: 10px;
+        }
+        .add-balance-button:hover {
+            background-color: #388e3c;
+        }
+
+        /* Меню пополнения баланса */
+        .balance-menu {
+            position: absolute;
+            top: 50px;
+            right: 0;
+            background-color: #2a2a2a;
+            padding: 15px;
+            border-radius: 6px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.5);
+            width: 200px;
+            display: none;
+            flex-direction: column;
+            gap: 10px;
+        }
+        .balance-menu input {
+            padding: 8px;
+            border: 1px solid #444;
+            border-radius: 4px;
+            background-color: #1e1e1e;
+            color: #fff;
+        }
+        .balance-menu button {
+            padding: 8px;
+            background-color: #2979ff;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        .balance-menu button:hover {
+            background-color: #1c54b2;
+        }
+
+        /* Основной контент */
+        .main-container {
+            display: flex;
+            max-width: 1200px;
+            margin: 40px auto;
+            gap: 30px;
+        }
+
+        /* Боковая панель с последними скинами */
+        .recent-skins {
+            width: 100px;
+            position: sticky;
+            top: 80px;
+            height: calc(100vh - 80px);
+            overflow-y: hidden; /* Запрет прокрутки */
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            justify-content: space-around; /* Равномерное распределение по высоте */
+        }
+        .recent-skin-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 5px;
+            background-color: #242424;
+            border-radius: 6px;
+            padding: 5px;
+            border: 1px solid #444;
+        }
+        .recent-skin-item img {
+            width: 80px;
+            height: 80px;
+            object-fit: cover;
+            border-radius: 4px;
+        }
+        .recent-skin-label {
+            font-size: 12px;
+            color: #cccccc;
+            text-align: center;
+        }
+
+        /* Контейнер кейсов */
+        .cases-container {
+            flex: 1;
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            grid-gap: 20px 15px;
+            justify-items: center;
+        }
+
+        .case-item {
+            position: relative;
+            width: 100%;
+            max-width: 250px;
+            aspect-ratio: 1 / 1;
+            background-color: #242424;
+            border-radius: 8px;
+            overflow: hidden;
+            border: 1px solid #444;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: space-between;
+            padding: 10px;
+            box-sizing: border-box;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+            cursor: pointer;
+        }
+        .case-item:hover {
+            transform: scale(1.05);
+            box-shadow: 0 0 10px #2979ff;
+        }
+        .case-item img {
+            width: 100%;
+            height: 80%;
+            object-fit: cover;
+            border-radius: 4px;
+            flex-shrink: 0;
+        }
+        .case-info {
+            width: 100%;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 12px;
+            color: #cccccc;
+        }
+    </style>
 </head>
 <body>
-$END$
+<!-- Навигационная панель -->
+<div class="navbar">
+    <div class="nav-left" id="siteName">Meow Case Simulator</div>
+    <div class="nav-buttons">
+        <button>Контракты</button>
+        <button>Апгрейды</button>
+    </div>
+    <div class="user-profile" id="userProfile">
+        <img src="https://via.placeholder.com/40" alt="Аватар" class="user-avatar">
+        <div class="user-info">
+            <div class="user-username">Username</div>
+            <div class="user-balance">Баланс: $1000</div>
+        </div>
+        <button class="add-balance-button" id="toggleBalanceMenu">+</button>
+        <!-- Форма пополнения -->
+        <div class="balance-menu" id="balanceMenu">
+            <input type="number" placeholder="Сумма пополнения" min="1" required>
+            <button onclick="alert('Пополнение на сумму')">Пополнить</button>
+        </div>
+    </div>
+</div>
+
+<!-- Основной контент -->
+<div class="main-container">
+    <!-- Боковая панель с последними скинами -->
+    <div class="recent-skins">
+        <div class="recent-skin-item">
+            <img src="https://via.placeholder.com/80" alt="Скин 1">
+            <div class="recent-skin-label">Скин 1</div>
+        </div>
+        <div class="recent-skin-item">
+            <img src="https://via.placeholder.com/80" alt="Скин 2">
+            <div class="recent-skin-label">Скин 2</div>
+        </div>
+        <div class="recent-skin-item">
+            <img src="https://via.placeholder.com/80" alt="Скин 3">
+            <div class="recent-skin-label">Скин 3</div>
+        </div>
+        <div class="recent-skin-item">
+            <img src="https://via.placeholder.com/80" alt="Скин 4">
+            <div class="recent-skin-label">Скин 4</div>
+        </div>
+        <div class="recent-skin-item">
+            <img src="https://via.placeholder.com/80" alt="Скин 5">
+            <div class="recent-skin-label">Скин 5</div>
+        </div>
+    </div>
+
+    <!-- Контейнер кейсов -->
+    <div class="cases-container">
+        <!-- 24 кейса (6 строк по 4 кейса) -->
+        <div class="case-item" onclick="alert('Вы кликнули на Кейс 1')">
+            <img src="https://via.placeholder.com/250x250" alt="Кейс 1">
+            <div class="case-info">
+                <span>Кейс 1</span>
+                <span>$10</span>
+            </div>
+        </div>
+        <div class="case-item" onclick="alert('Вы кликнули на Кейс 2')">
+            <img src="https://via.placeholder.com/250x250" alt="Кейс 2">
+            <div class="case-info">
+                <span>Кейс 2</span>
+                <span>$15</span>
+            </div>
+        </div>
+        <div class="case-item" onclick="alert('Вы кликнули на Кейс 3')">
+            <img src="https://via.placeholder.com/250x250" alt="Кейс 3">
+            <div class="case-info">
+                <span>Кейс 3</span>
+                <span>$20</span>
+            </div>
+        </div>
+        <div class="case-item" onclick="alert('Вы кликнули на Кейс 4')">
+            <img src="https://via.placeholder.com/250x250" alt="Кейс 4">
+            <div class="case-info">
+                <span>Кейс 4</span>
+                <span>$25</span>
+            </div>
+        </div>
+        <div class="case-item" onclick="alert('Вы кликнули на Кейс 5')">
+            <img src="https://via.placeholder.com/250x250" alt="Кейс 5">
+            <div class="case-info">
+                <span>Кейс 5</span>
+                <span>$30</span>
+            </div>
+        </div>
+        <div class="case-item" onclick="alert('Вы кликнули на Кейс 6')">
+            <img src="https://via.placeholder.com/250x250" alt="Кейс 6">
+            <div class="case-info">
+                <span>Кейс 6</span>
+                <span>$35</span>
+            </div>
+        </div>
+        <div class="case-item" onclick="alert('Вы кликнули на Кейс 7')">
+            <img src="https://via.placeholder.com/250x250" alt="Кейс 7">
+            <div class="case-info">
+                <span>Кейс 7</span>
+                <span>$40</span>
+            </div>
+        </div>
+        <div class="case-item" onclick="alert('Вы кликнули на Кейс 8')">
+            <img src="https://via.placeholder.com/250x250" alt="Кейс 8">
+            <div class="case-info">
+                <span>Кейс 8</span>
+                <span>$45</span>
+            </div>
+        </div>
+        <div class="case-item" onclick="alert('Вы кликнули на Кейс 9')">
+            <img src="https://via.placeholder.com/250x250" alt="Кейс 9">
+            <div class="case-info">
+                <span>Кейс 9</span>
+                <span>$50</span>
+            </div>
+        </div>
+        <div class="case-item" onclick="alert('Вы кликнули на Кейс 10')">
+            <img src="https://via.placeholder.com/250x250" alt="Кейс 10">
+            <div class="case-info">
+                <span>Кейс 10</span>
+                <span>$55</span>
+            </div>
+        </div>
+        <div class="case-item" onclick="alert('Вы кликнули на Кейс 11')">
+            <img src="https://via.placeholder.com/250x250" alt="Кейс 11">
+            <div class="case-info">
+                <span>Кейс 11</span>
+                <span>$60</span>
+            </div>
+        </div>
+        <div class="case-item" onclick="alert('Вы кликнули на Кейс 12')">
+            <img src="https://via.placeholder.com/250x250" alt="Кейс 12">
+            <div class="case-info">
+                <span>Кейс 12</span>
+                <span>$65</span>
+            </div>
+        </div>
+        <div class="case-item" onclick="alert('Вы кликнули на Кейс 13')">
+            <img src="https://via.placeholder.com/250x250" alt="Кейс 13">
+            <div class="case-info">
+                <span>Кейс 13</span>
+                <span>$70</span>
+            </div>
+        </div>
+        <div class="case-item" onclick="alert('Вы кликнули на Кейс 14')">
+            <img src="https://via.placeholder.com/250x250" alt="Кейс 14">
+            <div class="case-info">
+                <span>Кейс 14</span>
+                <span>$75</span>
+            </div>
+        </div>
+        <div class="case-item" onclick="alert('Вы кликнули на Кейс 15')">
+            <img src="https://via.placeholder.com/250x250" alt="Кейс 15">
+            <div class="case-info">
+                <span>Кейс 15</span>
+                <span>$80</span>
+            </div>
+        </div>
+        <div class="case-item" onclick="alert('Вы кликнули на Кейс 16')">
+            <img src="https://via.placeholder.com/250x250" alt="Кейс 16">
+            <div class="case-info">
+                <span>Кейс 16</span>
+                <span>$85</span>
+            </div>
+        </div>
+        <div class="case-item" onclick="alert('Вы кликнули на Кейс 17')">
+            <img src="https://via.placeholder.com/250x250" alt="Кейс 17">
+            <div class="case-info">
+                <span>Кейс 17</span>
+                <span>$90</span>
+            </div>
+        </div>
+        <div class="case-item" onclick="alert('Вы кликнули на Кейс 18')">
+            <img src="https://via.placeholder.com/250x250" alt="Кейс 18">
+            <div class="case-info">
+                <span>Кейс 18</span>
+                <span>$95</span>
+            </div>
+        </div>
+        <div class="case-item" onclick="alert('Вы кликнули на Кейс 19')">
+            <img src="https://via.placeholder.com/250x250" alt="Кейс 19">
+            <div class="case-info">
+                <span>Кейс 19</span>
+                <span>$100</span>
+            </div>
+        </div>
+        <div class="case-item" onclick="alert('Вы кликнули на Кейс 20')">
+            <img src="https://via.placeholder.com/250x250" alt="Кейс 20">
+            <div class="case-info">
+                <span>Кейс 20</span>
+                <span>$105</span>
+            </div>
+        </div>
+        <div class="case-item" onclick="alert('Вы кликнули на Кейс 21')">
+            <img src="https://via.placeholder.com/250x250" alt="Кейс 21">
+            <div class="case-info">
+                <span>Кейс 21</span>
+                <span>$110</span>
+            </div>
+        </div>
+        <div class="case-item" onclick="alert('Вы кликнули на Кейс 22')">
+            <img src="https://via.placeholder.com/250x250" alt="Кейс 22">
+            <div class="case-info">
+                <span>Кейс 22</span>
+                <span>$115</span>
+            </div>
+        </div>
+        <div class="case-item" onclick="alert('Вы кликнули на Кейс 23')">
+            <img src="https://via.placeholder.com/250x250" alt="Кейс 23">
+            <div class="case-info">
+                <span>Кейс 23</span>
+                <span>$120</span>
+            </div>
+        </div>
+        <div class="case-item" onclick="alert('Вы кликнули на Кейс 24')">
+            <img src="https://via.placeholder.com/250x250" alt="Кейс 24">
+            <div class="case-info">
+                <span>Кейс 24</span>
+                <span>$125</span>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    document.getElementById("siteName").addEventListener("click", function() {
+        window.location.href = "#";
+    });
+
+    const balanceMenu = document.getElementById("balanceMenu");
+    const toggleButton = document.getElementById("toggleBalanceMenu");
+    toggleButton.addEventListener("click", function () {
+        balanceMenu.style.display = balanceMenu.style.display === "flex" ? "none" : "flex";
+    });
+
+    document.addEventListener("click", function (event) {
+        if (!document.querySelector(".user-profile").contains(event.target)) {
+            balanceMenu.style.display = "none";
+        }
+    });
+</script>
 </body>
 </html>

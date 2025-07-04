@@ -19,10 +19,16 @@ depends_on: Union[str, Sequence[str], None] = None
 
 
 def upgrade() -> None:
-    """Upgrade schema."""
+    op.execute("""
+        ALTER TABLE case_models
+        ADD CONSTRAINT pk_case_models_id PRIMARY KEY (id)
+    """)
     pass
 
 
 def downgrade() -> None:
-    """Downgrade schema."""
+    op.execute("""
+            ALTER TABLE case_models
+            DROP CONSTRAINT pk_case_models_id
+        """)
     pass

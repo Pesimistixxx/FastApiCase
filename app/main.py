@@ -1,16 +1,14 @@
-import asyncio
-import threading
-
 import uvicorn
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
+from fastapi.templating import Jinja2Templates
 from app.auth.router import authRouter
 from app.case.router import caseRouter
 from app.skin.router import skinRouter
 
-from db_cleaner.db_cleaner import db_cleaner_scheduler
-from price_tracker.price_tracker import price_tracker_scheduler
 
 app = FastAPI()
+templates = Jinja2Templates(directory='templates')
+
 
 app.include_router(authRouter)
 app.include_router(caseRouter)
@@ -18,8 +16,8 @@ app.include_router(skinRouter)
 
 
 @app.get('/')
-async def home():
-    return 0
+async def get_main_page(request: Request):
+    return templates.TemplateResponse('main.html', {'request': request})
 
 
 if __name__ == '__main__':

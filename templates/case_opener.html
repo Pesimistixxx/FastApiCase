@@ -1,0 +1,793 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Открытие кейса</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #121212;
+            margin: 0;
+            padding: 0;
+            color: #ffffff;
+            overflow-x: hidden;
+        }
+
+        .navbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background-color: #1e1e1e;
+            padding: 15px 30px;
+            border-bottom: 1px solid #333;
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+        }
+        .nav-left {
+            font-size: 20px;
+            font-weight: bold;
+            color: #2979ff;
+            cursor: pointer;
+            text-decoration: none;
+        }
+        .nav-buttons {
+            display: flex;
+            gap: 40px;
+        }
+        .nav-buttons button {
+            background-color: #2979ff;
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            font-size: 14px;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        .nav-buttons button:hover {
+            background-color: #1c54b2;
+        }
+
+        .user-profile {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            position: relative;
+        }
+        .profile-link {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            text-decoration: none;
+            color: inherit;
+            cursor: pointer;
+        }
+        .user-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 2px solid #2979ff;
+            cursor: pointer;
+        }
+        .user-info {
+            text-align: left;
+            font-size: 14px;
+        }
+        .user-username {
+            font-weight: bold;
+        }
+        .user-balance {
+            color: #aeeaff;
+            font-size: 12px;
+        }
+        .add-balance-button {
+            background-color: #4caf50;
+            color: white;
+            border: none;
+            width: 30px;
+            height: 30px;
+            font-size: 20px;
+            border-radius: 50%;
+            cursor: pointer;
+            margin-left: 10px;
+        }
+        .add-balance-button:hover {
+            background-color: #388e3c;
+        }
+
+        .balance-menu {
+            position: absolute;
+            top: 50px;
+            right: 0;
+            background-color: #2a2a2a;
+            padding: 15px;
+            border-radius: 6px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.5);
+            width: 200px;
+            display: none;
+            flex-direction: column;
+            gap: 10px;
+        }
+        .balance-menu input {
+            padding: 8px;
+            border: 1px solid #444;
+            border-radius: 4px;
+            background-color: #1e1e1e;
+            color: #fff;
+        }
+        .balance-menu button {
+            padding: 8px;
+            background-color: #2979ff;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        .balance-menu button:hover {
+            background-color: #1c54b2;
+        }
+
+        .main-container {
+            display: flex;
+            max-width: 1200px;
+            margin: 40px auto;
+            gap: 30px;
+        }
+
+        .recent-skins {
+            width: 100px;
+            position: sticky;
+            top: 80px;
+            height: calc(100vh - 80px);
+            overflow-y: hidden;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            justify-content: space-around;
+        }
+        .recent-skin-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 5px;
+            background-color: #242424;
+            border-radius: 6px;
+            padding: 5px;
+            border: 1px solid #444;
+        }
+        .recent-skin-item img {
+            width: 80px;
+            height: 80px;
+            object-fit: cover;
+            border-radius: 4px;
+        }
+        .recent-skin-label {
+            font-size: 12px;
+            color: #cccccc;
+            text-align: center;
+        }
+
+        .case-open-container {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .case-title {
+            font-size: 24px;
+            font-weight: bold;
+            margin-top: 20px;
+        }
+
+        .case-image {
+            width: 250px;
+            height: 250px;
+            object-fit: cover;
+            border-radius: 8px;
+            border: 1px solid #444;
+        }
+
+        .quantity-select {
+            font-size: 16px;
+            margin-top: 10px;
+        }
+
+        .quantity-buttons {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 8px;
+            margin: 10px 0;
+        }
+
+        .quantity-buttons button {
+            background-color: #2979ff;
+            color: white;
+            border: none;
+            min-width: 40px;
+            height: 30px;
+            font-size: 14px;
+            border-radius: 4px;
+            cursor: pointer;
+            flex-shrink: 0;
+            transition: background-color 0.2s ease;
+        }
+
+        .quantity-buttons button.active {
+            background-color: #1c54b2;
+        }
+
+        .quantity-buttons button:hover {
+            background-color: #1c54b2;
+        }
+
+        .action-buttons {
+            display: flex;
+            justify-content: center;
+            width: 100%;
+            max-width: 400px;
+        }
+
+        .action-buttons button {
+            background-color: #2979ff;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            font-size: 14px;
+            border-radius: 4px;
+            cursor: pointer;
+            width: 100%;
+            max-width: 200px;
+            transition: background-color 0.2s ease;
+            height: 40px;
+        }
+
+        .action-buttons button:hover {
+            background-color: #1c54b2;
+        }
+
+        .items-list {
+            margin-top: 30px;
+            width: 100%;
+            font-size: 18px;
+            font-weight: bold;
+            text-align: center;
+        }
+
+        .items-grid {
+            display: grid;
+            grid-template-columns: repeat(6, 1fr);
+            gap: 10px;
+            margin-top: 10px;
+        }
+
+        .item-card {
+            background-color: #242424;
+            border-radius: 6px;
+            border: 1px solid #444;
+            padding: 5px;
+            text-align: center;
+            font-size: 12px;
+            color: #ccc;
+            aspect-ratio: 1 / 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+        }
+
+        .item-card img {
+            width: 100px;
+            height: 100px;
+            object-fit: cover;
+            border-radius: 4px;
+            margin-bottom: 5px;
+        }
+
+        .action-buttons button:disabled {
+            background-color: #555;
+            cursor: not-allowed;
+            opacity: 0.7;
+        }
+
+        .modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.8);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 2000;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s ease;
+        }
+
+        .modal.active {
+            opacity: 1;
+            pointer-events: all;
+        }
+
+        .modal-content {
+            background-color: #2a2a2a;
+            padding: 30px;
+            border-radius: 10px;
+            width: 400px;
+            text-align: center;
+            position: relative;
+        }
+
+        .modal-skin-image {
+            width: 200px;
+            height: 200px;
+            object-fit: contain;
+            margin: 20px auto;
+            display: block;
+        }
+
+        .modal-skin-name {
+            font-size: 24px;
+            font-weight: bold;
+            margin: 15px 0;
+            color: #ffffff;
+        }
+
+        .modal-skin-price {
+            font-size: 18px;
+            color: #4CAF50;
+            margin-bottom: 20px;
+        }
+
+        .modal-close {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: none;
+            border: none;
+            color: white;
+            font-size: 20px;
+            cursor: pointer;
+        }
+
+        .modal-buttons {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+        }
+
+        .modal-buttons button {
+            padding: 10px 20px;
+            background-color: #2979ff;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+
+        .modal-buttons button:hover {
+            background-color: #1c54b2;
+        }
+
+        .skin-counter {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            font-size: 16px;
+            color: #aeeaff;
+        }
+
+        .skin-animation {
+            animation: skinAppear 0.5s ease-out;
+        }
+
+        @keyframes skinAppear {
+            0% {
+                opacity: 0;
+                transform: scale(0.5);
+            }
+            100% {
+                opacity: 1;
+                transform: scale(1);
+            }
+        }
+
+        .next-skin-btn {
+            background-color: #4CAF50 !important;
+        }
+
+        .next-skin-btn:hover {
+            background-color: #388E3C !important;
+        }
+
+        .price-up {
+            color: #4CAF50;
+            animation: priceUp 0.5s ease-out;
+        }
+
+        .price-down {
+            color: #F44336;
+            animation: priceDown 0.5s ease-out;
+        }
+
+        @keyframes priceUp {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.2); }
+            100% { transform: scale(1); }
+        }
+
+        @keyframes priceDown {
+            0% { transform: scale(1); }
+            50% { transform: scale(0.8); }
+            100% { transform: scale(1); }
+        }
+    </style>
+</head>
+<body>
+<div class="navbar">
+    <div class="nav-left" id="siteName">Meow Case Simulator</div>
+    <div class="nav-buttons">
+        <button>Контракты</button>
+        <button>Апгрейды</button>
+    </div>
+    {% if user %}
+    <div class="user-profile" id="userProfile">
+        <a href="/user/profile" class="profile-link">
+            <img src="https://via.placeholder.com/40" alt="Аватар" class="user-avatar">
+            <div class="user-info">
+                <div class="user-username">{{username}}</div>
+                <div class="user-balance">Баланс: {{balance}}</div>
+            </div>
+        </a>
+        <button class="add-balance-button" id="toggleBalanceMenu">+</button>
+        <div class="balance-menu" id="balanceMenu">
+            <input type="number" id="amountInput" placeholder="Сумма пополнения" min="1" required>
+            <button id="addMoneyBtn">Пополнить</button>
+        </div>
+    </div>
+    {% else %}
+    <div class="nav-buttons">
+        <a href="/user/register"><button>Зарегистрироваться</button></a>
+        <a href="/user/login"><button>Войти</button></a>
+    </div>
+    {% endif %}
+</div>
+
+<div class="main-container">
+    <div class="recent-skins">
+        {% for skin in last_skins %}
+        <div class="recent-skin-item">
+            <img src="/static/skins/{{skin.skin.image}}"
+                 alt="{{ skin.skin.name }}"
+                 onerror="this.onerror=null; this.src='https://via.placeholder.com/100'">
+            <div class="recent-skin-label">{{ skin.skin.name}}</div>
+        </div>
+        {% endfor %}
+    </div>
+
+    <div class="case-open-container">
+        <div class="case-title">{{ case_name }}</div>
+        <img src="https://via.placeholder.com/250x250" alt="Кейс" class="case-image">
+        <div class="quantity-select">Выберите количество открытий</div>
+        <div class="quantity-buttons">
+        </div>
+
+        <div class="action-buttons">
+            <button id="openBtn">Открыть за {{ case_price }}</button>
+        </div>
+
+        <div class="items-list">Список скинов</div>
+        <div class="items-grid" id="itemsGrid">
+            {% for skin in skins %}
+            <div class="item-card" data-skin-id="{{ skin.id }}">
+                <img src="/static/skins/{{skin.image}}"
+                     alt="{{ skin.name }}"
+                     onerror="this.onerror=null; this.src='https://via.placeholder.com/100'">
+                <span class="skin-name">{{ skin.name }}</span> <br>
+                <span class="skin-price">{{ skin.price }}</span>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+
+<div class="modal" id="skinModal">
+    <div class="modal-content">
+        <button class="modal-close" id="closeModal">&times;</button>
+        <div class="skin-counter" id="skinCounter"></div>
+        <img src="" alt="Выпавший скин" class="modal-skin-image skin-animation" id="modalSkinImage">
+        <div class="modal-skin-name skin-animation" id="modalSkinName"></div>
+        <div class="modal-skin-price skin-animation" id="modalSkinPrice"></div>
+        <div class="modal-buttons">
+            <button id="openAgainBtn">Открыть ещё раз</button>
+            <button id="nextSkinBtn" class="next-skin-btn">Далее</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    function parseMoney(value) {
+        if (typeof value === 'number') return value;
+        const cleaned = String(value).replace(/[^\d.,]/g, '').replace(',', '.');
+        return parseFloat(cleaned) || 0;
+    }
+
+    const casePrice = parseMoney("{{ case_price }}");
+    let userBalance = parseMoney("{{ balance if user else 0 }}");
+    let selectedQuantity = 1;
+    let skinPrices = {};
+
+    document.querySelectorAll('.item-card').forEach(card => {
+        const skinId = card.dataset.skinId;
+        const priceElement = card.querySelector('.skin-price');
+        const originalPrice = parseMoney(priceElement.textContent);
+        skinPrices[skinId] = originalPrice;
+    });
+
+    function updateSkinPrices() {
+        const priceMultiplier = 1 + (Math.random() * 0.2 - 0.1); // Изменение цены на ±10%
+
+        document.querySelectorAll('.item-card').forEach(card => {
+            const skinId = card.dataset.skinId;
+            const priceElement = card.querySelector('.skin-price');
+            const originalPrice = skinPrices[skinId];
+            const newPrice = originalPrice * priceMultiplier;
+
+            const currentPrice = parseMoney(priceElement.textContent);
+            const priceChangeClass = newPrice > currentPrice ? 'price-up' : 'price-down';
+
+            priceElement.textContent = newPrice.toFixed(2);
+            priceElement.classList.add(priceChangeClass);
+
+            setTimeout(() => {
+                priceElement.classList.remove(priceChangeClass);
+            }, 500);
+        });
+    }
+
+    function updateOpenButton() {
+        const totalPrice = casePrice * selectedQuantity;
+        const formattedPrice = totalPrice.toFixed(2);
+
+        document.getElementById('openBtn').textContent = `Открыть за ${formattedPrice}`;
+
+        const isDisabled = totalPrice > userBalance;
+        document.getElementById('openBtn').disabled = isDisabled;
+    }
+
+    function formatBalances() {
+        document.querySelectorAll('.user-balance').forEach(el => {
+            const num = parseMoney(el.textContent);
+            el.textContent = `Баланс: ${num.toFixed(2)}`;
+        });
+    }
+
+    document.addEventListener('DOMContentLoaded', function() {
+        const quantityContainer = document.querySelector('.quantity-buttons');
+
+        for (let i = 1; i <= 10; i++) {
+            const button = document.createElement('button');
+            button.textContent = i;
+            button.dataset.quantity = i;
+            quantityContainer.appendChild(button);
+
+            if (i === 1) button.classList.add('active');
+
+            button.addEventListener('click', function() {
+                selectedQuantity = parseInt(this.dataset.quantity);
+
+                document.querySelectorAll('.quantity-buttons button').forEach(btn => {
+                    btn.classList.remove('active');
+                });
+                this.classList.add('active');
+
+                updateOpenButton();
+            });
+        }
+
+        updateOpenButton();
+        formatBalances();
+    });
+
+    document.getElementById("siteName").addEventListener("click", function() {
+        window.location.href = "/";
+    });
+
+    const balanceMenu = document.getElementById("balanceMenu");
+    const toggleButton = document.getElementById("toggleBalanceMenu");
+
+    toggleButton.addEventListener("click", function() {
+        balanceMenu.style.display = balanceMenu.style.display === "flex" ? "none" : "flex";
+    });
+
+    document.addEventListener("click", function(event) {
+        if (!document.querySelector(".user-profile").contains(event.target)) {
+            balanceMenu.style.display = "none";
+        }
+    });
+
+    document.getElementById('addMoneyBtn').addEventListener('click', async function() {
+        const amountInput = document.getElementById('amountInput');
+        const amount = parseMoney(amountInput.value);
+
+        if (isNaN(amount) || amount <= 0) {
+            alert('Введите корректную сумму');
+            return;
+        }
+
+        try {
+            const response = await fetch(`/user/add_money/${amount}`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                }
+            });
+
+            const result = await response.json();
+
+            if (response.ok) {
+                document.querySelector('.user-balance').textContent = `Баланс: ${result.new_balance}`;
+                userBalance = parseMoney(result.new_balance);
+                updateOpenButton();
+                balanceMenu.style.display = 'none';
+                amountInput.value = '';
+
+                updateSkinPrices();
+            } else {
+                throw new Error(result.detail || 'Ошибка пополнения');
+            }
+        } catch (error) {
+            alert(error.message);
+        }
+    });
+
+    const skinModal = document.getElementById('skinModal');
+    const modalSkinImage = document.getElementById('modalSkinImage');
+    const modalSkinName = document.getElementById('modalSkinName');
+    const modalSkinPrice = document.getElementById('modalSkinPrice');
+    const skinCounter = document.getElementById('skinCounter');
+    const closeModal = document.getElementById('closeModal');
+    const openAgainBtn = document.getElementById('openAgainBtn');
+    const nextSkinBtn = document.getElementById('nextSkinBtn');
+
+    let currentSkinIndex = 0;
+    let allSkins = [];
+
+    async function openCase() {
+        const caseName = "{{ case_name }}";
+        const url = `/case/${encodeURIComponent(caseName)}`;
+        const data = {
+            cnt: selectedQuantity,
+            fast: true
+        };
+
+        try {
+            const openBtn = document.getElementById('openBtn');
+            openBtn.disabled = true;
+            openBtn.textContent = 'Открываем...';
+
+            const response = await fetch(url, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(data)
+            });
+
+            const result = await response.json();
+
+            if (response.ok) {
+                userBalance = parseMoney(result.new_balance);
+                document.querySelector('.user-balance').textContent = `Баланс: ${result.new_balance.toFixed(2)}`;
+
+                updateSkinPrices();
+
+                allSkins = result.skins;
+                currentSkinIndex = 0;
+
+                showSkin();
+
+                updateOpenButton();
+            } else {
+                throw new Error(result.detail || 'Ошибка при открытии кейса');
+            }
+        } catch (error) {
+            alert(error.message);
+        } finally {
+            const totalPrice = casePrice * selectedQuantity;
+            const openBtn = document.getElementById('openBtn');
+            openBtn.textContent = `Открыть за ${totalPrice.toFixed(2)}`;
+            openBtn.disabled = totalPrice > userBalance;
+        }
+    }
+
+    function showSkin() {
+        if (currentSkinIndex >= allSkins.length) {
+            closeSkinModal();
+            return;
+        }
+
+        const skin = allSkins[currentSkinIndex];
+
+        skinCounter.textContent = `${currentSkinIndex + 1} из ${allSkins.length}`;
+
+        modalSkinImage.src = `/static/skins/${skin.image}`;
+        modalSkinImage.onerror = function() {
+            this.src = 'https://via.placeholder.com/200';
+        };
+
+        modalSkinName.textContent = skin.name;
+        modalSkinPrice.textContent = `Цена: ${skin.price}`;
+
+        skinModal.classList.add('active');
+
+        modalSkinImage.classList.add('skin-animation');
+        modalSkinName.classList.add('skin-animation');
+        modalSkinPrice.classList.add('skin-animation');
+
+        setTimeout(() => {
+            modalSkinImage.classList.remove('skin-animation');
+            modalSkinName.classList.remove('skin-animation');
+            modalSkinPrice.classList.remove('skin-animation');
+        }, 500);
+
+        if (currentSkinIndex === allSkins.length - 1) {
+            nextSkinBtn.textContent = 'Закрыть';
+        } else {
+            nextSkinBtn.textContent = 'Далее';
+        }
+
+        if (userBalance < casePrice) {
+            openAgainBtn.style.display = 'none';
+        } else {
+            openAgainBtn.style.display = 'block';
+        }
+    }
+
+    function nextSkin() {
+        currentSkinIndex++;
+        if (currentSkinIndex < allSkins.length) {
+            showSkin();
+        } else {
+            closeSkinModal();
+        }
+    }
+
+    function closeSkinModal() {
+        skinModal.classList.remove('active');
+        allSkins = [];
+        currentSkinIndex = 0;
+    }
+
+    closeModal.addEventListener('click', closeSkinModal);
+
+    openAgainBtn.addEventListener('click', function() {
+        selectedQuantity = 1;
+
+        document.querySelectorAll('.quantity-buttons button').forEach(btn => {
+            btn.classList.remove('active');
+        });
+        document.querySelector('.quantity-buttons button:first-child').classList.add('active');
+
+        openCase();
+    });
+
+    nextSkinBtn.addEventListener('click', nextSkin);
+
+    window.addEventListener('click', function(event) {
+        if (event.target === skinModal) {
+            closeSkinModal();
+        }
+    });
+
+    document.getElementById('openBtn').addEventListener('click', openCase);
+</script>
+</body>
+</html>

@@ -19,7 +19,6 @@ class Case_model(Base):
 
     skin_associations: Mapped[List["Case_Skin_model"]] = relationship("Case_Skin_model", back_populates="case")
 
-    # Для прямого доступа к скинам:
     skins: Mapped[List["Skin_model"]] = relationship(
         "Skin_model",
         secondary="case_models",

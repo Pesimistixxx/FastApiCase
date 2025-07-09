@@ -22,7 +22,7 @@ async def verify_session(session_id: str,
         )
     if session.expires <= datetime.datetime.now():
         await db.execute(delete(Session_model).where(
-            Session_model.id==session.id
+            Session_model.id == session.id
         ))
         await db.commit()
         return None
@@ -33,6 +33,11 @@ async def verify_session(session_id: str,
         User_model.is_active == True
     ))
 
+    if not user:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail='User not found'
+        )
     return user
 
 
@@ -49,3 +54,15 @@ async def get_user(request: Request,
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail='Invalid session')
 
     return user
+
+
+async def get_current_user_or_none(request: Request,
+                                   db: Annotated[AsyncSession, Depends(get_db)]):
+    session_id = request.cookies.get("session_id")
+    if not session_id:
+        return None
+
+    try:
+        return await verify_session(session_id, db)
+    except HTTPException:
+        return None

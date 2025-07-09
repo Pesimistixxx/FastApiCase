@@ -1,0 +1,538 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Профиль пользователя</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #121212;
+            margin: 0;
+            padding: 0;
+            color: #ffffff;
+            overflow-y: auto;
+        }
+
+        .navbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background-color: #1e1e1e;
+            padding: 15px 30px;
+            border-bottom: 1px solid #333;
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+        }
+
+        .nav-left {
+            font-size: 20px;
+            font-weight: bold;
+            color: #2979ff;
+            cursor: pointer;
+            text-decoration: none;
+        }
+
+        .nav-buttons {
+            display: flex;
+            gap: 40px;
+        }
+
+        .nav-buttons button {
+            background-color: #2979ff;
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            font-size: 14px;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        .nav-buttons button:hover {
+            background-color: #1c54b2;
+        }
+
+        .user-profile {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            position: relative;
+        }
+
+        .user-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 2px solid #2979ff;
+            cursor: pointer;
+        }
+
+        .user-info {
+            text-align: left;
+            font-size: 14px;
+        }
+
+        .user-username {
+            font-weight: bold;
+        }
+
+        .user-balance {
+            color: #aeeaff;
+            font-size: 12px;
+        }
+
+        .add-balance-button {
+            background-color: #4caf50;
+            color: white;
+            border: none;
+            width: 30px;
+            height: 30px;
+            font-size: 20px;
+            border-radius: 50%;
+            cursor: pointer;
+            margin-left: 10px;
+        }
+
+        .add-balance-button:hover {
+            background-color: #388e3c;
+        }
+
+        .balance-menu {
+            position: absolute;
+            top: 50px;
+            right: 0;
+            background-color: #2a2a2a;
+            padding: 15px;
+            border-radius: 6px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.5);
+            width: 200px;
+            display: none;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .balance-menu input {
+            padding: 8px;
+            border: 1px solid #444;
+            border-radius: 4px;
+            background-color: #1e1e1e;
+            color: #fff;
+        }
+
+        .balance-menu button {
+            padding: 8px;
+            background-color: #2979ff;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        .balance-menu button:hover {
+            background-color: #1c54b2;
+        }
+
+        .profile-container {
+            max-width: 600px;
+            margin: 40px auto;
+            background-color: #1e1e1e;
+            border-radius: 10px;
+            padding: 30px;
+            box-shadow: 0 0 15px rgba(255, 255, 255, 0.1);
+            text-align: center;
+        }
+
+        .avatar {
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 3px solid #2979ff;
+            margin-bottom: 15px;
+        }
+
+        .username {
+            font-size: 24px;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+
+        .balance {
+            font-size: 18px;
+            color: #aeeaff;
+            margin-bottom: 50px;
+        }
+
+        .skins-title {
+            font-size: 20px;
+            font-weight: bold;
+            margin-bottom: 20px;
+            color: #ffffff;
+        }
+
+        .skins-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            grid-template-rows: repeat(6, auto);
+            grid-gap: 20px 15px;
+            justify-items: center;
+        }
+
+        .skin-item {
+            position: relative;
+            width: 100px;
+            height: 120px;
+            background-color: #242424;
+            border-radius: 8px;
+            overflow: hidden;
+            border: 1px solid #444;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: space-between;
+            padding: 10px 5px 5px;
+            box-sizing: border-box;
+            transition: opacity 0.3s ease;
+        }
+
+        .skin-item img {
+            width: 100%;
+            height: 70px;
+            object-fit: cover;
+            border-radius: 4px;
+            flex-shrink: 0;
+        }
+
+        .skin-label {
+            font-size: 12px;
+            color: #cccccc;
+            text-align: center;
+            margin-top: 5px;
+        }
+
+        .sell-button {
+            position: absolute;
+            top: 0;
+            right: 0;
+            width: 20px;
+            height: 20px;
+            background-color: rgba(255, 0, 0, 0.5);
+            color: white;
+            font-size: 10px;
+            font-weight: bold;
+            border: none;
+            border-radius: 0 4px 0 0;
+            cursor: pointer;
+            z-index: 2;
+        }
+
+        .sell-button:hover {
+            background-color: rgba(255, 0, 0, 0.7);
+        }
+
+        .profile-link {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            text-decoration: none;
+            color: inherit;
+            cursor: pointer;
+        }
+
+        .notification {
+           position: fixed;
+           bottom: 20px;
+           right: 20px;
+           padding: 10px 20px;
+           background-color: #4CAF50;
+           color: white;
+           border-radius: 4px;
+           z-index: 10000;
+           box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+           opacity: 1;
+           transition: opacity 0.3s ease;
+        }
+
+        .notification.error {
+           background-color: #f44336;
+        }
+
+        .modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.7);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s ease;
+        }
+
+        .modal.active {
+            opacity: 1;
+            pointer-events: all;
+        }
+
+        .modal-content {
+            background-color: #2a2a2a;
+            padding: 30px;
+            border-radius: 10px;
+            width: 300px;
+            text-align: center;
+            transform: translateY(-20px);
+            transition: transform 0.3s ease;
+        }
+
+        .modal.active .modal-content {
+            transform: translateY(0);
+        }
+
+        .modal-buttons {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-top: 25px;
+        }
+
+        .modal-buttons button {
+            padding: 8px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        #confirm-sell {
+            background-color: #4CAF50;
+            color: white;
+        }
+
+        #cancel-sell {
+            background-color: #f44336;
+            color: white;
+        }
+    </style>
+</head>
+<body>
+
+<div class="navbar">
+    <div class="nav-left" id="siteName">Meow Case Simulator</div>
+    <div class="nav-buttons">
+        <button>Контракты</button>
+        <button>Апгрейды</button>
+    </div>
+    <div class="user-profile" id="userProfile">
+        <a href="/user/profile" class="profile-link">
+            <img src="https://via.placeholder.com/40" alt="Аватар" class="user-avatar">
+            <div class="user-info">
+                <div class="user-username">{{username}}</div>
+                <div class="user-balance">Баланс: {{balance}}</div>
+            </div>
+        </a>
+        <button class="add-balance-button" id="toggleBalanceMenu">+</button>
+        <div class="balance-menu" id="balanceMenu">
+            <input type="number" id="amountInput" placeholder="Сумма пополнения" min="1" required>
+            <button id="addMoneyBtn">Пополнить</button>
+        </div>
+    </div>
+</div>
+
+<div class="profile-container">
+    <img src="https://via.placeholder.com/120" alt="Аватар" class="avatar">
+
+    <div class="username">{{username}}</div>
+
+    <div class="balance">Баланс: {{balance}}</div>
+
+    <div class="skins-title">Выпавшие скины</div>
+
+    <div class="skins-grid">
+        {% for skin in last_skins %}
+            <div class="skin-item">
+                <div data-user-skin-id="{{ skin.id }}" class="skin-price">
+                  {{ skin.skin.price }}
+                </div>
+                <button class="sell-button">×</button>
+                 <img src="/static/skins/{{skin.skin.image}}"
+                     alt="{{ skin.skin.name }}"
+                     onerror="this.onerror=null; this.src='https://via.placeholder.com/100'">
+                <div class="skin-label">{{ skin.skin.name }}</div>
+            </div>
+        {% endfor %}
+    </div>
+</div>
+
+<div id="confirmation-modal" class="modal">
+    <div class="modal-content">
+        <h3>Подтверждение продажи</h3>
+        <p id="confirmation-message"></p>
+        <div class="modal-buttons">
+            <button id="confirm-sell">Да</button>
+            <button id="cancel-sell">Нет</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    function parseMoney(value) {
+        if (typeof value === 'number') return value;
+        const cleaned = String(value).replace(/[^\d.,]/g, '').replace(',', '.');
+        return parseFloat(cleaned) || 0;
+    }
+
+     async function addMoney() {
+        const amountInput = document.getElementById('amountInput');
+        const amount = parseMoney(amountInput.value);
+
+        if (isNaN(amount) || amount <= 0) {
+            alert('Введите корректную сумму');
+            return;
+        }
+
+        try {
+            const response = await fetch(`/user/add_money/${amount}`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                }
+            });
+
+            const result = await response.json();
+
+            if (response.ok) {
+                document.querySelector('.user-balance').textContent = `Баланс: ${result.new_balance}`;
+                document.querySelector('.balance').textContent = `Баланс: ${result.new_balance}`;
+                formatBalances();
+                balanceMenu.style.display = 'none';
+                amountInput.value = '';
+            } else {
+                throw new Error(result.detail || 'Ошибка пополнения');
+            }
+        } catch (error) {
+            alert(error.message);
+        }
+    }
+
+    document.getElementById('addMoneyBtn').addEventListener('click', addMoney);
+
+    document.addEventListener('click', (event) => {
+        const isClickInside = document.querySelector('.user-profile').contains(event.target);
+        if (!isClickInside) {
+            balanceMenu.style.display = 'none';
+        }
+    });
+    // navbar
+    function formatBalances() {
+        document.querySelectorAll('.user-balance, .balance').forEach(el => {
+            const num = parseMoney(el.textContent);
+            el.textContent = `Баланс: ${num.toFixed(2)}`;
+        });
+    }
+
+    formatBalances();
+
+    document.getElementById("siteName").addEventListener("click", function() {
+        window.location.href = "/";
+    });
+
+    document.addEventListener('DOMContentLoaded', function() {
+        formatBalances();
+    });
+
+    const balanceMenu = document.getElementById("balanceMenu");
+    const toggleButton = document.getElementById("toggleBalanceMenu");
+
+    toggleButton.addEventListener("click", function(event) {
+        event.stopPropagation();
+        balanceMenu.style.display = balanceMenu.style.display === "flex" ? "none" : "flex";
+    });
+
+    document.addEventListener("click", function(event) {
+        if (!event.target.closest('.user-profile')) {
+            balanceMenu.style.display = "none";
+        }
+    });
+
+    const modal = document.getElementById('confirmation-modal');
+    const confirmMessage = document.getElementById('confirmation-message');
+    const confirmButton = document.getElementById('confirm-sell');
+    const cancelButton = document.getElementById('cancel-sell');
+
+    let currentUserSkinId = null;
+    let currentSkinPrice = null;
+
+    document.querySelectorAll('.sell-button').forEach(button => {
+        button.addEventListener('click', function(e) {
+            const skinItem = this.closest('.skin-item');
+
+            const priceElement = skinItem.querySelector('.skin-price');
+            currentUserSkinId = priceElement.dataset.userSkinId;
+            currentSkinPrice = parseFloat(priceElement.textContent);
+
+            confirmMessage.textContent = `Вы уверены, что хотите продать скин за ${currentSkinPrice}?`;
+
+            modal.classList.add('active');
+        });
+    });
+
+    confirmButton.addEventListener('click', async () => {
+        if (!currentUserSkinId) return;
+
+        try {
+            const response = await fetch(`/skin/sell/${currentUserSkinId}`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            });
+
+            const result = await response.json();
+
+            if (response.ok) {
+                document.querySelectorAll('.user-balance, .balance').forEach(el => {
+                    el.textContent = `Баланс: ${parseFloat(result.new_balance).toFixed(2)}`;
+                });
+
+                document.querySelector(`.skin-price[data-user-skin-id="${currentUserSkinId}"]`)
+                    .closest('.skin-item')
+                    .remove();
+
+                showNotification('Скин успешно продан!', false);
+            } else {
+                showNotification(`Ошибка: ${result.detail}`, true);
+            }
+        } catch (error) {
+            showNotification('Ошибка сети', true);
+        } finally {
+            modal.classList.remove('active');
+            currentUserSkinId = null;
+            currentSkinPrice = null;
+        }
+    });
+
+    cancelButton.addEventListener('click', () => {
+        modal.classList.remove('active');
+        currentUserSkinId = null;
+        currentSkinPrice = null;
+    });
+
+    function showNotification(message, isError = false) {
+        const notification = document.createElement('div');
+        notification.className = `notification ${isError ? 'error' : ''}`;
+        notification.textContent = message;
+
+        document.body.appendChild(notification);
+
+        setTimeout(() => {
+            notification.style.opacity = '0';
+            setTimeout(() => notification.remove(), 300);
+        }, 3000);
+    }
+</script>
+</body>
+</html>

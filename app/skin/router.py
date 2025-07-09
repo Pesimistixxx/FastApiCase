@@ -3,7 +3,11 @@ from typing import Annotated
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, insert, delete, desc
 import pandas as pd
+from sqlalchemy.orm import selectinload
 
+from app.auth.models import User_model
+from app.auth.security import get_user
+from app.models_associations import User_Skin_model
 from app.skin.models import Skin_model
 from db.db_depends import get_db
 skinRouter = APIRouter(prefix='/skin', tags=['skin'])
@@ -15,6 +19,31 @@ async def get_skin_list(db: Annotated[AsyncSession, Depends(get_db)]):
         Skin_model.is_active == True
     ))
     return skins.all()
+
+
+@skinRouter.post('/sell/{id}')
+async def post_sell_skin(db: Annotated[AsyncSession, Depends(get_db)],
+                         id: int = Path(),
+                         user: User_model = Depends(get_user)):
+    user_skin = await db.scalar(select(User_Skin_model).where(
+        User_Skin_model.id == id,
+        User_Skin_model.user_id == user.id,
+        User_Skin_model.is_active == True
+    ).options(selectinload(User_Skin_model.skin)))
+
+    if not user_skin:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail='skin not found'
+        )
+    new_balance = user.balance + user_skin.skin.price
+    user.balance = new_balance
+    user_skin.is_active = False
+    await db.commit()
+    return {
+            "detail": "successfully sold",
+            'new_balance': new_balance
+            }
 
 
 @skinRouter.get('/{name}')

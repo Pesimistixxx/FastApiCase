@@ -1,10 +1,12 @@
 from typing import Annotated
-from sqlalchemy import select, insert
+from sqlalchemy import select, insert, desc
 from sqlalchemy.ext.asyncio import AsyncSession
-from fastapi import APIRouter, Depends, Path, HTTPException, status
+from fastapi import APIRouter, Depends, Path, HTTPException, status, Request
+from sqlalchemy.orm import selectinload
+from starlette.templating import Jinja2Templates
 
 from app.auth.models import User_model
-from app.auth.security import get_user
+from app.auth.security import get_user, get_current_user_or_none
 from app.models_associations import Case_Skin_model, User_Skin_model
 from db.db_depends import get_db
 from app.case.models import Case_model
@@ -13,6 +15,7 @@ from app.case.schemas import CaseCreate, CaseOpen, CaseCalculateProbability
 from app.case.probability import get_item_by_probability, calculate_probabilities
 
 caseRouter = APIRouter(prefix='/case', tags=['case'])
+templates = Jinja2Templates(directory='templates')
 
 
 @caseRouter.get('/list')
@@ -85,7 +88,9 @@ async def get_skin_case(db: Annotated[AsyncSession, Depends(get_db)]):
 
 
 @caseRouter.get('/{name}')
-async def get_case(db: Annotated[AsyncSession, Depends(get_db)],
+async def get_case(request: Request,
+                   db: Annotated[AsyncSession, Depends(get_db)],
+                   user: User_model | None = Depends(get_current_user_or_none),
                    name: str = Path()):
     case = await db.scalar(select(Case_model).where(
         Case_model.is_active == True,
@@ -98,21 +103,42 @@ async def get_case(db: Annotated[AsyncSession, Depends(get_db)],
             detail='Case not found'
         )
 
+    last_skins = await db.scalars(
+        select(User_Skin_model)
+        .where(User_Skin_model.is_active == True)
+        .options(selectinload(User_Skin_model.skin))
+        .order_by(desc('id'))
+        .limit(5)
+    )
+
     result = await db.scalars(
         select(Skin_model)
         .join(Skin_model.cases)
         .where(Case_model.id == case.id, Skin_model.is_active == True)
     )
     skins = result.all()
+    if user:
+        return templates.TemplateResponse('case_opener.html', {'request': request,
+                                                               'user': user,
+                                                               'username': user.name,
+                                                               'balance': user.balance,
+                                                               'skins': skins,
+                                                               'case_name': case.name,
+                                                               'case_price': case.price,
+                                                               'last_skins': last_skins})
 
-    return skins
+    return templates.TemplateResponse('case_opener.html', {'request': request,
+                                                           'skins': skins,
+                                                           'case_name': case.name,
+                                                           'case_price': case.price,
+                                                           'last_skins': last_skins})
 
 
 @caseRouter.post('/{name}')
 async def post_open_case(db: Annotated[AsyncSession, Depends(get_db)],
                          num_cases: CaseOpen,
                          name: str = Path(),
-                         user: User_model = Depends(get_user),
+                         user: User_model = Depends(get_user)
                          ):
     case = await db.scalar(select(Case_model).where(
         Case_model.is_active == True,
@@ -130,7 +156,8 @@ async def post_open_case(db: Annotated[AsyncSession, Depends(get_db)],
             status_code=status.HTTP_400_BAD_REQUEST,
             detail='Not enough money'
         )
-    user.balance = user.balance - (case.price * num_cases.cnt)
+    new_balance = user.balance - (case.price * num_cases.cnt)
+    user.balance = new_balance
 
     result = await db.scalars(
         select(Skin_model)
@@ -150,9 +177,8 @@ async def post_open_case(db: Annotated[AsyncSession, Depends(get_db)],
 
     result_items = [
         {
-            "id": skin.id,
             "name": skin.name,
-            "price": skin.price,
+            "price": str(skin.price),
             "image": skin.image,
         }
         for skin in dropped_items
@@ -165,7 +191,8 @@ async def post_open_case(db: Annotated[AsyncSession, Depends(get_db)],
 
     await db.commit()
 
-    return result_items
+    return {'new_balance': new_balance,
+            'skins': result_items}
 
 
 @caseRouter.get('/{name}/chances')

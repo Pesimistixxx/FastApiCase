@@ -2,9 +2,8 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <title>Вход</title>
+    <title>Авторизация</title>
     <style>
-        /* Стили остаются без изменений */
         body {
             font-family: Arial, sans-serif;
             background-color: #121212;
@@ -68,7 +67,6 @@
         .register-link a:hover {
             text-decoration: underline;
         }
-        /* Стиль для сообщения об ошибке */
         .error-message {
             color: #ff6b6b;
             text-align: center;
@@ -92,43 +90,54 @@
     </div>
 
     <script>
-        document.getElementById('loginForm').addEventListener('submit', async function(event) {
-            event.preventDefault()
+    document.getElementById('loginForm').addEventListener('submit', async function(event) {
+        event.preventDefault();
+        const form = event.target;
+        const formData = new FormData(form);
+        const errorElement = document.getElementById('errorMessage');
+        errorElement.style.display = 'none';
 
-            const form = event.target;
-            const formData = new FormData(form);
-            const errorElement = document.getElementById('errorMessage');
+        try {
+            const response = await fetch(form.action, {
+                method: 'POST',
+                body: new URLSearchParams(formData),
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded'
+                },
+                credentials: 'include'
+            });
 
-            try {
-                const response = await fetch(window.location.href, {
-                    method: 'POST',
-                    body: formData
-                });
-
-                if (response.ok) {
-                    const result = await response.json();
-
-                    if (result.redirectUrl) {
-                        window.location.href = result.redirectUrl;
-                    }
-                } else {
-                    const errorData = await response.json();
-                    showError(errorData.message || 'Ошибка сервера');
-                }
-            } catch (error) {
-                showError('Сетевая ошибка: ' + error.message);
+            if (response.redirected) {
+                window.location.href = response.url;
+                return;
             }
-        });
 
-        function showError(message) {
-            const errorElement = document.getElementById('errorMessage');
-            errorElement.textContent = message;
-            errorElement.style.display = 'block';
+            if (!response.ok) {
+                const contentType = response.headers.get('content-type');
 
-            setTimeout(() => {
-                errorElement.style.display = 'none';
-            }, 5000);
+                if (contentType && contentType.includes('application/json')) {
+                    const errorData = await response.json();
+                    showError(errorData.message);
+                } else {
+                    const text = await response.text();
+                    showError(`Ошибка ${response.status}: ${text}`);
+                }
+                return;
+            }
+        } catch (error) {
+            showError('Сетевая ошибка: ' + error.message);
         }
+    });
+
+    function showError(message) {
+        const errorElement = document.getElementById('errorMessage');
+        errorElement.textContent = message;
+        errorElement.style.display = 'block';
+
+        setTimeout(() => {
+            errorElement.style.display = 'none';
+        }, 5000);
+    }
     </script>
 </body>
 </html>

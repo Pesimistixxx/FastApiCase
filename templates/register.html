@@ -94,20 +94,31 @@
             const errorElement = document.getElementById('errorMessage');
 
             try {
-                const response = await fetch(window.location.href, {
+                const response = await fetch(form.action, {
                     method: 'POST',
-                    body: formData
+                    body: new URLSearchParams(formData),
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded'
+                    },
+                    credentials: 'include'
                 });
 
-                if (response.ok) {
-                    const result = await response.json();
+                if (response.redirected) {
+                    window.location.href = response.url;
+                    return;
+                }
 
-                    if (result.redirectUrl) {
-                        window.location.href = result.redirectUrl;
+                if (!response.ok) {
+                    const contentType = response.headers.get('content-type');
+
+                    if (contentType && contentType.includes('application/json')) {
+                        const errorData = await response.json();
+                        showError(errorData.message);
+                    } else {
+                        const text = await response.text();
+                        showError(`Ошибка ${response.status}: ${text}`);
                     }
-                } else {
-                    const errorData = await response.json();
-                    showError(errorData.message || 'Ошибка сервера');
+                    return;
                 }
             } catch (error) {
                 showError('Сетевая ошибка: ' + error.message);

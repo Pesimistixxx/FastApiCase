@@ -17,7 +17,9 @@ class User_model(Base):
     balance: Mapped[float] = mapped_column(default=0.0, server_default='0.0')
     password: Mapped[str] = mapped_column(nullable=False)
     is_admin: Mapped[bool] = mapped_column(default=False)
-    is_active: Mapped[bool] = mapped_column(default=True)
+    is_active: Mapped[bool] = mapped_column(default=True, server_default='True')
+    is_creator: Mapped[bool] = mapped_column(default=False, server_default='True')
+    avatar: Mapped[str] = mapped_column(default='default.png', server_default='default.png')
 
     sessions: Mapped[List["Session_model"]] = relationship(back_populates="user")
     skins: Mapped[List["User_Skin_model"]] = relationship("User_Skin_model", back_populates="user")

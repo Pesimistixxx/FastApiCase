@@ -2,19 +2,21 @@ import datetime
 import secrets
 import bcrypt
 import re
-from fastapi import APIRouter, Depends, status, Response, Path, Request
+from fastapi import APIRouter, Depends, status, Path, Request
 from fastapi.templating import Jinja2Templates
 from typing import Annotated
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select, insert
+from sqlalchemy import select, insert, desc
 from sqlalchemy.exc import IntegrityError
 from passlib.context import CryptContext
-from starlette.responses import JSONResponse
+from sqlalchemy.orm import selectinload
+from starlette.responses import JSONResponse, RedirectResponse
 
 from app.auth.models import User_model, Session_model
 from app.auth.schemas import UserRegister, UserLogin, user_register_form, user_login_form
 from db.db_depends import get_db
 from app.auth.security import get_user
+from app.models_associations import User_Skin_model
 
 authRouter = APIRouter(prefix='/user', tags=['user, auth, profile'])
 bcrypt_context = CryptContext(schemes=['bcrypt'], deprecated='auto')
@@ -44,13 +46,15 @@ async def post_create_user(db: Annotated[AsyncSession, Depends(get_db)],
                            register_inp: UserRegister = Depends(user_register_form),
                            ):
     try:
-        await db.execute(insert(User_model).values(
-            username=register_inp.username,
-            name=register_inp.name,
-            email=register_inp.email,
-            password=bcrypt_context.hash(register_inp.password),
-        ))
-        await db.commit()
+        user = User_model(
+                          username=register_inp.username,
+                          name=register_inp.name,
+                          email=register_inp.email,
+                          password=bcrypt_context.hash(register_inp.password),
+                         )
+        db.add(user)
+        await db.flush()
+
     except IntegrityError as e:
         await db.rollback()
         match = re.search(r'Key\s*\((?P<value>[^)]+)\)=\([^)]+\)\s*already exists', str(e.orig))
@@ -61,15 +65,30 @@ async def post_create_user(db: Annotated[AsyncSession, Depends(get_db)],
 
         return JSONResponse(status_code=status.HTTP_400_BAD_REQUEST,
                             content={'message': {e.orig}})
-    return JSONResponse(
-        status_code=200,
-        content={"redirectUrl": "/"}
+
+    session_token = secrets.token_hex(16)
+    await db.execute(insert(Session_model).values(
+        session_token=session_token,
+        user_id=user.id,
+        expires=datetime.datetime.now() + datetime.timedelta(hours=1)
+    ))
+    await db.commit()
+    response = RedirectResponse('/', status_code=303)
+    response.set_cookie(
+        key="session_id",
+        value=session_token,
+        httponly=True,
+        secure=False,
+        max_age=3600,
+        samesite="lax",
+        path='/'
     )
+
+    return response
 
 
 @authRouter.post('/login')
 async def post_login_user(db: Annotated[AsyncSession, Depends(get_db)],
-                          response: Response,
                           login_inp: UserLogin = Depends(user_login_form)):
     user = await db.scalar(select(User_model)
                            .where(login_inp.username == User_model.username))
@@ -91,24 +110,42 @@ async def post_login_user(db: Annotated[AsyncSession, Depends(get_db)],
         user_id=user.id,
         expires=datetime.datetime.now() + datetime.timedelta(hours=1)
     ))
+    await db.commit()
+
+    response = RedirectResponse('/', status_code=303)
     response.set_cookie(
         key="session_id",
         value=session_token,
         httponly=True,
         secure=False,
         max_age=3600,
-        samesite="strict",
+        samesite="lax",
+        path='/'
     )
-    await db.commit()
-    return JSONResponse(
-        status_code=200,
-        content={"redirectUrl": "/"}
-    )
+
+    return response
 
 
 @authRouter.get('/profile')
-async def get_user_profile(user: User_model = Depends(get_user)):
-    return f"hello {user.name}"
+async def get_user_profile(request: Request,
+                           db: Annotated[AsyncSession, Depends(get_db)],
+                           user: User_model = Depends(get_user)
+                           ):
+    last_skins = await db.scalars(
+        select(User_Skin_model)
+        .where(User_Skin_model.user_id == user.id,
+               User_Skin_model.is_active == True)
+        .options(selectinload(User_Skin_model.skin))
+        .order_by(desc('id'))
+        .limit(24)
+    )
+    return templates.TemplateResponse('profile.html',
+                                      {
+                                       'request': request,
+                                       'username': user.username,
+                                       'balance': user.balance,
+                                       'last_skins': last_skins.all()
+                                       })
 
 
 @authRouter.get('/sessions')
@@ -120,12 +157,14 @@ async def get_sessions_list(db: Annotated[AsyncSession, Depends(get_db)]):
 @authRouter.post('/add_money/{amount}')
 async def post_add_money_to_account(db: Annotated[AsyncSession, Depends(get_db)],
                                     user: User_model = Depends(get_user),
-                                    amount: int = Path()):
+                                    amount: float = Path()):
 
-    user.balance += amount
+    new_balance = user.balance + amount
+    user.balance = new_balance
     username = user.username
 
     await db.commit()
 
     return {'status': status.HTTP_200_OK,
+            'new_balance': new_balance,
             'detail': f"Successfully add {amount} to {username}'s balance"}

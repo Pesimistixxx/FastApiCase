@@ -3,6 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <title>Кейсы</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -221,19 +222,50 @@
             gap: 15px;
             position: relative;
         }
+        .logout-form {
+            margin-right: 15px;
+        }
+
+        .logout-button {
+            background-color: #f44336;
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            font-size: 14px;
+            border-radius: 4px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            transition: background-color 0.3s;
+        }
+
+        .logout-button:hover {
+            background-color: #d32f2f;
+        }
+
+        .logout-button i {
+            font-size: 14px;
+        }
     </style>
 </head>
 <body>
 <div class="navbar">
     <div class="nav-left" id="siteName">Meow Case Simulator</div>
     <div class="nav-buttons">
-        <button>Контракты</button>
-        <button>Апгрейды</button>
+        <button hidden>Контракты</button>
+        <button hidden>Апгрейды</button>
+        <a href="/case/create">
+            <button>Добавить кейс</button>
+        </a>
     </div>
     {% if user %}
     <div class="user-profile" id="userProfile">
         <a href="/user/profile" class="profile-link">
-            <img src="https://via.placeholder.com/40" alt="Аватар" class="user-avatar">
+            <img src="/static/avatars/{{user.avatar}}"
+                     alt="Аватар"
+                     class="user-avatar"
+                     onerror="this.onerror=null; this.src='https://via.placeholder.com/100'">
             <div class="user-info">
                 <div class="user-username">{{username}}</div>
                 <div class="user-balance">Баланс: {{balance}}</div>
@@ -244,6 +276,11 @@
             <input type="number" id="amountInput" placeholder="Сумма пополнения" min="1" required>
             <button id="addMoneyBtn">Пополнить</button>
         </div>
+        <form action="/user/logout" method="POST" class="logout-form">
+            <button type="submit" class="logout-button">
+                <i class="fas fa-sign-out-alt"></i> Выйти
+            </button>
+        </form>
     </div>
     {% else %}
     <div class="nav-buttons">
@@ -268,7 +305,9 @@
     <div class="cases-container">
         {% for case in cases %}
         <div class="case-item" data-case-name="{{ case.name }}">
-            <img src="https://via.placeholder.com/250x250" alt="Кейс 1">
+            <img src="/static/cases/{{case.image}}"
+                     alt="{{ case.name }}"
+                     onerror="this.onerror=null; this.src='https://via.placeholder.com/100'">
             <div class="case-info">
                 <span>{{ case.name }}</span>
                 <span>{{ case.price }}</span>

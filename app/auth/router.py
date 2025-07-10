@@ -2,11 +2,11 @@ import datetime
 import secrets
 import bcrypt
 import re
-from fastapi import APIRouter, Depends, status, Path, Request
+from fastapi import APIRouter, Depends, status, Path, Request, Response
 from fastapi.templating import Jinja2Templates
 from typing import Annotated
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select, insert, desc
+from sqlalchemy import select, insert, desc, delete
 from sqlalchemy.exc import IntegrityError
 from passlib.context import CryptContext
 from sqlalchemy.orm import selectinload
@@ -15,7 +15,7 @@ from starlette.responses import JSONResponse, RedirectResponse
 from app.auth.models import User_model, Session_model
 from app.auth.schemas import UserRegister, UserLogin, user_register_form, user_login_form
 from db.db_depends import get_db
-from app.auth.security import get_user
+from app.auth.security import get_user, get_current_user_or_none
 from app.models_associations import User_Skin_model
 
 authRouter = APIRouter(prefix='/user', tags=['user, auth, profile'])
@@ -129,22 +129,31 @@ async def post_login_user(db: Annotated[AsyncSession, Depends(get_db)],
 @authRouter.get('/profile')
 async def get_user_profile(request: Request,
                            db: Annotated[AsyncSession, Depends(get_db)],
-                           user: User_model = Depends(get_user)
+                           user: User_model = Depends(get_current_user_or_none)
                            ):
-    last_skins = await db.scalars(
+    if not user:
+        return RedirectResponse('/')
+    all_skins = await db.scalars(
         select(User_Skin_model)
-        .where(User_Skin_model.user_id == user.id,
-               User_Skin_model.is_active == True)
+        .where(
+            User_Skin_model.user_id == user.id,
+            User_Skin_model.is_active == True
+        )
         .options(selectinload(User_Skin_model.skin))
-        .order_by(desc('id'))
-        .limit(24)
+        .order_by(desc(User_Skin_model.id))
     )
+    all_skins_list = all_skins.all()
+    last_skins = all_skins_list[:24]
+    total_sum = sum(skin.skin.price for skin in all_skins_list)
+
     return templates.TemplateResponse('profile.html',
                                       {
                                        'request': request,
                                        'username': user.username,
                                        'balance': user.balance,
-                                       'last_skins': last_skins.all()
+                                       'last_skins': last_skins,
+                                       'skins_price': total_sum,
+                                       'avatar': user.avatar
                                        })
 
 
@@ -168,3 +177,24 @@ async def post_add_money_to_account(db: Annotated[AsyncSession, Depends(get_db)]
     return {'status': status.HTTP_200_OK,
             'new_balance': new_balance,
             'detail': f"Successfully add {amount} to {username}'s balance"}
+
+
+@authRouter.post('/logout')
+async def logout_user(db: Annotated[AsyncSession, Depends(get_db)],
+                      response: Response,
+                      user: User_model = Depends(get_user)
+                     ):
+    await db.execute(delete(Session_model).where(
+        Session_model.user_id == user.id
+    ))
+    await db.commit()
+
+    response.delete_cookie(
+        key='session_id',
+        path='/',
+        samesite='lax',
+        httponly=True,
+        secure=False
+    )
+
+    return RedirectResponse('/user/login', status_code=303)

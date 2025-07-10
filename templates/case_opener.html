@@ -3,6 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <title>Открытие кейса</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -268,7 +269,7 @@
             background-color: #242424;
             border-radius: 6px;
             border: 1px solid #444;
-            padding: 5px;
+            padding: 5px 5px 10px;
             text-align: center;
             font-size: 12px;
             color: #ccc;
@@ -358,18 +359,21 @@
 
         .modal-buttons {
             display: flex;
-            justify-content: center;
-            gap: 15px;
+            flex-direction: row;
+            gap: 10px;
+            width: 100%;
         }
-
         .modal-buttons button {
-            padding: 10px 20px;
+            padding: 10px 15px;
             background-color: #2979ff;
             color: white;
             border: none;
             border-radius: 4px;
             cursor: pointer;
-            font-size: 16px;
+            font-size: 14px;
+            flex: 1;
+            white-space: nowrap;
+            width: 100%;
         }
 
         .modal-buttons button:hover {
@@ -407,26 +411,40 @@
             background-color: #388E3C !important;
         }
 
-        .price-up {
-            color: #4CAF50;
-            animation: priceUp 0.5s ease-out;
+        .sell-skin-btn {
+            background-color: #f44336 !important;
+        }
+        .sell-skin-btn:hover {
+            background-color: #d32f2f !important;
         }
 
-        .price-down {
-            color: #F44336;
-            animation: priceDown 0.5s ease-out;
+        .logout-form {
+            margin-right: 15px;
         }
 
-        @keyframes priceUp {
-            0% { transform: scale(1); }
-            50% { transform: scale(1.2); }
-            100% { transform: scale(1); }
+        .logout-button {
+            background-color: #f44336;
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            font-size: 14px;
+            border-radius: 4px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            transition: background-color 0.3s;
         }
 
-        @keyframes priceDown {
-            0% { transform: scale(1); }
-            50% { transform: scale(0.8); }
-            100% { transform: scale(1); }
+        .logout-button:hover {
+            background-color: #d32f2f;
+        }
+
+        .logout-button i {
+            font-size: 14px;
+        }
+        .skin-price-container {
+            margin-top: 8px;
         }
     </style>
 </head>
@@ -434,13 +452,19 @@
 <div class="navbar">
     <div class="nav-left" id="siteName">Meow Case Simulator</div>
     <div class="nav-buttons">
-        <button>Контракты</button>
-        <button>Апгрейды</button>
+        <button hidden>Контракты</button>
+        <button hidden>Апгрейды</button>
+        <a href="/case/create">
+            <button>Добавить кейс</button>
+        </a>
     </div>
     {% if user %}
     <div class="user-profile" id="userProfile">
         <a href="/user/profile" class="profile-link">
-            <img src="https://via.placeholder.com/40" alt="Аватар" class="user-avatar">
+            <img src="/static/avatars/{{user.avatar}}"
+                     alt="Аватар"
+                     class="user-avatar"
+                     onerror="this.onerror=null; this.src='https://via.placeholder.com/100'">
             <div class="user-info">
                 <div class="user-username">{{username}}</div>
                 <div class="user-balance">Баланс: {{balance}}</div>
@@ -451,6 +475,11 @@
             <input type="number" id="amountInput" placeholder="Сумма пополнения" min="1" required>
             <button id="addMoneyBtn">Пополнить</button>
         </div>
+        <form action="/user/logout" method="POST" class="logout-form">
+            <button type="submit" class="logout-button">
+                <i class="fas fa-sign-out-alt"></i> Выйти
+            </button>
+        </form>
     </div>
     {% else %}
     <div class="nav-buttons">
@@ -474,8 +503,10 @@
 
     <div class="case-open-container">
         <div class="case-title">{{ case_name }}</div>
-        <img src="https://via.placeholder.com/250x250" alt="Кейс" class="case-image">
-        <div class="quantity-select">Выберите количество открытий</div>
+            <img src="/static/cases/{{case_image}}"
+                     alt="{{ case_name }}"
+                     class="case-image"
+                     onerror="this.onerror=null; this.src='https://via.placeholder.com/100'">        <div class="quantity-select">Выберите количество открытий</div>
         <div class="quantity-buttons">
         </div>
 
@@ -490,8 +521,10 @@
                 <img src="/static/skins/{{skin.image}}"
                      alt="{{ skin.name }}"
                      onerror="this.onerror=null; this.src='https://via.placeholder.com/100'">
-                <span class="skin-name">{{ skin.name }}</span> <br>
-                <span class="skin-price">{{ skin.price }}</span>
+                <span class="skin-name">{{ skin.name }}</span>
+                <div class="skin-price-container"> <!-- Новый контейнер -->
+                    <span class="skin-price">{{ skin.price }}</span>
+                </div>
             </div>
             {% endfor %}
         </div>
@@ -506,6 +539,7 @@
         <div class="modal-skin-name skin-animation" id="modalSkinName"></div>
         <div class="modal-skin-price skin-animation" id="modalSkinPrice"></div>
         <div class="modal-buttons">
+            <button id="sellSkinBtn" class="sell-skin-btn">Продать за ...</button>
             <button id="openAgainBtn">Открыть ещё раз</button>
             <button id="nextSkinBtn" class="next-skin-btn">Далее</button>
         </div>
@@ -522,35 +556,6 @@
     const casePrice = parseMoney("{{ case_price }}");
     let userBalance = parseMoney("{{ balance if user else 0 }}");
     let selectedQuantity = 1;
-    let skinPrices = {};
-
-    document.querySelectorAll('.item-card').forEach(card => {
-        const skinId = card.dataset.skinId;
-        const priceElement = card.querySelector('.skin-price');
-        const originalPrice = parseMoney(priceElement.textContent);
-        skinPrices[skinId] = originalPrice;
-    });
-
-    function updateSkinPrices() {
-        const priceMultiplier = 1 + (Math.random() * 0.2 - 0.1); // Изменение цены на ±10%
-
-        document.querySelectorAll('.item-card').forEach(card => {
-            const skinId = card.dataset.skinId;
-            const priceElement = card.querySelector('.skin-price');
-            const originalPrice = skinPrices[skinId];
-            const newPrice = originalPrice * priceMultiplier;
-
-            const currentPrice = parseMoney(priceElement.textContent);
-            const priceChangeClass = newPrice > currentPrice ? 'price-up' : 'price-down';
-
-            priceElement.textContent = newPrice.toFixed(2);
-            priceElement.classList.add(priceChangeClass);
-
-            setTimeout(() => {
-                priceElement.classList.remove(priceChangeClass);
-            }, 500);
-        });
-    }
 
     function updateOpenButton() {
         const totalPrice = casePrice * selectedQuantity;
@@ -638,8 +643,6 @@
                 updateOpenButton();
                 balanceMenu.style.display = 'none';
                 amountInput.value = '';
-
-                updateSkinPrices();
             } else {
                 throw new Error(result.detail || 'Ошибка пополнения');
             }
@@ -656,9 +659,11 @@
     const closeModal = document.getElementById('closeModal');
     const openAgainBtn = document.getElementById('openAgainBtn');
     const nextSkinBtn = document.getElementById('nextSkinBtn');
+    const sellSkinBtn = document.getElementById('sellSkinBtn');
 
     let currentSkinIndex = 0;
     let allSkins = [];
+    let currentSkin = null;
 
     async function openCase() {
         const caseName = "{{ case_name }}";
@@ -686,14 +691,9 @@
             if (response.ok) {
                 userBalance = parseMoney(result.new_balance);
                 document.querySelector('.user-balance').textContent = `Баланс: ${result.new_balance.toFixed(2)}`;
-
-                updateSkinPrices();
-
                 allSkins = result.skins;
                 currentSkinIndex = 0;
-
                 showSkin();
-
                 updateOpenButton();
             } else {
                 throw new Error(result.detail || 'Ошибка при открытии кейса');
@@ -714,17 +714,18 @@
             return;
         }
 
-        const skin = allSkins[currentSkinIndex];
+        currentSkin = allSkins[currentSkinIndex];
 
         skinCounter.textContent = `${currentSkinIndex + 1} из ${allSkins.length}`;
 
-        modalSkinImage.src = `/static/skins/${skin.image}`;
+        modalSkinImage.src = `/static/skins/${currentSkin.image}`;
         modalSkinImage.onerror = function() {
             this.src = 'https://via.placeholder.com/200';
         };
 
-        modalSkinName.textContent = skin.name;
-        modalSkinPrice.textContent = `Цена: ${skin.price}`;
+        modalSkinName.textContent = currentSkin.name;
+        modalSkinPrice.textContent = `Цена: ${currentSkin.price}`;
+        sellSkinBtn.textContent = `Продать за ${currentSkin.price}`;
 
         skinModal.classList.add('active');
 
@@ -764,6 +765,7 @@
         skinModal.classList.remove('active');
         allSkins = [];
         currentSkinIndex = 0;
+        currentSkin = null;
     }
 
     closeModal.addEventListener('click', closeSkinModal);
@@ -780,6 +782,31 @@
     });
 
     nextSkinBtn.addEventListener('click', nextSkin);
+
+    sellSkinBtn.addEventListener('click', async function() {
+        if (!currentSkin) return;
+
+        try {
+            const response = await fetch(`/skin/sell/${currentSkin.id}`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            });
+
+            const result = await response.json();
+
+            if (response.ok) {
+                userBalance = parseMoney(result.new_balance);
+                document.querySelector('.user-balance').textContent = `Баланс: ${result.new_balance.toFixed(2)}`;
+                nextSkin();
+            } else {
+                throw new Error(result.detail || 'Ошибка при продаже скина');
+            }
+        } catch (error) {
+            alert(error.message);
+        }
+    });
 
     window.addEventListener('click', function(event) {
         if (event.target === skinModal) {

@@ -3,6 +3,7 @@ from sqlalchemy import select, insert, desc
 from sqlalchemy.ext.asyncio import AsyncSession
 from fastapi import APIRouter, Depends, Path, HTTPException, status, Request
 from sqlalchemy.orm import selectinload
+from starlette.responses import RedirectResponse
 from starlette.templating import Jinja2Templates
 
 from app.auth.models import User_model
@@ -24,6 +25,20 @@ async def get_case_list(db: Annotated[AsyncSession, Depends(get_db)]):
         Case_model.is_active == True
     ))
     return cases.all()
+
+
+@caseRouter.get('/create')
+async def get_case_create(request: Request,
+                          db: Annotated[AsyncSession, Depends(get_db)],
+                          user: User_model | None = Depends(get_current_user_or_none)):
+    if not user:
+        return RedirectResponse('/')
+
+    return templates.TemplateResponse('case_create.html',
+                                      {'request': request,
+                                       'username': user.username,
+                                       'balance': user.balance,
+                                       'avatar': user.avatar})
 
 
 @caseRouter.post('/calculate_probability')
@@ -125,12 +140,14 @@ async def get_case(request: Request,
                                                                'skins': skins,
                                                                'case_name': case.name,
                                                                'case_price': case.price,
+                                                               'case_image': case.image,
                                                                'last_skins': last_skins})
 
     return templates.TemplateResponse('case_opener.html', {'request': request,
                                                            'skins': skins,
                                                            'case_name': case.name,
                                                            'case_price': case.price,
+                                                           'case_image': case.image,
                                                            'last_skins': last_skins})
 
 
@@ -175,20 +192,25 @@ async def post_open_case(db: Annotated[AsyncSession, Depends(get_db)],
                                             case.math_exception,
                                             num_cases.cnt)
 
-    result_items = [
-        {
+    user_skin_ids = []
+
+    for skin in dropped_items:
+        result = await db.execute(
+            insert(User_Skin_model)
+            .values(user_id=user.id, skin_id=skin.id)
+            .returning(User_Skin_model.id)
+        )
+        user_skin_id = result.scalar_one()
+        user_skin_ids.append(user_skin_id)
+
+    result_items = []
+    for i, skin in enumerate(dropped_items):
+        result_items.append({
+            "id": user_skin_ids[i],
             "name": skin.name,
             "price": str(skin.price),
             "image": skin.image,
-        }
-        for skin in dropped_items
-    ]
-    for skin in dropped_items:
-        await db.execute(insert(User_Skin_model).values(
-            user_id=user.id,
-            skin_id=skin.id
-        ))
-
+        })
     await db.commit()
 
     return {'new_balance': new_balance,

@@ -21,6 +21,37 @@ async def get_skin_list(db: Annotated[AsyncSession, Depends(get_db)]):
     return skins.all()
 
 
+@skinRouter.post('/sell/all')
+async def post_sell_all_skins(db: Annotated[AsyncSession, Depends(get_db)],
+                              user: User_model = Depends(get_user)):
+    result = await db.scalars(select(User_Skin_model).where(
+        User_Skin_model.user_id == user.id,
+        User_Skin_model.is_active == True
+    ).options(selectinload(User_Skin_model.skin)))
+    if not result:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail='skin not found'
+        )
+    user_skins = result.all()
+    new_balance = user.balance
+    total_sold = 0
+    sold_cnt = len(user_skins)
+    for skin in user_skins:
+        skin.is_active = False
+        new_balance += skin.skin.price
+        total_sold += skin.skin.price
+
+    user.balance = new_balance
+    await db.commit()
+
+    return {'status': status.HTTP_200_OK,
+            'detail': 'successfully sold',
+            'new_balance': new_balance,
+            'total_sold': total_sold,
+            'sold_count': sold_cnt}
+
+
 @skinRouter.post('/sell/{id}')
 async def post_sell_skin(db: Annotated[AsyncSession, Depends(get_db)],
                          id: int = Path(),

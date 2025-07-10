@@ -1,0 +1,852 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Создание кейса</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+    <style>
+        .nav-button-link {
+            background-color: #2979ff;
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            font-size: 14px;
+            border-radius: 4px;
+            cursor: pointer;
+            text-decoration: none;
+            display: inline-block;
+        }
+
+        .nav-button-link:hover {
+            background-color: #1c54b2;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #121212;
+            margin: 0;
+            padding: 0;
+            color: #ffffff;
+            overflow-x: hidden;
+        }
+
+        .navbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background-color: #1e1e1e;
+            padding: 15px 30px;
+            border-bottom: 1px solid #333;
+            position: sticky;
+            top: 0;
+            z-index: 3000;
+            height: 75px;
+        }
+
+        .nav-left {
+            font-size: 20px;
+            font-weight: bold;
+            color: #2979ff;
+            cursor: pointer;
+            text-decoration: none;
+        }
+
+        .nav-buttons {
+            display: flex;
+            gap: 40px;
+            align-items: center;
+        }
+
+        .nav-buttons button,
+        .nav-buttons .nav-button-link {
+            background-color: #2979ff;
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            font-size: 14px;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        .nav-buttons button:hover,
+        .nav-buttons .nav-button-link:hover {
+            background-color: #1c54b2;
+        }
+
+        .user-profile {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            position: relative;
+        }
+
+        .profile-link {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            text-decoration: none;
+            color: inherit;
+            cursor: pointer;
+        }
+
+        .user-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 2px solid #2979ff;
+            cursor: pointer;
+        }
+
+        .user-info {
+            text-align: left;
+            font-size: 14px;
+        }
+
+        .user-username {
+            font-weight: bold;
+        }
+
+        .user-balance {
+            color: #aeeaff;
+            font-size: 12px;
+        }
+
+        .add-balance-button {
+            background-color: #4caf50;
+            color: white;
+            border: none;
+            width: 30px;
+            height: 30px;
+            font-size: 20px;
+            border-radius: 50%;
+            cursor: pointer;
+            margin-left: 10px;
+        }
+
+        .add-balance-button:hover {
+            background-color: #388e3c;
+        }
+
+        .balance-menu {
+            position: absolute;
+            top: 50px;
+            right: 0;
+            background-color: #2a2a2a;
+            padding: 15px;
+            border-radius: 6px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.5);
+            width: 200px;
+            display: none;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .balance-menu input {
+            padding: 8px;
+            border: 1px solid #444;
+            border-radius: 4px;
+            background-color: #1e1e1e;
+            color: #fff;
+        }
+
+        .balance-menu button {
+            padding: 8px;
+            background-color: #2979ff;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        .balance-menu button:hover {
+            background-color: #1c54b2;
+        }
+
+        .logout-form {
+            margin-right: 15px;
+        }
+
+        .logout-button {
+            background-color: #f44336;
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            font-size: 14px;
+            border-radius: 4px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            transition: background-color 0.3s;
+        }
+
+        .logout-button:hover {
+            background-color: #d32f2f;
+        }
+
+        .logout-button i {
+            font-size: 14px;
+        }
+
+        .main-container {
+            max-width: 800px;
+            margin: 40px auto;
+            padding: 0 20px;
+        }
+
+        .create-case-form {
+            background-color: #1e1e1e;
+            border-radius: 8px;
+            padding: 25px;
+            border: 1px solid #333;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: bold;
+            color: #aeeaff;
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 12px 15px;
+            background-color: #242424;
+            border: 1px solid #444;
+            border-radius: 4px;
+            color: #fff;
+            font-size: 14px;
+        }
+
+        .form-control:focus {
+            border-color: #2979ff;
+            outline: none;
+        }
+
+        .form-row {
+            display: flex;
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+
+        .form-col {
+            flex: 1;
+        }
+
+        .skins-section {
+            margin-top: 25px;
+        }
+
+        .skins-section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #333;
+        }
+
+        .skins-section-title {
+            font-size: 18px;
+            color: #2979ff;
+        }
+
+        .add-skin-btn {
+            background-color: #4caf50;
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            font-size: 14px;
+            border-radius: 4px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .add-skin-btn:hover {
+            background-color: #388e3c;
+        }
+
+        .skins-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+        }
+
+        .skins-table th {
+            background-color: #242424;
+            padding: 12px 15px;
+            text-align: left;
+            font-weight: bold;
+            color: #aeeaff;
+            border-bottom: 1px solid #333;
+        }
+
+        .skins-table td {
+            padding: 12px 15px;
+            border-bottom: 1px solid #333;
+            vertical-align: middle;
+        }
+
+        .skins-table input {
+            width: 100%;
+            padding: 8px;
+            background-color: #1e1e1e;
+            border: 1px solid #444;
+            border-radius: 4px;
+            color: #fff;
+        }
+
+        .remove-skin {
+            color: #f44336;
+            cursor: pointer;
+            text-align: center;
+            font-size: 18px;
+        }
+
+        .remove-skin:hover {
+            color: #d32f2f;
+        }
+
+        .create-btn {
+            display: block;
+            width: 100%;
+            padding: 12px;
+            background-color: #2979ff;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            margin-top: 25px;
+            transition: background-color 0.3s;
+        }
+
+        .create-btn:hover {
+            background-color: #1c54b2;
+        }
+
+        .calculate-btn {
+            background-color: #9c27b0;
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            font-size: 14px;
+            border-radius: 4px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 5px;
+            flex: 1;
+            text-align: center;
+        }
+
+        .calculate-btn:hover {
+            background-color: #7b1fa2;
+        }
+
+        .notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background-color: #4caf50;
+            color: white;
+            padding: 15px 25px;
+            border-radius: 4px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            z-index: 2000;
+            transform: translateX(150%);
+            transition: transform 0.4s ease;
+        }
+
+        .notification.show {
+            transform: translateX(0);
+        }
+
+        .duplicate-notification {
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background-color: #f44336;
+            color: white;
+            padding: 15px 25px;
+            border-radius: 4px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            z-index: 2000;
+            opacity: 0;
+            transition: opacity 0.4s ease;
+        }
+
+        .duplicate-notification.show {
+            opacity: 1;
+        }
+
+        .autocomplete {
+            position: relative;
+            width: 100%;
+        }
+
+        .autocomplete-items {
+            position: absolute;
+            border: 1px solid #444;
+            border-top: none;
+            z-index: 99;
+            top: 100%;
+            left: 0;
+            right: 0;
+            background-color: #1e1e1e;
+            max-height: 200px;
+            overflow-y: auto;
+            display: none;
+        }
+
+        .autocomplete-item {
+            padding: 10px;
+            cursor: pointer;
+            border-bottom: 1px solid #333;
+        }
+
+        .autocomplete-item:hover {
+            background-color: #2979ff;
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .skin-price {
+            padding: 5px 0;
+            display: block;
+            color: #aeeaff;
+        }
+
+        @media (max-width: 768px) {
+            .form-row {
+                flex-direction: column;
+                gap: 15px;
+            }
+
+            .nav-buttons {
+                gap: 15px;
+            }
+
+            .main-container {
+                padding: 0 15px;
+            }
+
+            .action-buttons {
+                flex-direction: column;
+            }
+
+            .skins-table th:nth-child(1),
+            .skins-table td:nth-child(1) {
+                width: 60%;
+            }
+
+            .skins-table th:nth-child(2),
+            .skins-table td:nth-child(2) {
+                width: 30%;
+            }
+
+            .skins-table th:nth-child(3),
+            .skins-table td:nth-child(3) {
+                width: 10%;
+            }
+
+            .duplicate-notification {
+                width: 90%;
+                text-align: center;
+            }
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar">
+        <div class="nav-left" id="siteName">Meow Case Simulator</div>
+        <div class="nav-buttons">
+            <button hidden>Контракты</button>
+            <button hidden>Апгрейды</button>
+            <a href="/case/create">
+                <button>Добавить кейс</button>
+            </a>
+        </div>
+
+        <div class="user-profile" id="userProfile">
+            <a href="/user/profile" class="profile-link">
+                <img src="/static/avatars/{{avatar}}"
+                         alt="Аватар"
+                         class="user-avatar"
+                         onerror="this.onerror=null; this.src='https://via.placeholder.com/100'">
+                <div class="user-info">
+                    <div class="user-username">{{username}}</div>
+                    <div class="user-balance">Баланс: {{balance}}</div>
+                </div>
+            </a>
+            <button class="add-balance-button" id="toggleBalanceMenu">+</button>
+            <div class="balance-menu" id="balanceMenu">
+                <input type="number" id="amountInput" placeholder="Сумма пополнения" min="1" step="1" required>
+                <button id="addMoneyBtn">Пополнить</button>
+            </div>
+            <form action="/user/logout" method="POST" class="logout-form">
+                <button type="submit" class="logout-button">
+                    <i class="fas fa-sign-out-alt"></i> Выйти
+                </button>
+            </form>
+        </div>
+    </nav>
+
+    <div class="duplicate-notification" id="duplicateNotification">
+        <i class="fas fa-exclamation-triangle"></i>
+        <span>Этот скин уже добавлен!</span>
+    </div>
+
+    <div class="main-container">
+        <div class="create-case-form">
+            <form id="case-form">
+                <div class="form-row">
+                    <div class="form-col">
+                        <div class="form-group">
+                            <label for="case-name">Название кейса</label>
+                            <input type="text" id="case-name" class="form-control" placeholder="Введите название" required>
+                        </div>
+                    </div>
+
+                    <div class="form-col">
+                        <div class="form-group">
+                            <label for="case-price">Цена кейса</label>
+                            <input type="number" id="case-price" class="form-control" placeholder="Введите цену" min="1" step="1" required>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-col">
+                        <div class="form-group">
+                            <label for="avg-drop-price">Средняя цена дропа</label>
+                            <input type="number" id="avg-drop-price" class="form-control" placeholder="Средняя цена" min="1" step="1" required>
+                        </div>
+                    </div>
+
+                    <div class="form-col">
+                        <div class="form-group">
+                            <label for="drop-deviation">Среднее отклонение</label>
+                            <input type="number" id="drop-deviation" class="form-control" placeholder="Среднее отклонение" min="1" step="1" required>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="skins-section">
+                    <div class="form-group">
+                        <label>Поиск скина</label>
+                        <div class="autocomplete">
+                            <input type="text" id="skin-search" class="form-control" placeholder="Начните вводить название скина...">
+                            <div id="autocomplete-items" class="autocomplete-items"></div>
+                        </div>
+                    </div>
+
+                    <table class="skins-table">
+                        <thead>
+                            <tr>
+                                <th width="60%">Список скинов</th>
+                                <th width="30%">Стоимость</th>
+                                <th width="10%"></th>
+                            </tr>
+                        </thead>
+                        <tbody id="skins-list">
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="action-buttons">
+                    <button type="button" id="calculate-btn" class="calculate-btn">
+                        Рассчитать оптимальную стоимость кейса
+                    </button>
+                    <button type="button" id="calculate-chance-btn" class="calculate-btn">
+                        Рассчитать шанс каждого скина
+                    </button>
+                </div>
+
+                <button type="submit" class="create-btn">
+                    Создать кейс
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <div class="notification" id="notification">
+        <i class="fas fa-check-circle"></i>
+        <span>Кейс успешно создан!</span>
+    </div>
+
+    <script>
+        function parseMoney(value) {
+            if (typeof value === 'number') return value;
+            const cleaned = String(value).replace(/[^\d.,]/g, '').replace(',', '.');
+            return parseFloat(cleaned) || 0;
+        }
+
+        function formatBalances() {
+            document.querySelectorAll('.user-balance, .balance').forEach(el => {
+                const num = parseMoney(el.textContent);
+                el.textContent = `Баланс: ${num.toFixed(2)}`;
+            });
+        }
+
+        async function addMoney() {
+            const amountInput = document.getElementById('amountInput');
+            const amount = parseMoney(amountInput.value);
+
+            if (isNaN(amount) || amount <= 0) {
+                alert('Введите корректную сумму');
+                return;
+            }
+
+            try {
+                const response = await fetch(`/user/add_money/${amount}`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    }
+                });
+
+                const result = await response.json();
+
+                if (response.ok) {
+                    document.querySelector('.user-balance').textContent = `Баланс: ${result.new_balance}`;
+                    formatBalances();
+                    balanceMenu.style.display = 'none';
+                    amountInput.value = '';
+                } else {
+                    throw new Error(result.detail || 'Ошибка пополнения');
+                }
+            } catch (error) {
+                alert(error.message);
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', function() {
+            formatBalances();
+
+            document.getElementById("siteName").addEventListener("click", function() {
+                window.location.href = "/";
+            });
+
+            const balanceMenu = document.getElementById("balanceMenu");
+            const toggleButton = document.getElementById("toggleBalanceMenu");
+
+            toggleButton.addEventListener("click", function () {
+                balanceMenu.style.display = balanceMenu.style.display === "flex" ? "none" : "flex";
+            });
+
+            document.addEventListener("click", function (event) {
+                if (!document.querySelector(".user-profile").contains(event.target)) {
+                    balanceMenu.style.display = "none";
+                }
+            });
+
+            document.getElementById('addMoneyBtn').addEventListener('click', addMoney);
+
+            const allSkins = [
+                "AK-47 | Неоновая революция",
+                "Glock-18 | Лунное сияние",
+            ];
+
+            const skinSearch = document.getElementById('skin-search');
+            const autocompleteItems = document.getElementById('autocomplete-items');
+
+            skinSearch.addEventListener('input', function() {
+                const searchTerm = this.value.toLowerCase();
+                autocompleteItems.innerHTML = '';
+
+                if (searchTerm.length < 2) {
+                    autocompleteItems.style.display = 'none';
+                    return;
+                }
+
+                const filteredSkins = allSkins.filter(skin =>
+                    skin.toLowerCase().includes(searchTerm)
+                ).slice(0, 5);
+
+                if (filteredSkins.length === 0) {
+                    autocompleteItems.style.display = 'none';
+                    return;
+                }
+
+                filteredSkins.forEach(skin => {
+                    const item = document.createElement('div');
+                    item.className = 'autocomplete-item';
+                    item.textContent = skin;
+                    item.addEventListener('click', function() {
+                        addSkinToList(skin);
+                        skinSearch.value = '';
+                        autocompleteItems.style.display = 'none';
+                    });
+                    autocompleteItems.appendChild(item);
+                });
+
+                autocompleteItems.style.display = 'block';
+            });
+
+            document.addEventListener('click', function(e) {
+                if (!skinSearch.contains(e.target)) {
+                    autocompleteItems.style.display = 'none';
+                }
+            });
+
+            function addSkinToList(skinName) {
+                const existingSkins = document.querySelectorAll('#skins-list tr td:first-child');
+                for (let i = 0; i < existingSkins.length; i++) {
+                    if (existingSkins[i].textContent === skinName) {
+                        const notification = document.getElementById('duplicateNotification');
+                        notification.classList.add('show');
+
+                        setTimeout(() => {
+                            notification.classList.remove('show');
+                        }, 2000);
+
+                        return;
+                    }
+                }
+
+                const skinsList = document.getElementById('skins-list');
+                const row = document.createElement('tr');
+
+                const skinPrice = (Math.random() * 100).toFixed(2);
+
+                row.innerHTML = `
+                    <td>${skinName}</td>
+                    <td>
+                        <span class="skin-price">${skinPrice}</span>
+                    </td>
+                    <td class="remove-skin">
+                        <i class="fas fa-trash" title="Удалить скин"></i>
+                    </td>
+                `;
+                skinsList.appendChild(row);
+
+                const removeIcon = row.querySelector('.remove-skin i');
+                removeIcon.addEventListener('click', function() {
+                    row.remove();
+                });
+            }
+
+            document.getElementById('calculate-btn').addEventListener('click', function() {
+                const avgDropPrice = parseFloat(document.getElementById('avg-drop-price').value) || 0;
+                const dropDeviation = parseFloat(document.getElementById('drop-deviation').value) || 0;
+
+                if (avgDropPrice <= 0 || dropDeviation < 0) {
+                    alert('Введите корректные значения средней цены и отклонения');
+                    return;
+                }
+
+                const casePrice = Math.round((avgDropPrice * 0.7 + dropDeviation * 0.5) * 100) / 100;
+
+                document.getElementById('case-price').value = casePrice;
+            });
+
+            document.getElementById('calculate-chance-btn').addEventListener('click', function() {
+                const skinRows = document.querySelectorAll('#skins-list tr');
+                if (skinRows.length === 0) {
+                    alert('Добавьте скины для расчета шансов');
+                    return;
+                }
+
+                const chance = Math.round(100 / skinRows.length * 100) / 100;
+                alert(`Шанс выпадения каждого скина: ${chance}%`);
+            });
+
+            const caseForm = document.getElementById('case-form');
+            const notification = document.getElementById('notification');
+
+            caseForm.addEventListener('submit', function(e) {
+                e.preventDefault();
+
+                const caseName = document.getElementById('case-name').value;
+                const casePrice = document.getElementById('case-price').value;
+                const avgDropPrice = document.getElementById('avg-drop-price').value;
+                const dropDeviation = document.getElementById('drop-deviation').value;
+                const skins = [];
+
+                const skinRows = document.querySelectorAll('#skins-list tr');
+                skinRows.forEach(row => {
+                    const name = row.querySelector('td:first-child').textContent;
+                    const price = row.querySelector('.skin-price').textContent;
+
+                    if (name) {
+                        skins.push({
+                            name: name,
+                            price: parseFloat(price) || 0
+                        });
+                    }
+                });
+
+                if (!caseName) {
+                    alert('Введите название кейса');
+                    return;
+                }
+
+                if (!casePrice || casePrice <= 0) {
+                    alert('Укажите корректную цену кейса');
+                    return;
+                }
+
+                if (!avgDropPrice || avgDropPrice <= 0) {
+                    alert('Укажите среднюю цену дропа');
+                    return;
+                }
+
+                if (!dropDeviation || dropDeviation < 0) {
+                    alert('Укажите корректное среднее отклонение');
+                    return;
+                }
+
+                if (skins.length === 0) {
+                    alert('Добавьте хотя бы один скин');
+                    return;
+                }
+
+                console.log({
+                    caseName: caseName,
+                    casePrice: parseFloat(casePrice),
+                    avgDropPrice: parseFloat(avgDropPrice),
+                    dropDeviation: parseFloat(dropDeviation),
+                    skins: skins
+                });
+
+                notification.classList.add('show');
+
+                setTimeout(() => {
+                    notification.classList.remove('show');
+
+                    caseForm.reset();
+                    document.getElementById('skins-list').innerHTML = '';
+                }, 3000);
+            });
+        });
+    </script>
+</body>
+</html>

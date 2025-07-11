@@ -13,6 +13,13 @@ def calculate_probabilities(skins, sigma: int, math_exception: int):
         weights.append(math.exp(-(price - math_exception) ** 2 / (2 * sigma ** 2)))
 
     total_weight = sum(weights)
+
+    if total_weight == 0:
+        n = len(prices)
+        if n == 0:
+            return []
+        return [1 / n] * n
+
     probabilities = [w / total_weight for w in weights]
 
     return probabilities

@@ -12,7 +12,7 @@ from app.models_associations import Case_Skin_model, User_Skin_model
 from db.db_depends import get_db
 from app.case.models import Case_model
 from app.skin.models import Skin_model
-from app.case.schemas import CaseCreate, CaseOpen, CaseCalculateProbability
+from app.case.schemas import CaseCreate, CaseOpen, calculate_probability_form, CaseCalculateProbability
 from app.case.probability import get_item_by_probability, calculate_probabilities
 
 caseRouter = APIRouter(prefix='/case', tags=['case'])
@@ -29,7 +29,6 @@ async def get_case_list(db: Annotated[AsyncSession, Depends(get_db)]):
 
 @caseRouter.get('/create')
 async def get_case_create(request: Request,
-                          db: Annotated[AsyncSession, Depends(get_db)],
                           user: User_model | None = Depends(get_current_user_or_none)):
     if not user:
         return RedirectResponse('/')
@@ -52,10 +51,30 @@ async def post_calculate_probability(db: Annotated[AsyncSession, Depends(get_db)
     probabilities = calculate_probabilities(skins,
                                             case_inp.sigma,
                                             case_inp.math_exception)
+    skin_probabilities = {}
+    for i, skin in enumerate(skins):
+        skin_probabilities[skin.name] = probabilities[i]
+    return {'status': status.HTTP_200_OK,
+            'probabilities': skin_probabilities}
+
+
+@caseRouter.post('/calculate_price')
+async def post_calculate_case_price(db: Annotated[AsyncSession, Depends(get_db)],
+                                    case_inp: CaseCalculateProbability):
+    result = await db.scalars(select(Skin_model).where(
+        Skin_model.id.in_(case_inp.skins)
+    ))
+    skins = result.all()
+
+    probabilities = calculate_probabilities(skins,
+                                            case_inp.sigma,
+                                            case_inp.math_exception)
 
     mo = sum(skin.price * probability for skin, probability in zip(skins, probabilities))
 
-    return {f'Средняя цена дропа {mo:.2f}, Оптимальная цена для кейса {mo * 0.9:.0f} - {mo * 1.1:.0f}'}
+    return {'status': status.HTTP_200_OK,
+            'low_case_price': f'{mo * 0.9:.0f}',
+            'high_case_price': f'{mo * 1.1:.0f}'}
 
 
 @caseRouter.post('/create_case')
@@ -64,8 +83,7 @@ async def post_create_case(db: Annotated[AsyncSession, Depends(get_db)],
     new_case = Case_model(name=case_inp.name,
                           price=case_inp.price,
                           math_exception=case_inp.math_exception,
-                          sigma=case_inp.sigma,
-                          image=case_inp.image)
+                          sigma=case_inp.sigma)
     db.add(new_case)
     await db.flush()
 

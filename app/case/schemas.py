@@ -1,3 +1,4 @@
+from fastapi import Form
 from pydantic import BaseModel, Field
 from typing import List
 
@@ -7,7 +8,6 @@ class CaseCreate(BaseModel):
     price: int = Field(ge=0, le=1000000)
     math_exception: int = Field(ge=1, le=1000000)
     sigma: int = Field(ge=1, le=1000000)
-    image: str
     skins: List[int]
 
 
@@ -15,6 +15,19 @@ class CaseCalculateProbability(BaseModel):
     math_exception: int = Field(ge=1, le=1000000)
     sigma: int = Field(ge=1, le=1000000)
     skins: List[int]
+
+
+async def calculate_probability_form(
+        math_exception: int = Form(),
+        sigma: int = Form(),
+        skins: List[int] = Form(),
+
+) -> CaseCalculateProbability:
+    return CaseCalculateProbability(
+        math_exception=math_exception,
+        sigma=sigma,
+        skins=skins,
+    )
 
 
 class CaseOpen(BaseModel):

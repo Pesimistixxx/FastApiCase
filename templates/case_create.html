@@ -249,37 +249,6 @@
             margin-top: 25px;
         }
 
-        .skins-section-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 15px;
-            padding-bottom: 10px;
-            border-bottom: 1px solid #333;
-        }
-
-        .skins-section-title {
-            font-size: 18px;
-            color: #2979ff;
-        }
-
-        .add-skin-btn {
-            background-color: #4caf50;
-            color: white;
-            border: none;
-            padding: 8px 15px;
-            font-size: 14px;
-            border-radius: 4px;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            gap: 5px;
-        }
-
-        .add-skin-btn:hover {
-            background-color: #388e3c;
-        }
-
         .skins-table {
             width: 100%;
             border-collapse: collapse;
@@ -381,6 +350,26 @@
             transform: translateX(0);
         }
 
+        .error-notification {
+            position: fixed;
+            top: 70px;
+            right: 20px;
+            background-color: #f44336;
+            color: white;
+            padding: 15px 25px;
+            border-radius: 4px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            z-index: 2100;
+            transform: translateX(150%);
+            transition: transform 0.4s ease;
+        }
+        .error-notification.show {
+            transform: translateX(0);
+        }
+
         .duplicate-notification {
             position: fixed;
             top: 20px;
@@ -442,6 +431,28 @@
             padding: 5px 0;
             display: block;
             color: #aeeaff;
+        }
+
+        .optimal-price-notification {
+            position: fixed;
+            top: 80px;
+            right: 20px;
+            background-color: #4caf50;
+            color: white;
+            padding: 15px 25px;
+            border-radius: 4px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            z-index: 2100;
+            transform: translateX(150%);
+            transition: transform 0.4s ease;
+            font-size: 16px;
+            font-weight: bold;
+        }
+        .optimal-price-notification.show {
+            transform: translateX(0);
         }
 
         @media (max-width: 768px) {
@@ -536,7 +547,7 @@
                     </div>
 
                     <div class="form-col">
-                        <div class="form-group">
+                        <div class="form-group" style="position: relative;">
                             <label for="case-price">Цена кейса</label>
                             <input type="number" id="case-price" class="form-control" placeholder="Введите цену" min="1" step="1" required>
                         </div>
@@ -573,6 +584,7 @@
                             <tr>
                                 <th width="60%">Список скинов</th>
                                 <th width="30%">Стоимость</th>
+                                <th width="20%">Шанс</th>
                                 <th width="10%"></th>
                             </tr>
                         </thead>
@@ -602,6 +614,16 @@
         <span>Кейс успешно создан!</span>
     </div>
 
+    <div class="error-notification" id="errorNotification">
+        <i class="fas fa-exclamation-circle"></i>
+        <span id="errorNotificationText"></span>
+    </div>
+
+    <div class="optimal-price-notification" id="optimalPriceNotification">
+        <i class="fas fa-info-circle"></i>
+        <span id="optimalPriceNotificationText"></span>
+    </div>
+
     <script>
         function parseMoney(value) {
             if (typeof value === 'number') return value;
@@ -616,12 +638,22 @@
             });
         }
 
+        function showErrorNotification(message) {
+            const errorNotification = document.getElementById('errorNotification');
+            const errorNotificationText = document.getElementById('errorNotificationText');
+            errorNotificationText.textContent = message;
+            errorNotification.classList.add('show');
+            setTimeout(() => {
+                errorNotification.classList.remove('show');
+            }, 3000);
+        }
+
         async function addMoney() {
             const amountInput = document.getElementById('amountInput');
             const amount = parseMoney(amountInput.value);
 
             if (isNaN(amount) || amount <= 0) {
-                alert('Введите корректную сумму');
+                showErrorNotification('Введите корректную сумму');
                 return;
             }
 
@@ -641,14 +673,30 @@
                     balanceMenu.style.display = 'none';
                     amountInput.value = '';
                 } else {
-                    throw new Error(result.detail || 'Ошибка пополнения');
+                    showErrorNotification(result.detail || 'Ошибка пополнения');
+                    return;
                 }
             } catch (error) {
-                alert(error.message);
+                showErrorNotification(error.message);
             }
         }
 
-        document.addEventListener('DOMContentLoaded', function() {
+        async function fetchAllSkins() {
+            try {
+                const response = await fetch('/skin/list');
+                if (!response.ok) throw new Error('Ошибка загрузки скинов');
+                const skins = await response.json();
+                return skins;
+            } catch (e) {
+                showErrorNotification('Не удалось загрузить список скинов');
+                return [];
+            }
+        }
+
+        let allSkins = [];
+        let selectedSkins = [];
+
+        document.addEventListener('DOMContentLoaded', async function() {
             formatBalances();
 
             document.getElementById("siteName").addEventListener("click", function() {
@@ -670,10 +718,7 @@
 
             document.getElementById('addMoneyBtn').addEventListener('click', addMoney);
 
-            const allSkins = [
-                "AK-47 | Неоновая революция",
-                "Glock-18 | Лунное сияние",
-            ];
+            allSkins = await fetchAllSkins();
 
             const skinSearch = document.getElementById('skin-search');
             const autocompleteItems = document.getElementById('autocomplete-items');
@@ -688,7 +733,8 @@
                 }
 
                 const filteredSkins = allSkins.filter(skin =>
-                    skin.toLowerCase().includes(searchTerm)
+                    skin.name.toLowerCase().includes(searchTerm) &&
+                    !selectedSkins.some(s => s.id === skin.id)
                 ).slice(0, 5);
 
                 if (filteredSkins.length === 0) {
@@ -699,7 +745,7 @@
                 filteredSkins.forEach(skin => {
                     const item = document.createElement('div');
                     item.className = 'autocomplete-item';
-                    item.textContent = skin;
+                    item.textContent = skin.name;
                     item.addEventListener('click', function() {
                         addSkinToList(skin);
                         skinSearch.value = '';
@@ -717,134 +763,216 @@
                 }
             });
 
-            function addSkinToList(skinName) {
-                const existingSkins = document.querySelectorAll('#skins-list tr td:first-child');
-                for (let i = 0; i < existingSkins.length; i++) {
-                    if (existingSkins[i].textContent === skinName) {
-                        const notification = document.getElementById('duplicateNotification');
-                        notification.classList.add('show');
-
-                        setTimeout(() => {
-                            notification.classList.remove('show');
-                        }, 2000);
-
-                        return;
-                    }
+            function addSkinToList(skin) {
+                if (selectedSkins.some(s => s.id === skin.id)) {
+                    const notification = document.getElementById('duplicateNotification');
+                    notification.classList.add('show');
+                    setTimeout(() => {
+                        notification.classList.remove('show');
+                    }, 2000);
+                    return;
                 }
-
+                selectedSkins.push(skin);
                 const skinsList = document.getElementById('skins-list');
                 const row = document.createElement('tr');
-
-                const skinPrice = (Math.random() * 100).toFixed(2);
-
+                row.setAttribute('data-id', skin.id);
                 row.innerHTML = `
-                    <td>${skinName}</td>
+                    <td>${skin.name}</td>
                     <td>
-                        <span class="skin-price">${skinPrice}</span>
+                        <span class="skin-price">${skin.price}</span>
                     </td>
+                    <td class="skin-chance" data-name="${skin.name}"></td>
                     <td class="remove-skin">
                         <i class="fas fa-trash" title="Удалить скин"></i>
                     </td>
                 `;
                 skinsList.appendChild(row);
-
                 const removeIcon = row.querySelector('.remove-skin i');
                 removeIcon.addEventListener('click', function() {
                     row.remove();
+                    selectedSkins = selectedSkins.filter(s => s.id !== skin.id);
                 });
             }
 
-            document.getElementById('calculate-btn').addEventListener('click', function() {
+            document.getElementById('calculate-btn').addEventListener('click', async function() {
                 const avgDropPrice = parseFloat(document.getElementById('avg-drop-price').value) || 0;
                 const dropDeviation = parseFloat(document.getElementById('drop-deviation').value) || 0;
 
-                if (avgDropPrice <= 0 || dropDeviation < 0) {
-                    alert('Введите корректные значения средней цены и отклонения');
+                const skins = selectedSkins.map(s => s.id);
+
+                if (!avgDropPrice) {
+                    showErrorNotification('Введите среднюю цену дропа для рассчета средней стоимости');
+                    return;
+                }
+                if (!dropDeviation) {
+                    showErrorNotification('Введите отклонение для рассчета средней стоимости');
                     return;
                 }
 
-                const casePrice = Math.round((avgDropPrice * 0.7 + dropDeviation * 0.5) * 100) / 100;
+                if (avgDropPrice <= 1 || dropDeviation <= 1) {
+                    showErrorNotification('Введите корректные значения средней цены и отклонения');
+                    return;
+                }
 
-                document.getElementById('case-price').value = casePrice;
+                if (skins.length < 1) {
+                    showErrorNotification('Добавьте скины для расчёта');
+                    return;
+                }
+
+                try {
+                    const response = await fetch('/case/calculate_price', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({
+                            math_exception: avgDropPrice,
+                            sigma: dropDeviation,
+                            skins: skins
+                        })
+                    });
+                    if (!response.ok) {
+                        showErrorNotification('Ошибка при расчёте оптимальной стоимости');
+                        return;
+                    }
+                    const result = await response.json();
+                    const low = result.low_case_price;
+                    const high = result.high_case_price;
+                    const optimalPriceNotification = document.getElementById('optimalPriceNotification');
+                    const optimalPriceNotificationText = document.getElementById('optimalPriceNotificationText');
+                    if (low !== undefined && high !== undefined) {
+                        optimalPriceNotificationText.textContent = `Рекомендуемая цена: ${low} - ${high}`;
+                        optimalPriceNotification.classList.add('show');
+                        setTimeout(() => {
+                            optimalPriceNotification.classList.remove('show');
+                        }, 3000);
+                    } else {
+                        optimalPriceNotification.classList.remove('show');
+                    }
+                } catch (error) {
+                    showErrorNotification(error.message);
+                }
             });
 
-            document.getElementById('calculate-chance-btn').addEventListener('click', function() {
-                const skinRows = document.querySelectorAll('#skins-list tr');
-                if (skinRows.length === 0) {
-                    alert('Добавьте скины для расчета шансов');
+            document.getElementById('calculate-chance-btn').addEventListener('click', async function() {
+                const avgDropPrice = parseFloat(document.getElementById('avg-drop-price').value) || 0;
+                const dropDeviation = parseFloat(document.getElementById('drop-deviation').value) || 0;
+                const skins = selectedSkins.map(s => s.id);
+
+                if (!avgDropPrice) {
+                    showErrorNotification('Введите среднюю цену для рассчета шансов');
+                    return;
+                }
+                if (!dropDeviation) {
+                    showErrorNotification('Введите отклонение для рассчета шансов');
+                    return;
+                }
+                if (skins.length === 0) {
+                    showErrorNotification('Добавьте скины для расчета шансов');
                     return;
                 }
 
-                const chance = Math.round(100 / skinRows.length * 100) / 100;
-                alert(`Шанс выпадения каждого скина: ${chance}%`);
+                try {
+                    const response = await fetch('/case/calculate_probability', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({
+                            math_exception: avgDropPrice,
+                            sigma: dropDeviation,
+                            skins: skins
+                        })
+                    });
+                    if (!response.ok) {
+                        showErrorNotification('Ошибка при расчёте шансов');
+                        return;
+                    }
+                    const result = await response.json();
+                    const probabilities = result.probabilities || {};
+                    document.querySelectorAll('#skins-list tr').forEach(row => {
+                        const name = row.querySelector('td:first-child').textContent;
+                        const chanceCell = row.querySelector('.skin-chance');
+                        if (probabilities.hasOwnProperty(name)) {
+                            const percent = (probabilities[name] * 100).toFixed(2);
+                            chanceCell.textContent = percent + '%';
+                        } else {
+                            chanceCell.textContent = '-';
+                        }
+                    });
+                } catch (error) {
+                    showErrorNotification(error.message);
+                }
             });
 
             const caseForm = document.getElementById('case-form');
             const notification = document.getElementById('notification');
 
-            caseForm.addEventListener('submit', function(e) {
+            caseForm.addEventListener('submit', async function(e) {
                 e.preventDefault();
 
                 const caseName = document.getElementById('case-name').value;
                 const casePrice = document.getElementById('case-price').value;
                 const avgDropPrice = document.getElementById('avg-drop-price').value;
                 const dropDeviation = document.getElementById('drop-deviation').value;
-                const skins = [];
-
-                const skinRows = document.querySelectorAll('#skins-list tr');
-                skinRows.forEach(row => {
-                    const name = row.querySelector('td:first-child').textContent;
-                    const price = row.querySelector('.skin-price').textContent;
-
-                    if (name) {
-                        skins.push({
-                            name: name,
-                            price: parseFloat(price) || 0
-                        });
-                    }
-                });
+                const skins = selectedSkins.map(s => s.id);
 
                 if (!caseName) {
-                    alert('Введите название кейса');
+                    showErrorNotification('Введите название кейса');
                     return;
                 }
 
                 if (!casePrice || casePrice <= 0) {
-                    alert('Укажите корректную цену кейса');
+                    showErrorNotification('Укажите корректную цену кейса');
                     return;
                 }
 
                 if (!avgDropPrice || avgDropPrice <= 0) {
-                    alert('Укажите среднюю цену дропа');
+                    showErrorNotification('Укажите среднюю цену дропа');
                     return;
                 }
 
                 if (!dropDeviation || dropDeviation < 0) {
-                    alert('Укажите корректное среднее отклонение');
+                    showErrorNotification('Укажите корректное среднее отклонение');
                     return;
                 }
 
-                if (skins.length === 0) {
-                    alert('Добавьте хотя бы один скин');
+                if (skins.length < 3) {
+                    showErrorNotification('Кейс должен содержать минимум 3 скина');
                     return;
                 }
 
-                console.log({
-                    caseName: caseName,
-                    casePrice: parseFloat(casePrice),
-                    avgDropPrice: parseFloat(avgDropPrice),
-                    dropDeviation: parseFloat(dropDeviation),
-                    skins: skins
-                });
-
-                notification.classList.add('show');
-
-                setTimeout(() => {
-                    notification.classList.remove('show');
-
-                    caseForm.reset();
-                    document.getElementById('skins-list').innerHTML = '';
-                }, 3000);
+                try {
+                    const response = await fetch('/case/create_case', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({
+                            name: caseName,
+                            price: parseFloat(casePrice),
+                            math_exception: parseFloat(avgDropPrice),
+                            sigma: parseFloat(dropDeviation),
+                            image: 'default.png',
+                            skins: skins
+                        })
+                    });
+                    if (!response.ok) {
+                        const result = await response.json();
+                        showErrorNotification(result.detail || 'Ошибка при создании кейса');
+                        return;
+                    }
+                    notification.classList.add('show');
+                    setTimeout(() => {
+                        notification.classList.remove('show');
+                        caseForm.reset();
+                        document.getElementById('skins-list').innerHTML = '';
+                        selectedSkins = [];
+                        window.location.href = '/';
+                    }, 1000);
+                } catch (error) {
+                    showErrorNotification(error.message);
+                }
             });
         });
     </script>

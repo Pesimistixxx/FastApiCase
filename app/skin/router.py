@@ -102,8 +102,7 @@ async def get_skin(db: Annotated[AsyncSession, Depends(get_db)],
             'next_skin': next_skin}
 
 
-@skinRouter.post('/add_all_skins')
-async def post_add_all_skins(db: Annotated[AsyncSession, Depends(get_db)]):
+async def add_all_skins_to_db(db: AsyncSession):
     df = pd.read_csv('skins_with_filenames.csv')
     for index, row in df.iterrows():
         await db.execute(insert(Skin_model).values(
@@ -113,8 +112,6 @@ async def post_add_all_skins(db: Annotated[AsyncSession, Depends(get_db)]):
             image=row['image']
         ))
     await db.commit()
-    return "SUCCESS"
-
 
 @skinRouter.post('/delete_all_skins')
 async def post_delete_all_skins(db: Annotated[AsyncSession, Depends(get_db)]):

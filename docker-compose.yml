@@ -6,6 +6,12 @@ services:
       - "5433:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $POSTGRES_USER"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
   db-cleaner:
     image: db_cleaner:latest
     build:
@@ -16,6 +22,7 @@ services:
     env_file: .env
     depends_on:
       - db
+
   migrations:
     image: alembic_migrations:latest
     build:
@@ -24,7 +31,9 @@ services:
     environment:
       POSTGRES_HOST: db
     depends_on:
-      - db
+      db:
+        condition: service_healthy
+
   app:
     image: fastapi_server:latest
     build:
@@ -36,6 +45,7 @@ services:
       - "0.0.0.0:8000:8000"
     depends_on:
       - migrations
+
   price_tracker:
     image: price_tracker:latest
     build:

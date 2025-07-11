@@ -6,6 +6,7 @@ from fastapi.templating import Jinja2Templates
 from sqlalchemy import select, desc
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
+from fastapi.middleware.cors import CORSMiddleware
 from starlette.staticfiles import StaticFiles
 
 from app.auth.models import User_model
@@ -15,10 +16,20 @@ from app.auth.router import authRouter
 from app.case.models import Case_model
 from app.case.router import caseRouter
 from app.models_associations import User_Skin_model
-from app.skin.router import skinRouter
+from app.skin.models import Skin_model
+from app.skin.router import skinRouter, add_all_skins_to_db
+from db.db import async_session
 from db.db_depends import get_db
 
 app = FastAPI()
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["http://localhost"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
 app.mount("/static", StaticFiles(directory="static"), name="static")
 templates = Jinja2Templates(directory='templates')
 
@@ -26,6 +37,15 @@ templates = Jinja2Templates(directory='templates')
 app.include_router(authRouter)
 app.include_router(caseRouter)
 app.include_router(skinRouter)
+
+
+@app.on_event("startup")
+async def startup_event():
+    async with async_session() as db:
+        result = await db.execute(select(Skin_model))
+        skins = result.scalars().first()
+        if not skins:
+            await add_all_skins_to_db(db)
 
 
 @app.get('/')

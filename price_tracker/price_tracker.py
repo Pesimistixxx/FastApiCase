@@ -48,7 +48,7 @@ async def fetch_steam_prices(db: AsyncSession, client: httpx.AsyncClient):
             response = await client.get('https://steamcommunity.com/market/priceoverview/', params=params)
             data = response.json()
 
-            if response.status_code == 429:
+            if response.status_code == 429 or response.status_code == 502:
                 logger.warning("Too many requests. Waiting...")
                 await asyncio.sleep(60)
 

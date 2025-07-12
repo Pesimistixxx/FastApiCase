@@ -1,0 +1,67 @@
+services:
+  db:
+    image: postgres:16
+    env_file: .env
+    ports:
+      - "5433:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $POSTGRES_USER"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  db-cleaner:
+    image: db_cleaner:latest
+    build:
+      context: .
+      dockerfile: db_cleaner/Dockerfile
+    environment:
+      POSTGRES_HOST: db
+    env_file: .env
+    depends_on:
+      - db
+
+  migrations:
+    image: alembic_migrations:latest
+    build:
+      context: .
+      dockerfile: alembic/Dockerfile
+    environment:
+      POSTGRES_HOST: db
+    depends_on:
+      db:
+        condition: service_healthy
+
+  app:
+    image: fastapi_server:latest
+    build:
+      context: .
+      dockerfile: app/Dockerfile.prod
+    command: gunicorn app.main:app --workers 4 --worker-class uvicorn.workers.UvicornWorker --bind 0.0.0.0:8000
+    environment:
+      POSTGRES_HOST: db
+    #ports:
+    # - "8000:8000"
+    depends_on:
+      - migrations
+
+  price_tracker:
+    image: price_tracker:latest
+    build:
+      context: .
+      dockerfile: price_tracker/Dockerfile
+    environment:
+      POSTGRES_HOST: db
+    env_file: .env
+    depends_on:
+      - app
+  nginx:
+    build: nginx
+    ports:
+      - 80:80
+    depends_on:
+      - app
+volumes:
+  postgres_data:

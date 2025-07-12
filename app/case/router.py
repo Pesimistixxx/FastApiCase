@@ -153,7 +153,7 @@ async def get_case(request: Request,
     if user:
         return templates.TemplateResponse('case_opener.html', {'request': request,
                                                                'user': user,
-                                                               'username': user.name,
+                                                               'username': user.username,
                                                                'balance': user.balance,
                                                                'skins': skins,
                                                                'case_name': case.name,

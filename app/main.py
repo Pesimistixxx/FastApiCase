@@ -63,7 +63,7 @@ async def get_main_page(request: Request,
 
     cases = await db.scalars(select(Case_model).where(
         Case_model.is_active == True
-    ))
+    ).order_by(desc('id')))
 
     if user:
         return templates.TemplateResponse('main.html', {'request': request,

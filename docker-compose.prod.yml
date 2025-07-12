@@ -61,7 +61,19 @@ services:
     build: nginx
     ports:
       - 80:80
+      - 443:443
     depends_on:
       - app
+    volumes:
+      - ./certbot/conf:/etc/letsencrypt
+      - ./certbot/www:/var/www/certbot
+  certbot:
+    image: certbot/certbot
+    volumes:
+      - ./certbot/conf:/etc/letsencrypt
+      - ./certbot/www:/var/www/certbot
+    command: certonly --webroot --webroot-path=/var/www/certbot/ --email musienkoiy@gmail.com --agree-tos --no-eff-email -d azber.ru
+    depends_on:
+      - nginx
 volumes:
   postgres_data:

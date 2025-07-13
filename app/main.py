@@ -21,7 +21,9 @@ from app.skin.router import skinRouter, add_all_skins_to_db
 from db.db import async_session
 from db.db_depends import get_db
 
-app = FastAPI()
+app = FastAPI(docs_url=None,
+              redoc_url=None)
+
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["http://localhost"],

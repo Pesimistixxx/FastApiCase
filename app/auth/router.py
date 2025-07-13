@@ -78,7 +78,7 @@ async def post_create_user(db: Annotated[AsyncSession, Depends(get_db)],
         key="session_id",
         value=session_token,
         httponly=True,
-        secure=False,
+        secure=True,
         max_age=3600,
         samesite="lax",
         path='/'

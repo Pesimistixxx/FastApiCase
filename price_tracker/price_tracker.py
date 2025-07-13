@@ -51,6 +51,7 @@ async def fetch_steam_prices(db: AsyncSession, client: httpx.AsyncClient):
             if response.status_code == 429 or response.status_code == 502:
                 logger.warning("Too many requests. Waiting...")
                 await asyncio.sleep(60)
+                continue
 
             if data['success'] and 'median_price' in data:
                 price = float(data['median_price'].split(' ')[0].replace(',', '.'))
@@ -76,8 +77,8 @@ async def start_scheduler():
                 await fetch_steam_prices(db=db, client=client)
         logger.info("Задача обновления цен завершена")
 
-    #scheduler.add_job(job, 'interval', minutes=60, next_run_time=datetime.datetime.now())
-    scheduler.add_job(job, 'interval', minutes=60)
+    scheduler.add_job(job, 'interval', minutes=60, next_run_time=datetime.datetime.now())
+    #scheduler.add_job(job, 'interval', minutes=60)
     scheduler.start()
 
 

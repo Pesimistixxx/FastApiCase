@@ -31,7 +31,7 @@ async def get_case_list(db: Annotated[AsyncSession, Depends(get_db)]):
 async def get_case_create(request: Request,
                           user: User_model | None = Depends(get_current_user_or_none)):
     if not user:
-        return RedirectResponse('/')
+        return RedirectResponse('/user/login')
 
     return templates.TemplateResponse('case_create.html',
                                       {'request': request,

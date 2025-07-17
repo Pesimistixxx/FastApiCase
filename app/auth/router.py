@@ -24,7 +24,10 @@ templates = Jinja2Templates(directory='templates')
 
 
 @authRouter.get('/list')
-async def get_all_users(db: Annotated[AsyncSession, Depends(get_db)]):
+async def get_all_users(db: Annotated[AsyncSession, Depends(get_db)],
+                        user: User_model | None = Depends(get_current_user_or_none)):
+    if not user or not user.is_admin:
+        return RedirectResponse('/')
     users_list = await db.scalars(select(User_model).where(
         User_model.is_active == True
     ))
@@ -143,8 +146,8 @@ async def get_user_profile(request: Request,
         .order_by(desc(User_Skin_model.id))
     )
     all_skins_list = all_skins.all()
-    last_skins = all_skins_list[:24]
     total_sum = sum(skin.skin.price for skin in all_skins_list)
+    last_skins = all_skins_list[:24]
 
     return templates.TemplateResponse('profile.html',
                                       {
@@ -158,7 +161,10 @@ async def get_user_profile(request: Request,
 
 
 @authRouter.get('/sessions')
-async def get_sessions_list(db: Annotated[AsyncSession, Depends(get_db)]):
+async def get_sessions_list(db: Annotated[AsyncSession, Depends(get_db)],
+                            user: User_model | None = Depends(get_current_user_or_none)):
+    if not user or not user.is_admin:
+        return RedirectResponse('/')
     sessions = await db.scalars((select(Session_model)))
     return sessions.all()
 

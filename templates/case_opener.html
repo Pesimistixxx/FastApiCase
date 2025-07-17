@@ -278,7 +278,7 @@
             flex-direction: column;
             align-items: center;
             justify-content: center;
-            overflow: hidden;
+            overflow: visible;
         }
 
         .item-card img {
@@ -443,19 +443,24 @@
         .logout-button i {
             font-size: 14px;
         }
-        .skin-price-container {
-            margin-top: 8px;
-        }
+
     </style>
 </head>
 <body>
 <div class="navbar">
-    <div class="nav-left" id="siteName">Meow Case Simulator</div>
+    <div class="nav-left" id="siteName">Rem Battle Simulator</div>
     <div class="nav-buttons">
-        <button hidden>Контракты</button>
-        <button hidden>Апгрейды</button>
+        {% if user %}
+            <button hidden>Контракты</button>
+            <a href="/upgrade">
+            <button>Апгрейды</button>
+            </a>
         <a href="/case/create">
             <button>Добавить кейс</button>
+        </a>
+        {% endif %}
+        <a href="/top/">
+            <button>Топ пользователей</button>
         </a>
     </div>
     {% if user %}
@@ -522,7 +527,7 @@
                      alt="{{ skin.name }}"
                      onerror="this.onerror=null; this.src='https://via.placeholder.com/100'">
                 <span class="skin-name">{{ skin.name }}</span>
-                <div class="skin-price-container"> <!-- Новый контейнер -->
+                <div class="skin-price-container">
                     <span class="skin-price">{{ skin.price }}</span>
                 </div>
             </div>
@@ -643,6 +648,7 @@
                 updateOpenButton();
                 balanceMenu.style.display = 'none';
                 amountInput.value = '';
+                formatBalances()
             } else {
                 throw new Error(result.detail || 'Ошибка пополнения');
             }

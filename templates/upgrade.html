@@ -1,0 +1,892 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Апгрейды</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #121212;
+            margin: 0;
+            padding: 0;
+            color: #ffffff;
+            overflow-x: hidden;
+        }
+        .navbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background-color: #1e1e1e;
+            padding: 15px 30px;
+            border-bottom: 1px solid #333;
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+        }
+        .nav-left {
+            font-size: 20px;
+            font-weight: bold;
+            color: #2979ff;
+            cursor: pointer;
+            text-decoration: none;
+        }
+        .nav-buttons {
+            display: flex;
+            gap: 40px;
+        }
+        .nav-buttons button {
+            background-color: #2979ff;
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            font-size: 14px;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        .nav-buttons button:hover {
+            background-color: #1c54b2;
+        }
+        .user-profile {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            position: relative;
+        }
+        .user-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 2px solid #2979ff;
+            cursor: pointer;
+        }
+        .user-info {
+            text-align: left;
+            font-size: 14px;
+        }
+        .user-username {
+            font-weight: bold;
+        }
+        .user-balance {
+            color: #aeeaff;
+            font-size: 12px;
+        }
+        .main-market-container {
+            display: flex;
+            gap: 0;
+            max-width: 1200px;
+            margin: 40px auto;
+            justify-content: space-between;
+        }
+        .user-skins-list {
+            width: 32%;
+            background: #1e1e1e;
+            border-radius: 10px;
+            padding: 20px 10px;
+            box-shadow: 0 0 10px rgba(255,255,255,0.05);
+            height: fit-content;
+        }
+        .user-skins-title {
+            font-size: 18px;
+            font-weight: bold;
+            margin-bottom: 15px;
+            color: #aeeaff;
+            text-align: center;
+        }
+        .user-skins-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 12px;
+        }
+        .user-skin-item, .market-skin-item {
+            background: #242424;
+            border-radius: 6px;
+            border: 1px solid #444;
+            padding: 6px 4px 4px 4px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            cursor: pointer;
+            transition: box-shadow 0.2s, border 0.2s;
+        }
+        .user-skin-item.selected, .market-skin-item.selected {
+            box-shadow: 0 0 8px #2979ff;
+            border: 2px solid #2979ff;
+        }
+        .user-skin-item img, .market-skin-item img {
+            width: 60px;
+            height: 60px;
+            object-fit: cover;
+            border-radius: 4px;
+        }
+        .user-skin-label, .market-skin-label {
+            font-size: 12px;
+            color: #cccccc;
+            text-align: center;
+            margin-top: 4px;
+        }
+        .user-skin-price, .market-skin-price {
+            color: #4CAF50;
+            font-size: 13px;
+            margin-top: 2px;
+        }
+        .market-skins-list {
+            width: 32%;
+            background: #1e1e1e;
+            border-radius: 10px;
+            padding: 20px 20px 20px 20px;
+            box-shadow: 0 0 10px rgba(255,255,255,0.05);
+            min-width: 320px;
+        }
+        .market-skins-list .market-skins-title { margin-top: 0; }
+        .market-skins-list .market-skins-grid { margin-top: 0; }
+        .market-skins-list .market-selected-skin { margin-bottom: 15px; }
+        .market-selected-skin {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 15px;
+            min-height: 70px;
+        }
+        .market-selected-skin img {
+            width: 60px;
+            height: 60px;
+            object-fit: cover;
+            border-radius: 4px;
+            border: 1px solid #2979ff;
+        }
+        .market-selected-skin-info {
+            display: flex;
+            flex-direction: column;
+        }
+        .market-selected-skin-name {
+            font-size: 16px;
+            font-weight: bold;
+            color: #fff;
+        }
+        .market-selected-skin-price {
+            color: #4CAF50;
+            font-size: 14px;
+        }
+        .market-filter-form {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 18px;
+            align-items: flex-end;
+        }
+        .market-filter-form input {
+            background: #242424;
+            border: 1px solid #444;
+            border-radius: 4px;
+            color: #fff;
+            padding: 7px 10px;
+            font-size: 14px;
+            width: 110px;
+        }
+        .market-skins-title {
+            font-size: 18px;
+            font-weight: bold;
+            margin-bottom: 10px;
+            color: #aeeaff;
+            text-align: center;
+        }
+        .market-skins-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 12px;
+        }
+        .middle-space {
+            width: 20%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-start;
+            min-width: 180px;
+        }
+        .upgrade-circle {
+            width: 180px;
+            height: 180px;
+            border-radius: 50%;
+            background: none;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 30px auto;
+            box-shadow: 0 0 20px #2979ff44;
+            border: 4px solid #2979ff;
+            position: relative;
+            font-size: 32px;
+            font-weight: bold;
+            color: #fff;
+            overflow: hidden;
+        }
+        .upgrade-chance-svg {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            z-index: 1;
+            pointer-events: none;
+        }
+        .upgrade-chance-label {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 32px;
+            font-weight: bold;
+            color: #fff;
+            text-shadow: 0 2px 8px #000a;
+            pointer-events: none;
+            z-index: 2;
+        }
+        .upgrade-btn {
+            display: block;
+            margin: 0 auto;
+            margin-top: 10px;
+            padding: 12px 32px;
+            background-color: #2979ff;
+            color: white;
+            border: none;
+            border-radius: 24px;
+            font-size: 18px;
+            font-weight: bold;
+            cursor: pointer;
+            box-shadow: 0 2px 8px #2979ff22;
+            transition: background 0.2s;
+        }
+        .upgrade-btn:hover {
+            background-color: #1c54b2;
+        }
+        .upgrade-btn:disabled {
+            background: #888 !important;
+            color: #ccc !important;
+            cursor: not-allowed !important;
+            opacity: 0.7;
+        }
+        @media (max-width: 900px) {
+            .main-market-container { flex-direction: column; gap: 20px; }
+            .user-skins-list, .market-skins-list { min-width: 0; max-width: 100%; width: 100%; }
+            .market-skins-grid, .user-skins-grid { grid-template-columns: repeat(2, 1fr); }
+            .middle-space { display: none; }
+        }
+        .add-balance-button {
+            background-color: #4caf50;
+            color: white;
+            border: none;
+            width: 30px;
+            height: 30px;
+            font-size: 20px;
+            border-radius: 50%;
+            cursor: pointer;
+            margin-left: 10px;
+        }
+        .add-balance-button:hover {
+            background-color: #388e3c;
+        }
+        .balance-menu {
+            position: absolute;
+            top: 50px;
+            right: 0;
+            background-color: #2a2a2a;
+            padding: 15px;
+            border-radius: 6px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.5);
+            width: 200px;
+            display: none;
+            flex-direction: column;
+            gap: 10px;
+        }
+        .balance-menu input {
+            padding: 8px;
+            border: 1px solid #444;
+            border-radius: 4px;
+            background-color: #1e1e1e;
+            color: #fff;
+        }
+        .balance-menu button {
+            padding: 8px;
+            background-color: #2979ff;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        .balance-menu button:hover {
+            background-color: #1c54b2;
+        }
+        .logout-button {
+            background-color: #f44336;
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            font-size: 14px;
+            border-radius: 4px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            transition: background-color 0.3s;
+        }
+        .profile-link {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            text-decoration: none;
+            color: inherit;
+            cursor: pointer;
+        }
+        .selected-skin-top {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 20px;
+            background: #181d23;
+            border-radius: 10px;
+            padding: 18px 24px;
+            margin: 30px auto 24px auto;
+            max-width: 420px;
+            box-shadow: 0 2px 12px #2979ff11;
+        }
+        .selected-skin-top img {
+            width: 70px;
+            height: 70px;
+            object-fit: cover;
+            border-radius: 8px;
+            border: 2px solid #2979ff;
+            background: #222;
+        }
+        .selected-skin-top-info {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+        .selected-skin-top-name {
+            font-size: 18px;
+            font-weight: bold;
+            color: #fff;
+        }
+        .selected-skin-top-price {
+            color: #4CAF50;
+            font-size: 15px;
+        }
+        #notify {
+            display: none;
+            position: fixed;
+            top: 24px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 5000;
+            background: #f44336;
+            color: #fff;
+            padding: 12px 28px;
+            border-radius: 6px;
+            font-size: 16px;
+            font-weight: bold;
+            min-width: 120px;
+            text-align: center;
+            pointer-events: none;
+            opacity: 0;
+            transition: opacity 0.2s cubic-bezier(.4,2,.2,1);
+        }
+        #notify.visible {
+            opacity: 0.97;
+            display: block;
+        }
+    </style>
+</head>
+<body>
+<div class="navbar">
+    <div class="nav-left" id="siteName">Rem Battle Simulator</div>
+    <div class="nav-buttons">
+        <button hidden>Контракты</button>
+        <a href="/upgrade">
+            <button>Апгрейды</button>
+        </a>
+        <a href="/case/create">
+            <button>Добавить кейс</button>
+        </a>
+        <a href="/top">
+            <button>Топ пользователей</button>
+        </a>
+    </div>
+    <div class="user-profile" id="userProfile">
+        <a href="/user/profile" class="profile-link">
+            <img src="/static/avatars/{{user.avatar}}"
+                     alt="Аватар"
+                     class="user-avatar"
+                     onerror="this.onerror=null; this.src='https://via.placeholder.com/100'">
+            <div class="user-info">
+                <div class="user-username">{{username}}</div>
+                <div class="user-balance">Баланс: {{balance}}</div>
+            </div>
+        </a>
+        <button class="add-balance-button" id="toggleBalanceMenu">+</button>
+        <div class="balance-menu" id="balanceMenu">
+            <input type="number" id="amountInput" placeholder="Сумма пополнения" min="1" required>
+            <button id="addMoneyBtn">Пополнить</button>
+        </div>
+        <form action="/user/logout" method="POST" class="logout-form">
+            <button type="submit" class="logout-button">
+                <i class="fas fa-sign-out-alt"></i> Выйти
+            </button>
+        </form>
+    </div>
+</div>
+<div class="main-market-container">
+    <div class="user-skins-list">
+        <div class="selected-skin-top" id="selectedUserSkinTop" style="display:flex; margin: 0 auto 66px auto; max-width: 420px; box-shadow: 0 2px 12px #2979ff11; background: #181d23; border-radius: 10px; padding: 18px 24px; justify-content:center; align-items:center;">
+            <img id="selectedUserSkinTopImg" src="" alt="" style="display:none;">
+            <div class="selected-skin-top-info">
+                <div class="selected-skin-top-name" id="selectedUserSkinTopName">Скин не выбран</div>
+                <div class="selected-skin-top-price" id="selectedUserSkinTopPrice"></div>
+            </div>
+        </div>
+        <div class="user-skins-title">Ваши скины</div>
+        <div class="user-skins-grid">
+            {% for skin in user_skins %}
+            <div class="user-skin-item" data-image="{{skin.skin.image}}" data-name="{{skin.skin.name}}" data-price="{{skin.skin.price}}" data-id="{{skin.id}}">
+                <img src="/static/skins/{{skin.skin.image}}" alt="{{skin.skin.name}}">
+                <div class="user-skin-label">{{skin.skin.name}}</div>
+                <div class="user-skin-price">{{skin.skin.price}}</div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    <div class="middle-space">
+        <div class="upgrade-circle">
+            <svg class="upgrade-chance-svg" viewBox="0 0 180 180">
+                <g id="upgradeWheel" style="transform: rotate(0deg); transform-origin: 90px 90px; transition: transform 1.2s cubic-bezier(.4,2,.2,1);">
+                    <circle id="upgradeChanceBg" cx="90" cy="90" r="80" fill="none" stroke="#f44336" stroke-width="16" style="transform: rotate(90deg); transform-origin: 50% 50%;" />
+                    <circle id="upgradeChanceArc" cx="90" cy="90" r="80" fill="none" stroke="#4CAF50" stroke-width="16" stroke-dasharray="502.654825" stroke-dashoffset="502.654825" style="transform: rotate(-90deg); transform-origin: 50% 50%;"/>
+                </g>
+                <g id="upgradeArrow" style="transform: rotate(0deg); transform-origin: 90px 90px; transition: transform 1.2s cubic-bezier(.4,2,.2,1);">
+                    <polygon points="90,18 98,38 90,32 82,38" fill="#fff" stroke="#222" stroke-width="2" />
+                </g>
+            </svg>
+            <span class="upgrade-chance-label" id="upgradeChanceLabel">0%</span>
+        </div>
+        <form id="upgradeForm" method="post" action="/upgrade" style="width:100%;text-align:center;">
+            <input type="hidden" name="chance" id="upgradeChanceInput" value="0">
+            <button type="submit" class="upgrade-btn" id="upgradeBtn" disabled>Апгрейд</button>
+        </form>
+    </div>
+    <div class="market-skins-list">
+        <div class="selected-skin-top" id="selectedMarketSkinTop" style="display:flex; margin: 0 auto 16px auto; max-width: 420px; box-shadow: 0 2px 12px #2979ff11; background: #181d23; border-radius: 10px; padding: 18px 24px; justify-content:center; align-items:center;">
+            <img id="selectedMarketSkinTopImg" src="" alt="" style="display:none;">
+            <div class="selected-skin-top-info">
+                <div class="selected-skin-top-name" id="selectedMarketSkinTopName">Скин не выбран</div>
+                <div class="selected-skin-top-price" id="selectedMarketSkinTopPrice"></div>
+            </div>
+        </div>
+        <form class="market-filter-form" method="get" onsubmit="return false;" style="display:flex; flex-direction:row; justify-content:space-between; gap:24px;">
+            <div style="display:flex; flex-direction:column; flex:1; min-width:120px; max-width:180px; align-items:flex-start;">
+                <input type="number" id="minPriceInput" name="min_price" placeholder="Мин. цена" value="{{min_price|default('')}}">
+            </div>
+            <div style="display:flex; flex-direction:column; flex:1; min-width:120px; max-width:180px; align-items:flex-end;">
+                <input type="number" id="maxPriceInput" name="max_price" placeholder="Макс. цена" value="{{max_price|default('')}}">
+            </div>
+        </form>
+        <div class="market-skins-title">Все скины</div>
+        <div class="market-skins-grid">
+            {% for skin in all_skins %}
+            <div class="market-skin-item" data-image="{{skin.image}}" data-name="{{skin.name}}" data-price="{{skin.price}}" data-id="{{skin.id}}">
+                <img src="/static/skins/{{skin.image}}" alt="{{skin.name}}">
+                <div class="market-skin-label">{{skin.name}}</div>
+                <div class="market-skin-price">{{skin.price}}</div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+<div id="dropModal" style="display:none; position:fixed; z-index:2000; left:0; top:0; width:100vw; height:100vh; background:rgba(0,0,0,0.75); align-items:center; justify-content:center;">
+  <div style="background:#181d23; border-radius:16px; padding:36px 32px 28px 32px; box-shadow:0 8px 32px #000a; min-width:320px; max-width:90vw; display:flex; flex-direction:column; align-items:center; position:relative;">
+    <div style="font-size:22px; color:#4CAF50; font-weight:bold; margin-bottom:18px;">Поздравляем! Вы выбили скин:</div>
+    <img id="dropModalImg" src="" alt="Скин" style="width:120px; height:120px; object-fit:cover; border-radius:10px; border:3px solid #2979ff; margin-bottom:16px; background:#222;">
+    <div id="dropModalName" style="font-size:18px; color:#fff; font-weight:bold; margin-bottom:8px;"></div>
+    <div id="dropModalPrice" style="font-size:16px; color:#4CAF50; font-weight:bold; margin-bottom:18px;"></div>
+    <div style="display:flex; gap:24px; margin-top:8px;">
+      <button id="dropSellBtn" style="background:#f44336; color:#fff; border:none; border-radius:8px; padding:10px 28px; font-size:16px; font-weight:bold; cursor:pointer;">Продать</button>
+      <button id="dropTakeBtn" style="background:#2979ff; color:#fff; border:none; border-radius:8px; padding:10px 28px; font-size:16px; font-weight:bold; cursor:pointer;">Забрать</button>
+    </div>
+  </div>
+</div>
+<div id="notify"></div>
+<script>
+    function parseMoney(value) {
+        if (typeof value === 'number') return value;
+        const cleaned = String(value).replace(/[^\d.,]/g, '').replace(',', '.');
+        return parseFloat(cleaned) || 0;
+    }
+    function formatBalances() {
+        document.querySelectorAll('.user-balance, .balance').forEach(el => {
+            const num = parseMoney(el.textContent);
+            el.textContent = `Баланс: ${num.toFixed(2)}`;
+        });
+    }
+    async function addMoney() {
+        const amountInput = document.getElementById('amountInput');
+        const amount = parseMoney(amountInput.value);
+        if (isNaN(amount) || amount <= 0) {
+            alert('Введите корректную сумму');
+            return;
+        }
+        try {
+            const response = await fetch(`/user/add_money/${amount}`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                }
+            });
+            const result = await response.json();
+            if (response.ok) {
+                document.querySelector('.user-balance').textContent = `Баланс: ${result.new_balance}`;
+                formatBalances();
+                balanceMenu.style.display = 'none';
+                amountInput.value = '';
+            } else {
+                alert(result.detail || 'Ошибка пополнения');
+            }
+        } catch (error) {
+            alert(error.message);
+        }
+    }
+    async function animateUpgradeWheel(randint) {
+        const wheel = document.getElementById('upgradeWheel');
+        wheel.style.transition = 'none';
+        wheel.style.transform = 'rotate(0deg)';
+        void wheel.offsetWidth;
+        wheel.style.transition = 'transform 2s cubic-bezier(.4,2,.2,1)';
+        wheel.style.transform = 'rotate(1440deg)';
+        await new Promise(r => setTimeout(r, 2000));
+        const angle = 360 * (randint / 100);
+        wheel.style.transition = 'transform 1.2s cubic-bezier(.4,2,.2,1)';
+        wheel.style.transform = `rotate(${1440 + angle}deg)`;
+    }
+    document.addEventListener('DOMContentLoaded', function() {
+        formatBalances();
+        const balanceMenu = document.getElementById('balanceMenu');
+        const toggleButton = document.getElementById('toggleBalanceMenu');
+        if (toggleButton) {
+            toggleButton.addEventListener('click', function () {
+                balanceMenu.style.display = balanceMenu.style.display === 'flex' ? 'none' : 'flex';
+            });
+        }
+        document.addEventListener('click', function (event) {
+            if (!document.querySelector('.user-profile').contains(event.target)) {
+                balanceMenu.style.display = 'none';
+            }
+        });
+        const addMoneyBtn = document.getElementById('addMoneyBtn');
+        if (addMoneyBtn) {
+            addMoneyBtn.addEventListener('click', addMoney);
+        }
+        const dropModal = document.getElementById('dropModal');
+        if (dropModal) {
+            dropModal.addEventListener('mousedown', function(e) {
+                if (e.target === dropModal) {
+                    dropModal.style.display = 'none';
+                }
+            });
+        }
+    });
+    document.getElementById("siteName").addEventListener("click", function() {
+        window.location.href = "/";
+    });
+
+    function showSelectedUserSkinJS(image, name, price) {
+        const block = document.getElementById('selectedUserSkinTop');
+        const img = document.getElementById('selectedUserSkinTopImg');
+        img.src = '/static/skins/' + image;
+        img.alt = name;
+        img.style.display = '';
+        document.getElementById('selectedUserSkinTopName').textContent = name;
+        document.getElementById('selectedUserSkinTopPrice').textContent = 'Цена: ' + price;
+    }
+    function showSelectedMarketSkinJS(image, name, price) {
+        const block = document.getElementById('selectedMarketSkinTop');
+        const img = document.getElementById('selectedMarketSkinTopImg');
+        img.src = '/static/skins/' + image;
+        img.alt = name;
+        img.style.display = '';
+        document.getElementById('selectedMarketSkinTopName').textContent = name;
+        document.getElementById('selectedMarketSkinTopPrice').textContent = 'Цена: ' + price;
+    }
+    function polarToCartesian(cx, cy, r, angle) {
+        const a = (angle - 90) * Math.PI / 180.0;
+        return {
+            x: cx + (r * Math.cos(a)),
+            y: cy + (r * Math.sin(a))
+        };
+    }
+    function describeSectorBottomUp(cx, cy, r, percent) {
+        if (percent <= 0) return '';
+        if (percent >= 100) percent = 99.999;
+        const startAngle = 180;
+        const angle = percent * 1.8; // 100% = 180°
+        const endAngle = startAngle - angle;
+        const start = polarToCartesian(cx, cy, r, startAngle);
+        const end = polarToCartesian(cx, cy, r, endAngle);
+        const largeArcFlag = angle > 180 ? 1 : 0;
+        return [
+            'M', cx, cy,
+            'L', start.x, start.y,
+            'A', r, r, 0, largeArcFlag, 0, end.x, end.y,
+            'Z'
+        ].join(' ');
+    }
+    function updateUpgradeChance() {
+        let myPrice = 0;
+        const userPriceText = document.getElementById('selectedUserSkinTopPrice').textContent;
+        if (userPriceText && userPriceText.includes('Цена:')) {
+            myPrice = parseFloat(userPriceText.replace(/[^\d.]/g, ''));
+        }
+        let marketPrice = 0;
+        const marketPriceText = document.getElementById('selectedMarketSkinTopPrice').textContent;
+        if (marketPriceText && marketPriceText.includes('Цена:')) {
+            marketPrice = parseFloat(marketPriceText.replace(/[^\d.]/g, ''));
+        }
+        let chance = 0;
+        if (myPrice > 0 && marketPrice > 0) {
+            chance = Math.min(100, (myPrice / marketPrice) * 100);
+        }
+        const chanceRounded = chance.toFixed(2);
+        document.getElementById('upgradeChanceLabel').textContent = chanceRounded + '%';
+        const percent = Math.max(0, Math.min(100, chance));
+        const circle = document.getElementById('upgradeChanceArc');
+        const fullLen = 2 * Math.PI * 80; // r=80
+        circle.setAttribute('stroke-dashoffset', fullLen - (fullLen * percent / 100));
+    }
+    function patchChanceUpdateToSkinSelect(fn) {
+        return function() {
+            fn.apply(this, arguments);
+            updateUpgradeChance();
+        }
+    }
+    const oldUserSkinJS = showSelectedUserSkinJS;
+    showSelectedUserSkinJS = patchChanceUpdateToSkinSelect(oldUserSkinJS);
+    const oldMarketSkinJS = showSelectedMarketSkinJS;
+    showSelectedMarketSkinJS = patchChanceUpdateToSkinSelect(oldMarketSkinJS);
+    // При загрузке страницы тоже обновляем
+    updateUpgradeChance();
+    // Выделение выбранного скина для каждой группы отдельно
+    document.querySelectorAll('.user-skin-item').forEach(function(item) {
+        item.addEventListener('click', function(e) {
+            document.querySelectorAll('.user-skin-item').forEach(function(i) {
+                i.classList.remove('selected');
+            });
+            item.classList.add('selected');
+            const image = item.getAttribute('data-image');
+            const name = item.getAttribute('data-name');
+            const price = item.getAttribute('data-price');
+            showSelectedUserSkinJS(image, name, price);
+        });
+    });
+    document.querySelectorAll('.market-skin-item').forEach(function(item) {
+        item.addEventListener('click', function(e) {
+            document.querySelectorAll('.market-skin-item').forEach(function(i) {
+                i.classList.remove('selected');
+            });
+            item.classList.add('selected');
+            const image = item.getAttribute('data-image');
+            const name = item.getAttribute('data-name');
+            const price = item.getAttribute('data-price');
+            showSelectedMarketSkinJS(image, name, price);
+        });
+    });
+
+    function filterMarketSkinsCombined() {
+        let myPrice = 0;
+        const userPriceText = document.getElementById('selectedUserSkinTopPrice').textContent;
+        if (userPriceText && userPriceText.includes('Цена:')) {
+            myPrice = parseFloat(userPriceText.replace(/[^\d.]/g, ''));
+        }
+        const min = parseFloat(document.getElementById('minPriceInput').value) || 0;
+        const max = parseFloat(document.getElementById('maxPriceInput').value) || Infinity;
+        document.querySelectorAll('.market-skin-item').forEach(function(item) {
+            const price = parseFloat(item.getAttribute('data-price'));
+            if (
+                (myPrice > 0 && price <= myPrice) ||
+                price < min ||
+                price > max
+            ) {
+                item.style.display = 'none';
+            } else {
+                item.style.display = '';
+            }
+        });
+    }
+    const origShowSelectedUserSkinJS = showSelectedUserSkinJS;
+    showSelectedUserSkinJS = function(image, name, price) {
+        origShowSelectedUserSkinJS(image, name, price);
+        filterMarketSkinsCombined();
+    }
+    document.getElementById('minPriceInput').addEventListener('input', filterMarketSkinsCombined);
+    document.getElementById('maxPriceInput').addEventListener('input', filterMarketSkinsCombined);
+    filterMarketSkinsCombined();
+
+    function checkUpgradeBtnState() {
+        const userSkin = document.getElementById('selectedUserSkinTopImg').style.display !== 'none';
+        const marketSkin = document.getElementById('selectedMarketSkinTopImg').style.display !== 'none';
+        const btn = document.getElementById('upgradeBtn');
+        btn.disabled = !(userSkin && marketSkin);
+    }
+    document.querySelectorAll('.user-skin-item').forEach(function(item) {
+        item.addEventListener('click', checkUpgradeBtnState);
+    });
+    document.querySelectorAll('.market-skin-item').forEach(function(item) {
+        item.addEventListener('click', checkUpgradeBtnState);
+    });
+    checkUpgradeBtnState();
+
+    document.getElementById('upgradeForm').addEventListener('submit', async function(e) {
+        e.preventDefault();
+        const percentText = document.getElementById('upgradeChanceLabel').textContent;
+        const percentValue = parseFloat(percentText.replace(',', '.'));
+        document.getElementById('upgradeChanceInput').value = isNaN(percentValue) ? 0 : percentValue;
+        const form = e.target;
+        const formData = new FormData(form);
+        const userSkinId = document.querySelector('.user-skin-item.selected')?.getAttribute('data-id');
+        const marketSkinId = document.querySelector('.market-skin-item.selected')?.getAttribute('data-id');
+        if (userSkinId) formData.append('user_skin_id', userSkinId);
+        if (marketSkinId) formData.append('market_skin_id', marketSkinId);
+        const btn = document.getElementById('upgradeBtn');
+        const wheel = document.getElementById('upgradeWheel');
+        const selectedUserSkin = document.querySelector('.user-skin-item.selected');
+        if (selectedUserSkin) selectedUserSkin.remove();
+        const userSkinImg = document.getElementById('selectedUserSkinTopImg');
+        const userSkinName = document.getElementById('selectedUserSkinTopName');
+        const userSkinPrice = document.getElementById('selectedUserSkinTopPrice');
+        if (userSkinImg) userSkinImg.style.display = 'none';
+        if (userSkinName) userSkinName.textContent = 'Скин не выбран';
+        if (userSkinPrice) userSkinPrice.textContent = '';
+        checkUpgradeBtnState();
+        btn.disabled = true;
+        try {
+            wheel.style.transition = 'none';
+            wheel.style.transform = 'rotate(0deg)';
+            void wheel.offsetWidth;
+            wheel.style.transition = 'transform 2s cubic-bezier(.4,2,.2,1)';
+            wheel.style.transform = 'rotate(1440deg)';
+            const fetchPromise = fetch('/upgrade', {
+                method: 'POST',
+                body: formData
+            });
+            await new Promise(r => setTimeout(r, 2000));
+            const response = await fetchPromise;
+            let result = {};
+            if (response.ok) {
+                result = await response.json().catch(() => ({}));
+            } else {
+                result = await response.json().catch(() => ({}));
+                alert(result.detail || 'Ошибка!');
+                btn.disabled = false;
+                return;
+            }
+            let angle = 0;
+            if (typeof result.randint === 'number') {
+                angle = 360 * (result.randint / 100);
+                wheel.style.transition = 'transform 2s cubic-bezier(.22,1,.36,1)';
+                wheel.style.transform = `rotate(${1440 - angle}deg)`;
+            }
+            setTimeout(() => {
+                const chance = parseFloat(document.getElementById('upgradeChanceLabel').textContent);
+                const isSuccess = (typeof result.randint === 'number' && result.randint <= chance);
+                const selectedUserSkin = document.querySelector('.user-skin-item.selected');
+                if (selectedUserSkin) selectedUserSkin.classList.remove('selected');
+                const userSkinImg = document.getElementById('selectedUserSkinTopImg');
+                const userSkinName = document.getElementById('selectedUserSkinTopName');
+                const userSkinPrice = document.getElementById('selectedUserSkinTopPrice');
+                if (userSkinImg) userSkinImg.style.display = 'none';
+                if (userSkinName) userSkinName.textContent = 'Скин не выбран';
+                if (userSkinPrice) userSkinPrice.textContent = '';
+                const wheel = document.getElementById('upgradeWheel');
+                wheel.style.transition = 'none';
+                wheel.style.transform = 'rotate(0deg)';
+                void wheel.offsetWidth;
+                btn.disabled = true;
+                if (isSuccess) {
+                    const modal = document.getElementById('dropModal');
+                    const img = document.getElementById('dropModalImg');
+                    const name = document.getElementById('dropModalName');
+                    const price = document.getElementById('dropModalPrice');
+                    const marketImg = document.getElementById('selectedMarketSkinTopImg').src;
+                    const marketName = document.getElementById('selectedMarketSkinTopName').textContent;
+                    const marketPrice = document.getElementById('selectedMarketSkinTopPrice').textContent.replace(/[^\d.]/g, '');
+                    img.src = marketImg;
+                    name.textContent = marketName;
+                    price.textContent = `Цена: ${marketPrice}`;
+                    modal.style.display = 'flex';
+                    const sellBtn = document.getElementById('dropSellBtn');
+                    sellBtn.textContent = `Продать за ${marketPrice}`;
+                    sellBtn.onclick = async function() {
+                        sellBtn.disabled = true;
+                        try {
+                            const skinId = result.skin_id;
+                            if (!skinId) throw new Error('Не удалось получить id скина');
+                            const resp = await fetch(`/skin/sell/${skinId}`, {
+                                method: 'POST'
+                            });
+                            if (resp.ok) {
+                                const data = await resp.json().catch(() => ({}));
+                                if (data && data.new_balance !== undefined) {
+                                    const balanceEls = document.querySelectorAll('.user-balance');
+                                    balanceEls.forEach(el => { el.textContent = `Баланс: ${parseFloat(data.new_balance).toFixed(2)}`; });
+                                }
+                                modal.style.display = 'none';
+                            } else {
+                                const data = await resp.json().catch(() => ({}));
+                                alert(data.detail || 'Ошибка при продаже скина');
+                            }
+                        } catch (err) {
+                            alert('Ошибка: ' + err.message);
+                        }
+                    };
+                    document.getElementById('dropTakeBtn').onclick = function() {
+                        const userSkinsGrid = document.querySelector('.user-skins-grid');
+                        if (userSkinsGrid && result.skin_id) {
+                            const div = document.createElement('div');
+                            div.className = 'user-skin-item';
+                            div.setAttribute('data-id', result.skin_id);
+                            div.setAttribute('data-image', marketImg.split('/').pop());
+                            div.setAttribute('data-name', marketName);
+                            div.setAttribute('data-price', marketPrice);
+                            div.innerHTML = `
+                                <img src="${marketImg}" alt="${marketName}">
+                                <div class="user-skin-label">${marketName}</div>
+                                <div class="user-skin-price">${marketPrice}</div>
+                            `;
+                            div.addEventListener('click', function(e) {
+                                document.querySelectorAll('.user-skin-item').forEach(function(i) {
+                                    i.classList.remove('selected');
+                                });
+                                div.classList.add('selected');
+                                showSelectedUserSkinJS(marketImg.split('/').pop(), marketName, marketPrice);
+                                checkUpgradeBtnState();
+                            });
+                            userSkinsGrid.prepend(div);
+                        }
+                        modal.style.display = 'none';
+                        checkUpgradeBtnState();
+                    };
+                } else {
+                    showNotify('Неуспешный контракт!');
+                }
+            }, 1300);
+        } catch (err) {
+            alert('Ошибка соединения: ' + err.message);
+            btn.disabled = false;
+        }
+    });
+
+function showNotify(msg) {
+    const notify = document.getElementById('notify');
+    notify.textContent = msg;
+    notify.classList.add('visible');
+    clearTimeout(window._notifyTimeout);
+    window._notifyTimeout = setTimeout(() => {
+        notify.classList.remove('visible');
+    }, 2500);
+    }
+</script>
+</body>
+</html> 

@@ -12,7 +12,7 @@ from app.models_associations import Case_Skin_model, User_Skin_model
 from db.db_depends import get_db
 from app.case.models import Case_model
 from app.skin.models import Skin_model
-from app.case.schemas import CaseCreate, CaseOpen, calculate_probability_form, CaseCalculateProbability
+from app.case.schemas import CaseCreate, CaseOpen, CaseCalculateProbability
 from app.case.probability import get_item_by_probability, calculate_probabilities
 
 caseRouter = APIRouter(prefix='/case', tags=['case'])
@@ -73,13 +73,16 @@ async def post_calculate_case_price(db: Annotated[AsyncSession, Depends(get_db)]
     mo = sum(skin.price * probability for skin, probability in zip(skins, probabilities))
 
     return {'status': status.HTTP_200_OK,
-            'low_case_price': f'{mo * 0.9:.0f}',
-            'high_case_price': f'{mo * 1.1:.0f}'}
+            'case_price': f'{mo:.0f}'
+            }
 
 
 @caseRouter.post('/create_case')
 async def post_create_case(db: Annotated[AsyncSession, Depends(get_db)],
-                           case_inp: CaseCreate):
+                           case_inp: CaseCreate,
+                           user: User_model | None = Depends(get_current_user_or_none)):
+    if not user:
+        return RedirectResponse('/user/login')
     new_case = Case_model(name=case_inp.name,
                           price=case_inp.price,
                           math_exception=case_inp.math_exception,
@@ -93,6 +96,7 @@ async def post_create_case(db: Annotated[AsyncSession, Depends(get_db)],
             skin_id=skin_id
         ))
 
+    user.cases_create += 1
     await db.commit()
 
     return {'status': status.HTTP_201_CREATED,
@@ -101,7 +105,12 @@ async def post_create_case(db: Annotated[AsyncSession, Depends(get_db)],
 
 @caseRouter.delete('/{name}')
 async def delete_case(db: Annotated[AsyncSession, Depends(get_db)],
-                      name: str = Path()):
+                      name: str = Path(),
+                      user: User_model | None = Depends(get_current_user_or_none)):
+    if not user or not user.is_admin:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN,
+                            detail='Not allowed')
+
     case = await db.scalar(select(Case_model).where(
         Case_model.is_active == True,
         Case_model.name == name
@@ -116,7 +125,6 @@ async def delete_case(db: Annotated[AsyncSession, Depends(get_db)],
 @caseRouter.get('/skin_case')
 async def get_skin_case(db: Annotated[AsyncSession, Depends(get_db)]):
     skin_case = await db.scalars(select(Case_Skin_model))
-
     return skin_case.all()
 
 
@@ -131,23 +139,21 @@ async def get_case(request: Request,
     ))
 
     if not case:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail='Case not found'
-        )
+        return RedirectResponse('/')
 
     last_skins = await db.scalars(
         select(User_Skin_model)
         .where(User_Skin_model.is_active == True)
         .options(selectinload(User_Skin_model.skin))
         .order_by(desc('id'))
-        .limit(5)
+        .limit(15)
     )
 
     result = await db.scalars(
         select(Skin_model)
         .join(Skin_model.cases)
         .where(Case_model.id == case.id, Skin_model.is_active == True)
+        .order_by(Skin_model.price)
     )
     skins = result.all()
     if user:
@@ -185,6 +191,7 @@ async def post_open_case(db: Annotated[AsyncSession, Depends(get_db)],
             status_code=status.HTTP_404_NOT_FOUND,
             detail='Case not found'
         )
+    user.case_opened += num_cases.cnt
 
     if user.balance < (case.price * num_cases.cnt):
         raise HTTPException(
@@ -213,6 +220,8 @@ async def post_open_case(db: Annotated[AsyncSession, Depends(get_db)],
     user_skin_ids = []
 
     for skin in dropped_items:
+        if skin.price >= case.price:
+            user.successful_cases_cnt += 1
         result = await db.execute(
             insert(User_Skin_model)
             .values(user_id=user.id, skin_id=skin.id)

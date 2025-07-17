@@ -78,9 +78,9 @@
 <body>
     <div class="login-container">
         <h2>Вход</h2>
-        <form id="loginForm">
-            <input type="text" name="username" placeholder="Имя пользователя" required>
-            <input type="password" name="password" placeholder="Пароль" required>
+        <form id="loginForm" action="/user/login" method="post">
+            <input type="text" name="username" placeholder="Имя пользователя (от 3 до 30 символов)" required>
+            <input type="password" name="password" placeholder="Пароль (от 8 до 30 символов)" required>
             <div id="errorMessage" class="error-message"></div>
             <button type="submit">Войти</button>
         </form>
@@ -96,6 +96,7 @@
         const formData = new FormData(form);
         const errorElement = document.getElementById('errorMessage');
         errorElement.style.display = 'none';
+        errorElement.innerHTML = '';
 
         try {
             const response = await fetch(form.action, {
@@ -117,21 +118,53 @@
 
                 if (contentType && contentType.includes('application/json')) {
                     const errorData = await response.json();
-                    showError(errorData.message);
+                    if (Array.isArray(errorData.detail)) {
+                        let errorMessages = errorData.detail.map(e => e.msg || e.message || JSON.stringify(e));
+                        showError(errorMessages);
+                    } else if (errorData.detail && errorData.detail.errors) {
+                        let errorMessages = [];
+                        for (const errorList of errorData.detail.errors) {
+                            for (const error of errorList) {
+                                errorMessages.push(error.message);
+                            }
+                        }
+                        showError(errorMessages);
+                    } else if (errorData.errors && Array.isArray(errorData.errors)) {
+                        // fallback
+                        let errorMessages = [];
+                        for (const errorList of errorData.errors) {
+                            for (const error of errorList) {
+                                errorMessages.push(error.message);
+                            }
+                        }
+                        showError(errorMessages);
+                    } else {
+                        showError([errorData.message || `Ошибка ${response.status}`]);
+                    }
                 } else {
                     const text = await response.text();
-                    showError(`Ошибка ${response.status}: ${text}`);
+                    showError([`Ошибка ${response.status}: ${text}`]);
                 }
                 return;
             }
         } catch (error) {
-            showError('Сетевая ошибка: ' + error.message);
+            showError(['Сетевая ошибка: ' + error.message]);
         }
     });
 
-    function showError(message) {
+    function showError(messages) {
         const errorElement = document.getElementById('errorMessage');
-        errorElement.textContent = message;
+        if (Array.isArray(messages)) {
+            // Если элемент — объект с msg/message, выводим пояснение
+            errorElement.innerHTML = messages.map(msgObj => {
+                if (typeof msgObj === 'object' && (msgObj.msg || msgObj.message)) {
+                    return `<div>${msgObj.msg || msgObj.message}</div>`;
+                }
+                return `<div>${msgObj}</div>`;
+            }).join('');
+        } else {
+            errorElement.textContent = messages;
+        }
         errorElement.style.display = 'block';
 
         setTimeout(() => {

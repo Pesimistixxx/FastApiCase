@@ -182,8 +182,8 @@
 
         .skin-item {
             position: relative;
-            width: 100px;
-            height: 120px;
+            width: 120px;
+            height: 135px;
             background-color: #242424;
             border-radius: 8px;
             overflow: hidden;
@@ -210,6 +210,12 @@
             color: #cccccc;
             text-align: center;
             margin-top: 5px;
+            width: 100%;
+            word-break: break-word;
+            white-space: normal;
+            max-height: 32px;
+            overflow: hidden;
+            text-overflow: ellipsis;
         }
 
         .sell-button {
@@ -371,12 +377,17 @@
 <body>
 
 <div class="navbar">
-    <div class="nav-left" id="siteName">Meow Case Simulator</div>
+    <div class="nav-left" id="siteName">Rem Battle Simulator</div>
     <div class="nav-buttons">
         <button hidden>Контракты</button>
-        <button hidden>Апгрейды</button>
+        <a href="/upgrade">
+            <button id="upgrade">Апгрейды</button>
+        </a>
         <a href="/case/create">
             <button>Добавить кейс</button>
+        </a>
+        <a href="/top/">
+            <button>Топ пользователей</button>
         </a>
     </div>
     <div class="user-profile" id="userProfile">
@@ -446,25 +457,15 @@
 </div>
 
 <script>
-    function calculateTotalPrice() {
-        let total = 0;
-        document.querySelectorAll('.skin-price').forEach(priceElement => {
-            const price = parseFloat(priceElement.textContent);
-            if (!isNaN(price)) {
-                total += price;
-            }
-        });
-        return total;
-    }
+    let initialTotalPrice = parseFloat("{{ skins_price }}") || 0;
 
     function updateTotalPrice() {
-        const total = calculateTotalPrice();
         const sellAllButton = document.getElementById('sellAllButton');
         const totalPriceSpan = document.getElementById('totalPrice');
 
-        totalPriceSpan.textContent = total.toFixed(2);
+        totalPriceSpan.textContent = initialTotalPrice.toFixed(2);
 
-        if (total <= 0) {
+        if (initialTotalPrice <= 0) {
             sellAllButton.disabled = true;
             sellAllButton.style.display = 'none';
         } else {
@@ -497,6 +498,7 @@
                     item.remove();
                 });
 
+                initialTotalPrice = 0;
                 updateTotalPrice();
 
                 showNotification(`Продано скинов: ${result.sold_count} на сумму ${result.total_sold.toFixed(2)}`, false);
@@ -626,10 +628,12 @@
                     el.textContent = `Баланс: ${parseFloat(result.new_balance).toFixed(2)}`;
                 });
 
+                const priceElement = document.querySelector(`.skin-price[data-user-skin-id="${currentUserSkinId}"]`)
+                const skinPrice = parseFloat(priceElement.textContent)
+                initialTotalPrice = initialTotalPrice - skinPrice
                 const skinElement = document.querySelector(`.skin-price[data-user-skin-id="${currentUserSkinId}"]`).closest('.skin-item');
                 skinElement.remove();
 
-                // Обновляем общую сумму после удаления скина
                 updateTotalPrice();
 
                 showNotification('Скин успешно продан!', false);

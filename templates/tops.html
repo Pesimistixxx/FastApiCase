@@ -1,0 +1,440 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Топы пользователей</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #121212;
+            margin: 0;
+            padding: 0;
+            color: #ffffff;
+            overflow-x: hidden;
+        }
+        .navbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background-color: #1e1e1e;
+            padding: 15px 30px;
+            border-bottom: 1px solid #333;
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+        }
+        .nav-left {
+            font-size: 20px;
+            font-weight: bold;
+            color: #2979ff;
+            cursor: pointer;
+            text-decoration: none;
+        }
+        .nav-buttons {
+            display: flex;
+            gap: 40px;
+        }
+        .nav-buttons button {
+            background-color: #2979ff;
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            font-size: 14px;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        .nav-buttons button:hover {
+            background-color: #1c54b2;
+        }
+        .user-profile {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            position: relative;
+        }
+        .user-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 2px solid #2979ff;
+            cursor: pointer;
+        }
+        .user-info {
+            text-align: left;
+            font-size: 14px;
+        }
+        .user-username {
+            font-weight: bold;
+        }
+        .user-balance {
+            color: #aeeaff;
+            font-size: 12px;
+        }
+        .add-balance-button {
+            background-color: #4caf50;
+            color: white;
+            border: none;
+            width: 30px;
+            height: 30px;
+            font-size: 20px;
+            border-radius: 50%;
+            cursor: pointer;
+            margin-left: 10px;
+        }
+        .add-balance-button:hover {
+            background-color: #388e3c;
+        }
+        .balance-menu {
+            position: absolute;
+            top: 50px;
+            right: 0;
+            background-color: #2a2a2a;
+            padding: 15px;
+            border-radius: 6px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.5);
+            width: 200px;
+            display: none;
+            flex-direction: column;
+            gap: 10px;
+        }
+        .balance-menu input {
+            padding: 8px;
+            border: 1px solid #444;
+            border-radius: 4px;
+            background-color: #1e1e1e;
+            color: #fff;
+        }
+        .balance-menu button {
+            padding: 8px;
+            background-color: #2979ff;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        .balance-menu button:hover {
+            background-color: #1c54b2;
+        }
+        .logout-form {
+            margin-right: 15px;
+        }
+        .logout-button {
+            background-color: #f44336;
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            font-size: 14px;
+            border-radius: 4px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            transition: background-color 0.3s;
+        }
+        .logout-button:hover {
+            background-color: #d32f2f;
+        }
+        .logout-button i {
+            font-size: 14px;
+        }
+        .tops-container {
+            max-width: 900px;
+            margin: 40px auto;
+            background: #1e1e1e;
+            border-radius: 10px;
+            padding: 30px 30px 20px 30px;
+            box-shadow: 0 0 15px rgba(255,255,255,0.05);
+        }
+        .top-block {
+            margin-bottom: 40px;
+        }
+        .top-title {
+            font-size: 22px;
+            font-weight: bold;
+            color: #aeeaff;
+            margin-bottom: 15px;
+        }
+        .top-table {
+            width: 100%;
+            border-collapse: collapse;
+            background: #242424;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+        .top-table th, .top-table td {
+            padding: 12px 15px;
+            border-bottom: 1px solid #333;
+            text-align: left;
+        }
+        .top-table th {
+            background: #222;
+            color: #aeeaff;
+            font-weight: bold;
+        }
+        .top-table tr:last-child td {
+            border-bottom: none;
+        }
+        .highlighted-row {
+            background-color: #1e3d1e !important;
+            color: #aeeaff;
+        }
+        @media (max-width: 700px) {
+            .tops-container { padding: 10px; }
+            .top-title { font-size: 18px; }
+            .top-table th, .top-table td { padding: 8px 5px; font-size: 13px; }
+        }
+        .profile-link {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            text-decoration: none;
+            color: inherit;
+            cursor: pointer;
+        }
+        .tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            border-bottom: 1px solid #333;
+        }
+        .tab-btn {
+            background-color: #2979ff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            font-size: 16px;
+            border-radius: 6px 6px 0 0;
+            cursor: pointer;
+            transition: background-color 0.3s;
+            flex: 1;
+            min-width: 120px;
+            max-width: 200px;
+        }
+        .tab-btn:hover {
+            background-color: #1c54b2;
+        }
+        .tab-btn.active {
+            background-color: #1e1e1e;
+            border-bottom: 2px solid #2979ff;
+        }
+        .tab-content {
+            display: none;
+        }
+        .tab-content.active {
+            display: block;
+        }
+    </style>
+</head>
+<body>
+<div class="navbar">
+    <div class="nav-left" id="siteName">Rem Battle Simulator</div>
+    <div class="nav-buttons">
+        {% if user %}
+            <button hidden>Контракты</button>
+            <a href="/upgrade">
+                <button>Апгрейды</button>
+            </a>
+        <a href="/case/create">
+            <button>Добавить кейс</button>
+        </a>
+        {% endif %}
+        <a href="/top/">
+            <button>Топ пользователей</button>
+        </a>
+    </div>
+    {% if user %}
+    <div class="user-profile" id="userProfile">
+        <a href="/user/profile" class="profile-link">
+            <img src="/static/avatars/{{user.avatar}}"
+                     alt="Аватар"
+                     class="user-avatar"
+                     onerror="this.onerror=null; this.src='https://via.placeholder.com/100'">
+            <div class="user-info">
+                <div class="user-username">{{username}}</div>
+                <div class="user-balance">Баланс: {{balance}}</div>
+            </div>
+        </a>
+        <button class="add-balance-button" id="toggleBalanceMenu">+</button>
+        <div class="balance-menu" id="balanceMenu">
+            <input type="number" id="amountInput" placeholder="Сумма пополнения" min="1" required>
+            <button id="addMoneyBtn">Пополнить</button>
+        </div>
+        <form action="/user/logout" method="POST" class="logout-form">
+            <button type="submit" class="logout-button">
+                <i class="fas fa-sign-out-alt"></i> Выйти
+            </button>
+        </form>
+    </div>
+    {% else %}
+    <div class="nav-buttons">
+        <a href="/user/register"> <button>Зарегистрироваться</button> </a>
+        <a href="/user/login"> <button>Войти</button> </a>
+    </div>
+    {% endif %}
+</div>
+
+<div class="tops-container">
+    <div class="tabs">
+        <button class="tab-btn active" data-tab="cases-open">Количество кейсов</button>
+        <button class="tab-btn" data-tab="cases-created">Создано кейсов</button>
+        <button class="tab-btn" data-tab="upgrades-cnt">Апгрейдов</button>
+        <button class="tab-btn" data-tab="case-luck">Удача на кейсах</button>
+        <button class="tab-btn" data-tab="upgrade-luck">Удача на апгрейдах</button>
+    </div>
+    <div class="top-block tab-content active" id="tab-cases-open">
+        <table class="top-table">
+            <colgroup>
+                <col style="width:15%">
+                <col style="width:55%">
+                <col style="width:30%">
+            </colgroup>
+            <thead><tr><th>Место</th><th>Пользователь</th><th>Открыто кейсов</th></tr></thead>
+            <tbody>
+            {% for user, value in top_cases_open.items() %}
+                <tr{% if user == username %} class="highlighted-row"{% endif %}><td>{{ loop.index }}</td><td>{{ user }}</td><td>{{ value }}</td></tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    <div class="top-block tab-content" id="tab-cases-created">
+        <table class="top-table">
+            <colgroup>
+                <col style="width:15%">
+                <col style="width:55%">
+                <col style="width:30%">
+            </colgroup>
+            <thead><tr><th>Место</th><th>Пользователь</th><th>Создано кейсов</th></tr></thead>
+            <tbody>
+            {% for user, value in top_case_created.items() %}
+                <tr{% if user == username %} class="highlighted-row"{% endif %}><td>{{ loop.index }}</td><td>{{ user }}</td><td>{{ value }}</td></tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    <div class="top-block tab-content" id="tab-upgrades-cnt">
+        <table class="top-table">
+            <colgroup>
+                <col style="width:15%">
+                <col style="width:55%">
+                <col style="width:30%">
+            </colgroup>
+            <thead><tr><th>Место</th><th>Пользователь</th><th>Апгрейдов</th></tr></thead>
+            <tbody>
+            {% for user, value in top_upgrades_cnt.items() %}
+                <tr{% if user == username %} class="highlighted-row"{% endif %}><td>{{ loop.index }}</td><td>{{ user }}</td><td>{{ value }}</td></tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    <div class="top-block tab-content" id="tab-case-luck">
+        <table class="top-table">
+            <colgroup>
+                <col style="width:15%">
+                <col style="width:55%">
+                <col style="width:30%">
+            </colgroup>
+            <thead><tr><th>Место</th><th>Пользователь</th><th>Удача</th></tr></thead>
+            <tbody>
+            {% for user, value in top_case_luck.items() %}
+                <tr{% if user == username %} class="highlighted-row"{% endif %}><td>{{ loop.index }}</td><td>{{ user }}</td><td>{{ value }}%</td></tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    <div class="top-block tab-content" id="tab-upgrade-luck">
+        <table class="top-table">
+            <colgroup>
+                <col style="width:15%">
+                <col style="width:55%">
+                <col style="width:30%">
+            </colgroup>
+            <thead><tr><th>Место</th><th>Пользователь</th><th>Удача</th></tr></thead>
+            <tbody>
+            {% for user, value in top_upgrades_luck_dict.items() %}
+                <tr{% if user == username %} class="highlighted-row"{% endif %}><td>{{ loop.index }}</td><td>{{ user }}</td><td>{{ value }}%</td></tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<script>
+    function parseMoney(value) {
+        if (typeof value === 'number') return value;
+        const cleaned = String(value).replace(/[^\d.,]/g, '').replace(',', '.');
+        return parseFloat(cleaned) || 0;
+    }
+    function formatBalances() {
+        document.querySelectorAll('.user-balance, .balance').forEach(el => {
+            const num = parseMoney(el.textContent);
+            el.textContent = `Баланс: ${num.toFixed(2)}`;
+        });
+    }
+    async function addMoney() {
+        const amountInput = document.getElementById('amountInput');
+        const amount = parseMoney(amountInput.value);
+        if (isNaN(amount) || amount <= 0) {
+            alert('Введите корректную сумму');
+            return;
+        }
+        try {
+            const response = await fetch(`/user/add_money/${amount}`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                }
+            });
+            const result = await response.json();
+            if (response.ok) {
+                document.querySelector('.user-balance').textContent = `Баланс: ${result.new_balance}`;
+                formatBalances();
+                balanceMenu.style.display = 'none';
+                amountInput.value = '';
+            } else {
+                throw new Error(result.detail || 'Ошибка пополнения');
+            }
+        } catch (error) {
+            alert(error.message);
+        }
+    }
+    const addMoneyBtn = document.getElementById('addMoneyBtn');
+    if (addMoneyBtn) addMoneyBtn.addEventListener('click', addMoney);
+
+    document.addEventListener('DOMContentLoaded', function() {
+        formatBalances();
+    });
+
+    const siteName = document.getElementById("siteName");
+    if (siteName) siteName.addEventListener("click", function() {
+        window.location.href = "/";
+    });
+    const upgradeBtn = document.getElementById("upgrade");
+
+    const balanceMenu = document.getElementById("balanceMenu");
+    const toggleButton = document.getElementById("toggleBalanceMenu");
+    if (toggleButton && balanceMenu) {
+        toggleButton.addEventListener("click", function () {
+            balanceMenu.style.display = balanceMenu.style.display === "flex" ? "none" : "flex";
+        });
+        document.addEventListener("click", function (event) {
+            const userProfile = document.querySelector(".user-profile");
+            if (userProfile && !userProfile.contains(event.target)) {
+                balanceMenu.style.display = "none";
+            }
+        });
+    }
+    // Табы
+    document.querySelectorAll('.tab-btn').forEach(btn => {
+        btn.addEventListener('click', function() {
+            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+            this.classList.add('active');
+            const tab = this.getAttribute('data-tab');
+            document.querySelectorAll('.tab-content').forEach(tc => tc.classList.remove('active'));
+            document.getElementById('tab-' + tab).classList.add('active');
+        });
+    });
+</script>
+</body>
+</html>

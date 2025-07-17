@@ -68,16 +68,22 @@
         .login-link a:hover {
             text-decoration: underline;
         }
+        .error-message {
+            color: #ff6b6b;
+            text-align: center;
+            margin-top: 10px;
+            display: none;
+        }
     </style>
 </head>
 <body>
     <div class="register-container">
         <h2>Регистрация</h2>
-        <form id="registerForm">
-            <input type="text" name="username" placeholder="Имя пользователя" required>
-            <input type="text" name="name" placeholder="Имя" required>
-            <input type="email" name="email" placeholder="Email" required>
-            <input type="password" name="password" placeholder="Пароль" required>
+        <form id="registerForm" action="/user/register" method="post">
+            <input type="text" name="username" placeholder="Имя пользователя (от 3 до 30 символов)" required>
+            <input type="text" name="name" placeholder="Имя (от 3 до 30 символов)" required>
+            <input type="email" name="email" placeholder="Email (от 10 до 40 символов)" required>
+            <input type="password" name="password" placeholder="Пароль (от 8 до 30 символов)" required>
             <div id="errorMessage" class="error-message"></div>
             <button type="submit">Зарегистрироваться</button>
         </form>
@@ -92,6 +98,8 @@
             const form = event.target;
             const formData = new FormData(form);
             const errorElement = document.getElementById('errorMessage');
+            errorElement.style.display = 'none';
+            errorElement.innerHTML = '';
 
             try {
                 const response = await fetch(form.action, {
@@ -113,21 +121,51 @@
 
                     if (contentType && contentType.includes('application/json')) {
                         const errorData = await response.json();
-                        showError(errorData.message);
+                        if (Array.isArray(errorData.detail)) {
+                            let errorMessages = errorData.detail.map(e => e.msg || e.message || JSON.stringify(e));
+                            showError(errorMessages);
+                        } else if (errorData.detail && errorData.detail.errors) {
+                            let errorMessages = [];
+                            for (const errorList of errorData.detail.errors) {
+                                for (const error of errorList) {
+                                    errorMessages.push(error.message);
+                                }
+                            }
+                            showError(errorMessages);
+                        } else if (errorData.errors && Array.isArray(errorData.errors)) {
+                            let errorMessages = [];
+                            for (const errorList of errorData.errors) {
+                                for (const error of errorList) {
+                                    errorMessages.push(error.message);
+                                }
+                            }
+                            showError(errorMessages);
+                        } else {
+                            showError([errorData.message || `Ошибка ${response.status}`]);
+                        }
                     } else {
                         const text = await response.text();
-                        showError(`Ошибка ${response.status}: ${text}`);
+                        showError([`Ошибка ${response.status}: ${text}`]);
                     }
                     return;
                 }
             } catch (error) {
-                showError('Сетевая ошибка: ' + error.message);
+                showError(['Сетевая ошибка: ' + error.message]);
             }
         });
 
-        function showError(message) {
+        function showError(messages) {
             const errorElement = document.getElementById('errorMessage');
-            errorElement.textContent = message;
+            if (Array.isArray(messages)) {
+                errorElement.innerHTML = messages.map(msgObj => {
+                    if (typeof msgObj === 'object' && (msgObj.msg || msgObj.message)) {
+                        return `<div>${msgObj.msg || msgObj.message}</div>`;
+                    }
+                    return `<div>${msgObj}</div>`;
+                }).join('');
+            } else {
+                errorElement.textContent = messages;
+            }
             errorElement.style.display = 'block';
 
             setTimeout(() => {

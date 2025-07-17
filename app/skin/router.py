@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends, Path, HTTPException, status
 from typing import Annotated
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select, insert, delete, desc
+from sqlalchemy import select, insert, desc
 import pandas as pd
 from sqlalchemy.orm import selectinload
 
@@ -113,8 +113,9 @@ async def add_all_skins_to_db(db: AsyncSession):
         ))
     await db.commit()
 
-@skinRouter.post('/delete_all_skins')
-async def post_delete_all_skins(db: Annotated[AsyncSession, Depends(get_db)]):
-    await db.execute(delete(Skin_model))
-    await db.commit()
-    return "SUCCESS"
+
+# @skinRouter.post('/delete_all_skins')
+# async def post_delete_all_skins(db: Annotated[AsyncSession, Depends(get_db)]):
+#     await db.execute(delete(Skin_model))
+#     await db.commit()
+#     return "SUCCESS"

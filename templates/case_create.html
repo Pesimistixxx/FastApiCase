@@ -96,8 +96,8 @@
         }
 
         .user-avatar {
-            width: 40px;
-            height: 40px;
+            width: 45px;
+            height: 45px;
             border-radius: 50%;
             object-fit: cover;
             border: 2px solid #2979ff;
@@ -235,6 +235,13 @@
             outline: none;
         }
 
+        .form-control:disabled {
+            background-color: #2a2a2a;
+            color: #888;
+            cursor: not-allowed;
+            opacity: 1;
+        }
+
         .form-row {
             display: flex;
             gap: 20px;
@@ -307,26 +314,6 @@
 
         .create-btn:hover {
             background-color: #1c54b2;
-        }
-
-        .calculate-btn {
-            background-color: #9c27b0;
-            color: white;
-            border: none;
-            padding: 10px 15px;
-            font-size: 14px;
-            border-radius: 4px;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 5px;
-            flex: 1;
-            text-align: center;
-        }
-
-        .calculate-btn:hover {
-            background-color: #7b1fa2;
         }
 
         .notification {
@@ -497,12 +484,17 @@
 </head>
 <body>
     <nav class="navbar">
-        <div class="nav-left" id="siteName">Meow Case Simulator</div>
+        <div class="nav-left" id="siteName">Rem Battle Simulator</div>
         <div class="nav-buttons">
             <button hidden>Контракты</button>
-            <button hidden>Апгрейды</button>
+            <a href="/upgrade">
+                <button id="upgrade">Апгрейды</button>
+            </a>
             <a href="/case/create">
                 <button>Добавить кейс</button>
+            </a>
+            <a href="/top/">
+                <button>Топ пользователей</button>
             </a>
         </div>
 
@@ -549,7 +541,7 @@
                     <div class="form-col">
                         <div class="form-group" style="position: relative;">
                             <label for="case-price">Цена кейса</label>
-                            <input type="number" id="case-price" class="form-control" placeholder="Введите цену" min="1" step="1" required>
+                            <input type="number" id="case-price" class="form-control" placeholder="Цена генерируется автоматически" min="1" step="1" required disabled>
                         </div>
                     </div>
                 </div>
@@ -558,14 +550,14 @@
                     <div class="form-col">
                         <div class="form-group">
                             <label for="avg-drop-price">Средняя цена дропа</label>
-                            <input type="number" id="avg-drop-price" class="form-control" placeholder="Средняя цена" min="1" step="1" required>
+                            <input type="number" id="avg-drop-price" class="form-control" placeholder="Скины какой цены чаще будут выпадать" min="1" step="1" required>
                         </div>
                     </div>
 
                     <div class="form-col">
                         <div class="form-group">
                             <label for="drop-deviation">Среднее отклонение</label>
-                            <input type="number" id="drop-deviation" class="form-control" placeholder="Среднее отклонение" min="1" step="1" required>
+                            <input type="number" id="drop-deviation" class="form-control" placeholder="Чем больше число тем различнее скины" min="1" step="1" required>
                         </div>
                     </div>
                 </div>
@@ -574,7 +566,7 @@
                     <div class="form-group">
                         <label>Поиск скина</label>
                         <div class="autocomplete">
-                            <input type="text" id="skin-search" class="form-control" placeholder="Начните вводить название скина...">
+                            <input type="text" id="skin-search" class="form-control" placeholder="Начните вводить название скина..." autocomplete="off" autocorrect="off">
                             <div id="autocomplete-items" class="autocomplete-items"></div>
                         </div>
                     </div>
@@ -594,12 +586,6 @@
                 </div>
 
                 <div class="action-buttons">
-                    <button type="button" id="calculate-btn" class="calculate-btn">
-                        Рассчитать оптимальную стоимость кейса
-                    </button>
-                    <button type="button" id="calculate-chance-btn" class="calculate-btn">
-                        Рассчитать шанс каждого скина
-                    </button>
                 </div>
 
                 <button type="submit" class="create-btn">
@@ -617,11 +603,6 @@
     <div class="error-notification" id="errorNotification">
         <i class="fas fa-exclamation-circle"></i>
         <span id="errorNotificationText"></span>
-    </div>
-
-    <div class="optimal-price-notification" id="optimalPriceNotification">
-        <i class="fas fa-info-circle"></i>
-        <span id="optimalPriceNotificationText"></span>
     </div>
 
     <script>
@@ -727,15 +708,15 @@
                 const searchTerm = this.value.toLowerCase();
                 autocompleteItems.innerHTML = '';
 
-                if (searchTerm.length < 2) {
-                    autocompleteItems.style.display = 'none';
-                    return;
+                let filteredSkins;
+                if (searchTerm === '') {
+                    filteredSkins = allSkins.filter(skin => !selectedSkins.some(s => s.id === skin.id));
+                } else {
+                    filteredSkins = allSkins.filter(skin =>
+                        skin.name.toLowerCase().includes(searchTerm) &&
+                        !selectedSkins.some(s => s.id === skin.id)
+                    );
                 }
-
-                const filteredSkins = allSkins.filter(skin =>
-                    skin.name.toLowerCase().includes(searchTerm) &&
-                    !selectedSkins.some(s => s.id === skin.id)
-                ).slice(0, 5);
 
                 if (filteredSkins.length === 0) {
                     autocompleteItems.style.display = 'none';
@@ -745,7 +726,7 @@
                 filteredSkins.forEach(skin => {
                     const item = document.createElement('div');
                     item.className = 'autocomplete-item';
-                    item.textContent = skin.name;
+                    item.innerHTML = `<span>${skin.name}</span> <span style="float:right; color:#aeeaff; font-size:13px;">${skin.price}</span>`;
                     item.addEventListener('click', function() {
                         addSkinToList(skin);
                         skinSearch.value = '';
@@ -757,12 +738,141 @@
                 autocompleteItems.style.display = 'block';
             });
 
+            // Показывать все скины при фокусе на поле, если оно пустое
+            skinSearch.addEventListener('focus', function() {
+                if (this.value === '') {
+                    autocompleteItems.innerHTML = '';
+                    const filteredSkins = allSkins.filter(skin => !selectedSkins.some(s => s.id === skin.id));
+                    filteredSkins.forEach(skin => {
+                        const item = document.createElement('div');
+                        item.className = 'autocomplete-item';
+                        item.innerHTML = `<span>${skin.name}</span> <span style=\"float:right; color:#aeeaff; font-size:13px;\">${skin.price}</span>`;
+                        item.addEventListener('click', function() {
+                            addSkinToList(skin);
+                            skinSearch.value = '';
+                            autocompleteItems.style.display = 'none';
+                        });
+                        autocompleteItems.appendChild(item);
+                    });
+                    if (filteredSkins.length > 0) autocompleteItems.style.display = 'block';
+                }
+            });
+
+            // Показывать все скины при нажатии Enter, если поле пустое
+            skinSearch.addEventListener('keydown', function(e) {
+                if (e.key === 'Enter' && this.value === '') {
+                    e.preventDefault();
+                    autocompleteItems.innerHTML = '';
+                    const filteredSkins = allSkins.filter(skin => !selectedSkins.some(s => s.id === skin.id));
+                    filteredSkins.forEach(skin => {
+                        const item = document.createElement('div');
+                        item.className = 'autocomplete-item';
+                        item.innerHTML = `<span>${skin.name}</span> <span style=\"float:right; color:#aeeaff; font-size:13px;\">${skin.price}</span>`;
+                        item.addEventListener('click', function() {
+                            addSkinToList(skin);
+                            skinSearch.value = '';
+                            autocompleteItems.style.display = 'none';
+                        });
+                        autocompleteItems.appendChild(item);
+                    });
+                    if (filteredSkins.length > 0) autocompleteItems.style.display = 'block';
+                }
+            });
+
             document.addEventListener('click', function(e) {
                 if (!skinSearch.contains(e.target)) {
                     autocompleteItems.style.display = 'none';
                 }
             });
 
+            async function recalculateCasePrice() {
+                const avgDropPrice = parseFloat(document.getElementById('avg-drop-price').value) || 0;
+                const dropDeviation = parseFloat(document.getElementById('drop-deviation').value) || 0;
+                const skins = selectedSkins.map(s => s.id);
+                if (!avgDropPrice || !dropDeviation || skins.length === 0) return;
+                try {
+                    const response = await fetch('/case/calculate_price', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            skins: skins,
+                            math_exception: avgDropPrice,
+                            sigma: dropDeviation
+                        })
+                    });
+                    if (response.ok) {
+                        const result = await response.json();
+                        if (result && result.case_price !== undefined) {
+                            document.getElementById('case-price').value = result.case_price;
+                        }
+                    }
+                } catch (e) {
+                    // Можно добавить showErrorNotification('Ошибка расчёта цены кейса');
+                }
+            }
+
+            async function recalculateChances() {
+                const avgDropPrice = parseFloat(document.getElementById('avg-drop-price').value) || 0;
+                const dropDeviation = parseFloat(document.getElementById('drop-deviation').value) || 0;
+                const skins = selectedSkins.map(s => s.id);
+
+                if (!avgDropPrice || !dropDeviation || skins.length === 0) {
+                    // Очищаем шансы, если данных недостаточно
+                    document.querySelectorAll('#skins-list tr').forEach(row => {
+                        const chanceCell = row.querySelector('.skin-chance');
+                        if (chanceCell) chanceCell.textContent = '-';
+                    });
+                    return;
+                }
+
+                try {
+                    const response = await fetch('/case/calculate_probability', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            math_exception: avgDropPrice,
+                            sigma: dropDeviation,
+                            skins: skins
+                        })
+                    });
+                    if (!response.ok) {
+                        document.querySelectorAll('#skins-list tr').forEach(row => {
+                            const chanceCell = row.querySelector('.skin-chance');
+                            if (chanceCell) chanceCell.textContent = '-';
+                        });
+                        return;
+                    }
+                    const result = await response.json();
+                    const probabilities = result.probabilities || {};
+                    document.querySelectorAll('#skins-list tr').forEach(row => {
+                        const name = row.querySelector('td:first-child').textContent;
+                        const chanceCell = row.querySelector('.skin-chance');
+                        if (probabilities.hasOwnProperty(name)) {
+                            const percent = (probabilities[name] * 100).toFixed(2);
+                            chanceCell.textContent = percent + '%';
+                        } else {
+                            chanceCell.textContent = '-';
+                        }
+                    });
+                } catch (error) {
+                    document.querySelectorAll('#skins-list tr').forEach(row => {
+                        const chanceCell = row.querySelector('.skin-chance');
+                        if (chanceCell) chanceCell.textContent = '-';
+                    });
+                }
+            }
+
+            // Пересчёт при изменении средней цены дропа или отклонения
+            document.getElementById('avg-drop-price').addEventListener('input', function() {
+                recalculateCasePrice();
+                recalculateChances();
+            });
+            document.getElementById('drop-deviation').addEventListener('input', function() {
+                recalculateCasePrice();
+                recalculateChances();
+            });
+
+            // Пересчёт при добавлении/удалении скина
             function addSkinToList(skin) {
                 if (selectedSkins.some(s => s.id === skin.id)) {
                     const notification = document.getElementById('duplicateNotification');
@@ -791,119 +901,12 @@
                 removeIcon.addEventListener('click', function() {
                     row.remove();
                     selectedSkins = selectedSkins.filter(s => s.id !== skin.id);
+                    recalculateCasePrice();
+                    recalculateChances();
                 });
+                recalculateCasePrice();
+                recalculateChances();
             }
-
-            document.getElementById('calculate-btn').addEventListener('click', async function() {
-                const avgDropPrice = parseFloat(document.getElementById('avg-drop-price').value) || 0;
-                const dropDeviation = parseFloat(document.getElementById('drop-deviation').value) || 0;
-
-                const skins = selectedSkins.map(s => s.id);
-
-                if (!avgDropPrice) {
-                    showErrorNotification('Введите среднюю цену дропа для рассчета средней стоимости');
-                    return;
-                }
-                if (!dropDeviation) {
-                    showErrorNotification('Введите отклонение для рассчета средней стоимости');
-                    return;
-                }
-
-                if (avgDropPrice <= 1 || dropDeviation <= 1) {
-                    showErrorNotification('Введите корректные значения средней цены и отклонения');
-                    return;
-                }
-
-                if (skins.length < 1) {
-                    showErrorNotification('Добавьте скины для расчёта');
-                    return;
-                }
-
-                try {
-                    const response = await fetch('/case/calculate_price', {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                        },
-                        body: JSON.stringify({
-                            math_exception: avgDropPrice,
-                            sigma: dropDeviation,
-                            skins: skins
-                        })
-                    });
-                    if (!response.ok) {
-                        showErrorNotification('Ошибка при расчёте оптимальной стоимости');
-                        return;
-                    }
-                    const result = await response.json();
-                    const low = result.low_case_price;
-                    const high = result.high_case_price;
-                    const optimalPriceNotification = document.getElementById('optimalPriceNotification');
-                    const optimalPriceNotificationText = document.getElementById('optimalPriceNotificationText');
-                    if (low !== undefined && high !== undefined) {
-                        optimalPriceNotificationText.textContent = `Рекомендуемая цена: ${low} - ${high}`;
-                        optimalPriceNotification.classList.add('show');
-                        setTimeout(() => {
-                            optimalPriceNotification.classList.remove('show');
-                        }, 3000);
-                    } else {
-                        optimalPriceNotification.classList.remove('show');
-                    }
-                } catch (error) {
-                    showErrorNotification(error.message);
-                }
-            });
-
-            document.getElementById('calculate-chance-btn').addEventListener('click', async function() {
-                const avgDropPrice = parseFloat(document.getElementById('avg-drop-price').value) || 0;
-                const dropDeviation = parseFloat(document.getElementById('drop-deviation').value) || 0;
-                const skins = selectedSkins.map(s => s.id);
-
-                if (!avgDropPrice) {
-                    showErrorNotification('Введите среднюю цену для рассчета шансов');
-                    return;
-                }
-                if (!dropDeviation) {
-                    showErrorNotification('Введите отклонение для рассчета шансов');
-                    return;
-                }
-                if (skins.length === 0) {
-                    showErrorNotification('Добавьте скины для расчета шансов');
-                    return;
-                }
-
-                try {
-                    const response = await fetch('/case/calculate_probability', {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                        },
-                        body: JSON.stringify({
-                            math_exception: avgDropPrice,
-                            sigma: dropDeviation,
-                            skins: skins
-                        })
-                    });
-                    if (!response.ok) {
-                        showErrorNotification('Ошибка при расчёте шансов');
-                        return;
-                    }
-                    const result = await response.json();
-                    const probabilities = result.probabilities || {};
-                    document.querySelectorAll('#skins-list tr').forEach(row => {
-                        const name = row.querySelector('td:first-child').textContent;
-                        const chanceCell = row.querySelector('.skin-chance');
-                        if (probabilities.hasOwnProperty(name)) {
-                            const percent = (probabilities[name] * 100).toFixed(2);
-                            chanceCell.textContent = percent + '%';
-                        } else {
-                            chanceCell.textContent = '-';
-                        }
-                    });
-                } catch (error) {
-                    showErrorNotification(error.message);
-                }
-            });
 
             const caseForm = document.getElementById('case-form');
             const notification = document.getElementById('notification');
@@ -963,13 +966,11 @@
                         return;
                     }
                     notification.classList.add('show');
-                    setTimeout(() => {
-                        notification.classList.remove('show');
-                        caseForm.reset();
-                        document.getElementById('skins-list').innerHTML = '';
-                        selectedSkins = [];
-                        window.location.href = '/';
-                    }, 1000);
+                    notification.classList.remove('show');
+                    caseForm.reset();
+                    document.getElementById('skins-list').innerHTML = '';
+                    selectedSkins = [];
+                    window.location.href = '/';
                 } catch (error) {
                     showErrorNotification(error.message);
                 }

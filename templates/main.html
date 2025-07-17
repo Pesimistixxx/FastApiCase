@@ -49,7 +49,6 @@
             background-color: #1c54b2;
         }
 
-        /* Профиль пользователя */
         .user-profile {
             display: flex;
             align-items: center;
@@ -168,6 +167,7 @@
             grid-template-columns: repeat(4, 1fr);
             grid-gap: 20px 15px;
             justify-items: center;
+            grid-auto-rows: 270px;
         }
 
         .case-item {
@@ -251,12 +251,19 @@
 </head>
 <body>
 <div class="navbar">
-    <div class="nav-left" id="siteName">Meow Case Simulator</div>
+    <div class="nav-left" id="siteName">Rem Battle Simulator</div>
     <div class="nav-buttons">
-        <button hidden>Контракты</button>
-        <button hidden>Апгрейды</button>
+        {% if user %}
+            <button hidden>Контракты</button>
+            <a href="/upgrade">
+                <button>Апгрейды</button>
+            </a>
         <a href="/case/create">
             <button>Добавить кейс</button>
+        </a>
+        {% endif %}
+        <a href="/top/">
+            <button>Топ пользователей</button>
         </a>
     </div>
     {% if user %}
@@ -389,6 +396,7 @@
     document.getElementById("siteName").addEventListener("click", function() {
         window.location.href = "/";
     });
+
 
     const balanceMenu = document.getElementById("balanceMenu");
     const toggleButton = document.getElementById("toggleBalanceMenu");

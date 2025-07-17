@@ -18,6 +18,8 @@ from app.case.router import caseRouter
 from app.models_associations import User_Skin_model
 from app.skin.models import Skin_model
 from app.skin.router import skinRouter, add_all_skins_to_db
+from app.tops.router import topRouter
+from app.upgrades.router import upgradeRouter
 from db.db import async_session
 from db.db_depends import get_db
 
@@ -39,6 +41,8 @@ templates = Jinja2Templates(directory='templates')
 app.include_router(authRouter)
 app.include_router(caseRouter)
 app.include_router(skinRouter)
+app.include_router(upgradeRouter)
+app.include_router(topRouter)
 
 
 @app.on_event("startup")
@@ -52,7 +56,7 @@ async def startup_event():
 
 @app.get('/')
 async def get_main_page(request: Request,
-                        db:Annotated[AsyncSession, Depends(get_db)],
+                        db: Annotated[AsyncSession, Depends(get_db)],
                         user: User_model | None = Depends(get_current_user_or_none),
                         ):
     last_skins = await db.scalars(
@@ -60,7 +64,7 @@ async def get_main_page(request: Request,
         .where(User_Skin_model.is_active == True)
         .options(selectinload(User_Skin_model.skin))
         .order_by(desc('id'))
-        .limit(5)
+        .limit(15)
     )
 
     cases = await db.scalars(select(Case_model).where(

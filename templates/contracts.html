@@ -1,0 +1,877 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Контракты</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #121212;
+            margin: 0;
+            padding: 0;
+            color: #ffffff;
+            overflow-x: hidden;
+        }
+        .navbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background-color: #1e1e1e;
+            padding: 15px 30px;
+            border-bottom: 1px solid #333;
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+            font-size: 18px;
+        }
+        .nav-left {
+            font-size: 20px;
+            font-weight: bold;
+            color: #2979ff;
+            cursor: pointer;
+            text-decoration: none;
+        }
+        .nav-buttons {
+            display: flex;
+            gap: 40px;
+        }
+        .nav-buttons button {
+            background-color: #2979ff;
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            font-size: 14px;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        .nav-buttons button:hover {
+            background-color: #1c54b2;
+        }
+        .user-profile {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            position: relative;
+        }
+        .user-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 2px solid #2979ff;
+            cursor: pointer;
+        }
+        .user-info {
+            text-align: left;
+            font-size: 14px;
+        }
+        .user-username {
+            font-weight: bold;
+        }
+        .user-balance {
+            color: #aeeaff;
+            font-size: 12px;
+        }
+        .add-balance-button {
+            background-color: #4caf50;
+            color: white;
+            border: none;
+            width: 30px;
+            height: 30px;
+            font-size: 20px;
+            border-radius: 50%;
+            cursor: pointer;
+            margin-left: 10px;
+        }
+        .add-balance-button:hover {
+            background-color: #388e3c;
+        }
+        .balance-menu {
+            position: absolute;
+            top: 50px;
+            right: 0;
+            background-color: #2a2a2a;
+            padding: 15px;
+            border-radius: 6px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.5);
+            width: 200px;
+            display: none;
+            flex-direction: column;
+            gap: 10px;
+        }
+        .balance-menu input {
+            padding: 8px;
+            border: 1px solid #444;
+            border-radius: 4px;
+            background-color: #1e1e1e;
+            color: #fff;
+        }
+        .balance-menu button {
+            padding: 8px;
+            background-color: #2979ff;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        .balance-menu button:hover {
+            background-color: #1c54b2;
+        }
+        .logout-form {
+            margin-right: 15px;
+        }
+        .logout-button {
+            background-color: #f44336;
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            font-size: 14px;
+            border-radius: 4px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            transition: background-color 0.3s;
+        }
+        .logout-button:hover {
+            background-color: #d32f2f;
+        }
+        .logout-button i {
+            font-size: 14px;
+        }
+        .contracts-container {
+            max-width: 1200px;
+            margin: 40px auto 0 auto;
+            display: flex;
+            flex-direction: row;
+            align-items: flex-start;
+            justify-content: center;
+            gap: 40px;
+        }
+        .draw-area-block {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-width: 400px;
+            flex: 1;
+        }
+        .contract-price-label {
+            font-size: 20px;
+            font-weight: bold;
+            color: #aeeaff;
+            margin-bottom: 10px;
+            text-align: center;
+        }
+        .draw-area {
+            background: #1e1e1e;
+            border: 2px solid #2979ff;
+            border-radius: 12px;
+            width: 350px;
+            height: 220px;
+            margin-bottom: 18px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 0 10px #2979ff33;
+            position: relative;
+        }
+        .selected-skins-block {
+            background: #1e1e1e;
+            border: 2px solid #4caf50;
+            border-radius: 12px;
+            min-width: 220px;
+            margin-left: 32px;
+            margin-right: 0;
+            padding: 18px 16px 12px 16px;
+            box-shadow: 0 0 10px #4caf5033;
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+            height: fit-content;
+        }
+        .selected-skins-title {
+            font-size: 16px;
+            font-weight: bold;
+            color: #aeeaff;
+            margin-bottom: 10px;
+        }
+        .selected-skins-total {
+            font-size: 15px;
+            color: #4caf50;
+            font-weight: bold;
+            margin-top: 10px;
+            text-align: right;
+            width: 100%;
+        }
+        .selected-skin-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            background: #242424;
+            border-radius: 6px;
+            padding: 6px 8px 8px 8px;
+            border: 1px solid #444;
+            cursor: pointer;
+            transition: background 0.2s;
+            min-width: 0;
+        }
+        .selected-skin-item:hover {
+            background: #2e4c2e;
+        }
+        .selected-skin-label {
+            font-size: 11px;
+            color: #cccccc;
+            max-width: 90px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            margin-top: 4px;
+            text-align: center;
+        }
+        .selected-skin-price {
+            color: #4CAF50;
+            font-size: 13px;
+            margin-top: 2px;
+            text-align: center;
+        }
+        .remove-selected-skin {
+            color: #f44336;
+            cursor: pointer;
+            font-size: 16px;
+            margin-left: 8px;
+        }
+        .remove-selected-skin:hover {
+            color: #d32f2f;
+        }
+        canvas#contractCanvas {
+            background: #242424;
+            border-radius: 8px;
+            width: 320px;
+            height: 180px;
+            cursor: crosshair;
+        }
+        .contract-btn {
+            display: block;
+            margin: 18px auto 0 auto;
+            padding: 12px 32px;
+            background-color: #2979ff;
+            color: white;
+            border: none;
+            border-radius: 24px;
+            font-size: 18px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        .contract-btn:hover {
+            background-color: #1c54b2;
+        }
+        .user-skins-list {
+            margin: 32px auto 0 auto;
+            max-width: 700px;
+            background: #1e1e1e;
+            border-radius: 10px;
+            padding: 20px 10px 10px 10px;
+            box-shadow: 0 0 10px rgba(255,255,255,0.05);
+            height: fit-content;
+            width: 100%;
+        }
+        .user-skins-title {
+            font-size: 18px;
+            font-weight: bold;
+            margin-bottom: 15px;
+            color: #aeeaff;
+            text-align: center;
+        }
+        .user-skins-grid {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 12px;
+        }
+        .user-skin-item {
+            background: #242424;
+            border-radius: 6px;
+            border: 1px solid #444;
+            padding: 6px 4px 4px 4px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        .user-skin-item img {
+            width: 60px;
+            height: 60px;
+            object-fit: cover;
+            border-radius: 4px;
+        }
+        .user-skin-label {
+            font-size: 12px;
+            color: #cccccc;
+            text-align: center;
+            margin-top: 4px;
+        }
+        .user-skin-price {
+            color: #4CAF50;
+            font-size: 13px;
+            margin-top: 2px;
+        }
+        .user-skin-item.disabled {
+            opacity: 0.5;
+            pointer-events: none;
+        }
+        .canvas-tools {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 10px;
+            justify-content: center;
+        }
+        .canvas-color-btn, .canvas-eraser-btn, .canvas-clear-btn {
+            background: #242424;
+            border: 1px solid #2979ff;
+            color: #aeeaff;
+            border-radius: 4px;
+            padding: 6px 12px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: background 0.2s, color 0.2s;
+        }
+        .canvas-color-btn.selected, .canvas-eraser-btn.selected {
+            background: #2979ff;
+            color: #fff;
+        }
+        .canvas-clear-btn {
+            border: 1px solid #f44336;
+            color: #f44336;
+        }
+        .canvas-clear-btn:hover {
+            background: #f44336;
+            color: #fff;
+        }
+        .canvas-tool-btn.selected, .canvas-tool-btn:active {
+            background: #2979ff !important;
+            color: #fff !important;
+        }
+        .canvas-tool-btn.selected i, .canvas-tool-btn:active i {
+            color: #fff !important;
+        }
+        .canvas-color-btn {
+            border: 2px solid transparent;
+            transition: transform 0.15s, border-color 0.15s;
+            transform-origin: center;
+            width: 24px;
+            height: 24px;
+            min-width: 24px;
+            min-height: 24px;
+            border-radius: 8px;
+            box-sizing: border-box;
+            padding: 0;
+        }
+        .canvas-color-btn.selected {
+            border-width: 3px;
+            border-color: var(--selected-color, #2979ff) !important;
+            z-index: 1;
+            transform: scale(1.25);
+            box-shadow: none !important;
+        }
+        .notification {
+            position: fixed;
+            top: 30px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #f44336;
+            color: #fff;
+            padding: 14px 32px;
+            border-radius: 8px;
+            box-shadow: 0 2px 16px #0008;
+            font-size: 16px;
+            z-index: 9999;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s;
+        }
+        .notification.show {
+            opacity: 1;
+            pointer-events: auto;
+        }
+        @media (max-width: 900px) {
+            .contracts-container, .user-skins-list { max-width: 98vw; }
+            .draw-area { width: 98vw; max-width: 350px; }
+            canvas#contractCanvas { width: 90vw; max-width: 320px; }
+            .user-skins-grid { grid-template-columns: repeat(3, 1fr); }
+        }
+        @media (max-width: 700px) {
+            .navbar {
+                font-size: clamp(10px, 2vw, 14px);
+                padding: clamp(2px, 1vw, 7px) clamp(4px, 2vw, 12px);
+            }
+            .nav-left {
+                font-size: clamp(10px, 2vw, 15px);
+            }
+            .nav-buttons {
+                gap: clamp(2px, 1vw, 8px);
+            }
+            .nav-buttons button {
+                font-size: clamp(9px, 1.5vw, 12px);
+                min-width: 0;
+                padding: clamp(2px, 1vw, 7px) clamp(4px, 2vw, 10px);
+            }
+        }
+        @media (max-width: 600px) {
+            .navbar {
+                font-size: 10px;
+                padding: 2px 2vw;
+                gap: 2px;
+            }
+            .nav-left {
+                font-size: 11px;
+            }
+            .nav-buttons button {
+                font-size: 10px;
+                padding: 2px 4px;
+            }
+        }
+        @media (max-width: 420px) {
+            .nav-buttons button span {
+                display: none;
+            }
+            .nav-buttons button:after {
+                content: attr(data-short) !important;
+            }
+        }
+        .profile-link {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            text-decoration: none;
+            color: inherit;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+<div class="navbar">
+    <div class="nav-left" id="siteName">Rem Battle Simulator</div>
+    <div class="nav-buttons">
+        {% if user %}
+            <a href="/contract">
+                <button>Контракты</button>
+            </a>
+            <a href="/upgrade">
+                <button>Апгрейды</button>
+            </a>
+            <a href="/case/create">
+                <button>Добавить кейс</button>
+            </a>
+        {% endif %}
+        <a href="/top/">
+            <button>Топ пользователей</button>
+        </a>
+    </div>
+    {% if user %}
+    <div class="user-profile" id="userProfile">
+        <a href="/user/profile" class="profile-link">
+            <img src="/static/avatars/{{user.avatar}}"
+                     alt="Аватар"
+                     class="user-avatar"
+                     onerror="this.onerror=null; this.src='https://via.placeholder.com/100'">
+            <div class="user-info">
+                <div class="user-username">{{username}}</div>
+                <div class="user-balance">Баланс: {{balance}}</div>
+            </div>
+        </a>
+        <button class="add-balance-button" id="toggleBalanceMenu">+</button>
+        <div class="balance-menu" id="balanceMenu">
+            <input type="number" id="amountInput" placeholder="Сумма пополнения" min="1" required>
+            <button id="addMoneyBtn">Пополнить</button>
+        </div>
+        <form action="/user/logout" method="POST" class="logout-form">
+            <button type="submit" class="logout-button">
+                <i class="fas fa-sign-out-alt"></i> Выйти
+            </button>
+        </form>
+    </div>
+    {% else %}
+    <div class="nav-buttons">
+        <a href="/user/register"> <button>Зарегистрироваться</button> </a>
+        <a href="/user/login"> <button>Войти</button> </a>
+    </div>
+    {% endif %}
+</div>
+<div id="notification" class="notification"></div>
+<div id="droppedSkinModal" style="display:none; position:fixed; z-index:10000; left:0; top:0; width:100vw; height:100vh; background:rgba(0,0,0,0.75); align-items:center; justify-content:center;">
+    <div style="background:#181d23; border-radius:16px; padding:36px 32px 28px 32px; box-shadow:0 8px 32px #000a; min-width:320px; max-width:90vw; display:flex; flex-direction:column; align-items:center; position:relative;">
+        <div style="font-size:22px; color:#4CAF50; font-weight:bold; margin-bottom:18px;">Поздравляем! Вы выбили скин:</div>
+        <img id="droppedSkinImg" src="" alt="Скин" style="width:120px; height:120px; object-fit:cover; border-radius:10px; border:3px solid #2979ff; margin-bottom:16px; background:#222;">
+        <div id="droppedSkinName" style="font-size:18px; color:#fff; font-weight:bold; margin-bottom:8px;"></div>
+        <div id="droppedSkinPrice" style="font-size:16px; color:#4CAF50; font-weight:bold; margin-bottom:18px;"></div>
+        <div style="display:flex; gap:24px; margin-top:8px;">
+            <button id="sellDroppedSkinBtn" style="background:#f44336; color:#fff; border:none; border-radius:8px; padding:10px 28px; font-size:16px; font-weight:bold; cursor:pointer;">Продать</button>
+            <button id="takeDroppedSkinBtn" style="background:#2979ff; color:#fff; border:none; border-radius:8px; padding:10px 28px; font-size:16px; font-weight:bold; cursor:pointer;">Забрать</button>
+        </div>
+        <span id="droppedSkinClose" style="position:absolute; top:12px; right:18px; font-size:22px; color:#aaa; cursor:pointer;">&times;</span>
+    </div>
+</div>
+
+<div class="contracts-container">
+    <div class="draw-area-block">
+        <div class="contract-price-label" id="contractPriceLabel">Цена: от 0 до 0</div>
+        <div style="display: flex; flex-direction: row; align-items: center; justify-content: center; gap: 0;">
+            <div class="canvas-tools" style="flex-direction: column; align-items: flex-end; gap: 18px; margin-right: 18px;">
+                <button class="canvas-tool-btn canvas-eraser-btn" title="Ластик"><i class="fas fa-eraser"></i></button>
+                <button class="canvas-tool-btn canvas-clear-btn" title="Очистить"><i class="fas fa-trash"></i></button>
+            </div>
+            <div class="draw-area" style="position: relative;">
+                <canvas id="contractCanvas" width="320" height="180"></canvas>
+            </div>
+            <div class="canvas-colors" style="margin-left: 32px; display: grid; grid-template-columns: repeat(2, 1fr); grid-template-rows: repeat(5, 1fr); gap: 8px; align-items: flex-start;">
+                <button class="canvas-color-btn selected" data-color="#2979ff" style="background:#2979ff;color:#2979ff;width:24px;height:24px;border-radius:50%;"></button>
+                <button class="canvas-color-btn" data-color="#4caf50" style="background:#4caf50;color:#4caf50;width:24px;height:24px;border-radius:50%;"></button>
+                <button class="canvas-color-btn" data-color="#f44336" style="background:#f44336;color:#f44336;width:24px;height:24px;border-radius:50%;"></button>
+                <button class="canvas-color-btn" data-color="#fff" style="background:#fff;color:#fff;width:24px;height:24px;border-radius:50%;"></button>
+                <button class="canvas-color-btn" data-color="#ffeb3b" style="background:#ffeb3b;color:#ffeb3b;width:24px;height:24px;border-radius:50%;"></button>
+                <button class="canvas-color-btn" data-color="#ff9800" style="background:#ff9800;color:#ff9800;width:24px;height:24px;border-radius:50%;"></button>
+                <button class="canvas-color-btn" data-color="#9c27b0" style="background:#9c27b0;color:#9c27b0;width:24px;height:24px;border-radius:50%;"></button>
+                <button class="canvas-color-btn" data-color="#00bcd4" style="background:#00bcd4;color:#00bcd4;width:24px;height:24px;border-radius:50%;"></button>
+                <button class="canvas-color-btn" data-color="#795548" style="background:#795548;color:#795548;width:24px;height:24px;border-radius:50%;"></button>
+                <button class="canvas-color-btn" data-color="#607d8b" style="background:#607d8b;color:#607d8b;width:24px;height:24px;border-radius:50%;"></button>
+            </div>
+        </div>
+        <button class="contract-btn" id="contractBtn">Контракт</button>
+        <div class="user-skins-list">
+            <div class="user-skins-title">Ваши скины</div>
+            <div class="user-skins-grid" id="userSkinsGrid">
+                {% for skin in user_skins %}
+                <div class="user-skin-item" data-id="{{skin.id}}" data-name="{{skin.skin.name}}" data-price="{{skin.skin.price}}" data-image="{{skin.skin.image}}">
+                    <img src="/static/skins/{{skin.skin.image}}" alt="{{skin.skin.name}}">
+                    <div class="user-skin-label">{{skin.skin.name}}</div>
+                    <div class="user-skin-price">{{skin.skin.price}}</div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+    <div class="selected-skins-block">
+        <div class="selected-skins-title">Выбранные скины</div>
+        <div id="selectedSkinsList" style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px;"></div>
+        <div class="selected-skins-total" id="selectedSkinsTotal"></div>
+    </div>
+</div>
+
+<script>
+    function parseMoney(value) {
+        if (typeof value === 'number') return value;
+        const cleaned = String(value).replace(/[^\d.,]/g, '').replace(',', '.');
+        return parseFloat(cleaned) || 0;
+    }
+    function formatBalances() {
+        document.querySelectorAll('.user-balance, .balance').forEach(el => {
+            const num = parseMoney(el.textContent);
+            el.textContent = `Баланс: ${num.toFixed(2)}`;
+        });
+    }
+    async function addMoney() {
+        const amountInput = document.getElementById('amountInput');
+        const amount = parseMoney(amountInput.value);
+        if (isNaN(amount) || amount <= 0) {
+            alert('Введите корректную сумму');
+            return;
+        }
+        try {
+            const response = await fetch(`/user/add_money/${amount}`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                }
+            });
+            const result = await response.json();
+            if (response.ok) {
+                document.querySelector('.user-balance').textContent = `Баланс: ${result.new_balance}`;
+                formatBalances();
+                balanceMenu.style.display = 'none';
+                amountInput.value = '';
+            } else {
+                throw new Error(result.detail || 'Ошибка пополнения');
+            }
+        } catch (error) {
+            alert(error.message);
+        }
+    }
+    const addMoneyBtn = document.getElementById('addMoneyBtn');
+    if (addMoneyBtn) addMoneyBtn.addEventListener('click', addMoney);
+    document.addEventListener('DOMContentLoaded', function() {
+        formatBalances();
+        renderSelectedSkins();
+    });
+    const siteName = document.getElementById("siteName");
+    if (siteName) siteName.addEventListener("click", function() {
+        window.location.href = "/";
+    });
+    const upgradeBtn = document.getElementById("upgrade");
+    if (upgradeBtn) upgradeBtn.addEventListener("click", function() {
+        window.location.href = "/upgrade";
+    });
+    const balanceMenu = document.getElementById("balanceMenu");
+    const toggleButton = document.getElementById("toggleBalanceMenu");
+    if (toggleButton && balanceMenu) {
+        toggleButton.addEventListener("click", function () {
+            balanceMenu.style.display = balanceMenu.style.display === "flex" ? "none" : "flex";
+        });
+        document.addEventListener("click", function (event) {
+            const userProfile = document.querySelector(".user-profile");
+            if (userProfile && !userProfile.contains(event.target)) {
+                balanceMenu.style.display = "none";
+            }
+        });
+    }
+    const canvas = document.getElementById('contractCanvas');
+    const ctx = canvas.getContext('2d');
+    let drawing = false;
+
+    let drawColor = '#2979ff';
+    let isErasing = false;
+    let lastX = 0, lastY = 0;
+    function setColor(color) {
+        drawColor = color;
+        isErasing = false;
+        document.querySelectorAll('.canvas-color-btn').forEach(btn => {
+            btn.classList.remove('selected');
+            btn.style.setProperty('--selected-color', color);
+        });
+        const selectedBtn = document.querySelector(`.canvas-color-btn[data-color='${color}']`);
+        selectedBtn.classList.add('selected');
+        selectedBtn.style.borderColor = color;
+        selectedBtn.style.setProperty('--selected-color', color);
+        document.querySelectorAll('.canvas-tool-btn').forEach(btn => btn.classList.remove('selected'));
+    }
+    document.querySelectorAll('.canvas-color-btn').forEach(btn => {
+        btn.addEventListener('click', function() {
+            setColor(this.getAttribute('data-color'));
+        });
+    });
+    document.querySelector('.canvas-eraser-btn').addEventListener('click', function() {
+        isErasing = true;
+        document.querySelectorAll('.canvas-tool-btn').forEach(btn => btn.classList.remove('selected'));
+        this.classList.add('selected');
+        document.querySelectorAll('.canvas-color-btn').forEach(btn => btn.classList.remove('selected'));
+    });
+    document.querySelector('.canvas-clear-btn').addEventListener('click', function() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+    });
+    canvas.addEventListener('mousedown', function(e) {
+        drawing = true;
+        lastX = e.offsetX;
+        lastY = e.offsetY;
+        ctx.beginPath();
+        ctx.moveTo(lastX, lastY);
+    });
+    canvas.addEventListener('mousemove', function(e) {
+        if (!drawing) return;
+        if (isErasing) {
+            ctx.globalCompositeOperation = 'destination-out';
+            ctx.lineWidth = 16;
+        } else {
+            ctx.globalCompositeOperation = 'source-over';
+            ctx.strokeStyle = drawColor;
+            ctx.lineWidth = 2;
+        }
+        ctx.lineTo(e.offsetX, e.offsetY);
+        ctx.stroke();
+        lastX = e.offsetX;
+        lastY = e.offsetY;
+    });
+    canvas.addEventListener('mouseup', function(e) {
+        drawing = false;
+        ctx.globalCompositeOperation = 'source-over';
+    });
+    canvas.addEventListener('mouseleave', function(e) {
+        drawing = false;
+        ctx.globalCompositeOperation = 'source-over';
+    });
+
+    const selectedSkins = [];
+    function renderSelectedSkins() {
+        const list = document.getElementById('selectedSkinsList');
+        const totalDiv = document.getElementById('selectedSkinsTotal');
+        list.innerHTML = '';
+        let total = 0;
+        selectedSkins.forEach((skin, idx) => {
+            const div = document.createElement('div');
+            div.className = 'selected-skin-item';
+            div.innerHTML = `
+                <img src="/static/skins/${skin.image}" alt="${skin.name}" width="60" height="60" style="border-radius:4px;object-fit:cover;">
+                <div class="selected-skin-label">${skin.name}</div>
+                <div class="selected-skin-price">${skin.price}</div>
+            `;
+            div.onclick = function() {
+                selectedSkins.splice(idx, 1);
+                const userSkinsGrid = document.getElementById('userSkinsGrid');
+                if (userSkinsGrid && !document.querySelector(`.user-skin-item[data-id='${skin.id}']`)) {
+                    const skinDiv = document.createElement('div');
+                    skinDiv.className = 'user-skin-item';
+                    skinDiv.setAttribute('data-id', skin.id);
+                    skinDiv.setAttribute('data-name', skin.name);
+                    skinDiv.setAttribute('data-price', skin.price);
+                    skinDiv.setAttribute('data-image', skin.image);
+                    skinDiv.innerHTML = `
+                        <img src="/static/skins/${skin.image}" alt="${skin.name}">
+                        <div class="user-skin-label">${skin.name}</div>
+                        <div class="user-skin-price">${skin.price}</div>
+                    `;
+                    skinDiv.onclick = userSkinClickHandler;
+                    if (userSkinsGrid.firstChild) {
+                        userSkinsGrid.insertBefore(skinDiv, userSkinsGrid.firstChild);
+                    } else {
+                        userSkinsGrid.appendChild(skinDiv);
+                    }
+                }
+                renderSelectedSkins();
+            };
+            list.appendChild(div);
+            total += parseFloat(skin.price) || 0;
+        });
+        totalDiv.textContent = total > 0 ? `Общая стоимость: ${total.toFixed(2)}` : '';
+        const priceLabel = document.getElementById('contractPriceLabel');
+        if (priceLabel) {
+            if (selectedSkins.length >= 3) {
+                const min = (total * 0.5).toFixed(2);
+                const max = (total * 1.5).toFixed(2);
+                priceLabel.textContent = `Цена: от ${min} до ${max}`;
+            } else {
+                priceLabel.textContent = 'Цена: —';
+            }
+        }
+        const userSkinsGrid = document.getElementById('userSkinsGrid');
+        if (userSkinsGrid) {
+            userSkinsGrid.querySelectorAll('.user-skin-item').forEach(item => {
+                if (selectedSkins.length >= 10) {
+                    item.classList.add('disabled');
+                    item.style.opacity = '0.5';
+                    item.style.pointerEvents = 'none';
+                } else {
+                    item.classList.remove('disabled');
+                    item.style.opacity = '';
+                    item.style.pointerEvents = '';
+                }
+            });
+        }
+    }
+    function userSkinClickHandler() {
+        const id = this.getAttribute('data-id');
+        const name = this.getAttribute('data-name');
+        const price = this.getAttribute('data-price');
+        const image = this.getAttribute('data-image');
+        if (!selectedSkins.some(s => s.id === id) && selectedSkins.length < 10) {
+            selectedSkins.push({id, name, price, image});
+            this.remove();
+            renderSelectedSkins();
+        }
+    }
+    document.querySelectorAll('.user-skin-item').forEach(item => {
+        item.onclick = userSkinClickHandler;
+    });
+
+    function showNotification(message) {
+        const notif = document.getElementById('notification');
+        notif.textContent = message;
+        notif.classList.add('show');
+        setTimeout(() => notif.classList.remove('show'), 2000);
+    }
+    document.getElementById('contractBtn').addEventListener('click', async function() {
+        if (selectedSkins.length < 3) {
+            showNotification('Добавьте минимум 3 скина в контракт');
+            return;
+        }
+        const skinIds = selectedSkins.map(s => s.id);
+        try {
+            const response = await fetch('/contract/', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ skins: skinIds })
+            });
+            if (response.ok) {
+                const data = await response.json();
+                if (data && data.dropped_skin) {
+                    showDroppedSkinModal(data.dropped_skin, data.dropped_skin_image, data.dropped_skin_name, data.dropped_skin_price);
+                } else {
+                    showNotification('Контракт успешно отправлен!');
+                }
+                selectedSkins.length = 0;
+                renderSelectedSkins();
+            } else {
+                const data = await response.json().catch(() => ({}));
+                showNotification(data.detail || 'Ошибка при создании контракта');
+            }
+        } catch (e) {
+            showNotification('Ошибка сети: ' + e.message);
+        }
+    });
+
+    async function showDroppedSkinModal(id, image, name, price) {
+        let skin = { id, image, name, price };
+        if (!image || !name || !price) {
+            try {
+                const resp = await fetch(`/skin/${id}`);
+                if (resp.ok) {
+                    const res = await resp.json();
+                    const s = res.current_skin || res;
+                    skin.image = s.image;
+                    skin.name = s.name;
+                    skin.price = s.price;
+                }
+            } catch {}
+        }
+        if (!skin.image || !skin.name || !skin.price) {
+            showNotification('Ошибка получения информации о скине');
+            return;
+        }
+        document.getElementById('droppedSkinImg').src = `/static/skins/${skin.image}`;
+        document.getElementById('droppedSkinName').textContent = skin.name;
+        document.getElementById('droppedSkinPrice').textContent = `Цена: ${skin.price}`;
+        document.getElementById('droppedSkinModal').style.display = 'flex';
+        document.getElementById('takeDroppedSkinBtn').onclick = function() {
+            // Добавить скин в 'Ваши скины'
+            const userSkinsGrid = document.getElementById('userSkinsGrid');
+            if (userSkinsGrid && skin.id && skin.image && skin.name && skin.price) {
+                const div = document.createElement('div');
+                div.className = 'user-skin-item';
+                div.setAttribute('data-id', skin.id);
+                div.setAttribute('data-name', skin.name);
+                div.setAttribute('data-price', skin.price);
+                div.setAttribute('data-image', skin.image);
+                div.innerHTML = `
+                    <img src="/static/skins/${skin.image}" alt="${skin.name}">
+                    <div class="user-skin-label">${skin.name}</div>
+                    <div class="user-skin-price">${skin.price}</div>
+                `;
+                div.onclick = userSkinClickHandler;
+                userSkinsGrid.prepend(div);
+            }
+            document.getElementById('droppedSkinModal').style.display = 'none';
+        };
+        document.getElementById('sellDroppedSkinBtn').onclick = async function() {
+            try {
+                const resp = await fetch(`/skin/sell/${id}`, { method: 'POST' });
+                if (resp.ok) {
+                    const data = await resp.json().catch(() => ({}));
+                    if (data && data.new_balance !== undefined) {
+                        document.querySelectorAll('.user-balance').forEach(el => {
+                            el.textContent = `Баланс: ${parseFloat(data.new_balance).toFixed(2)}`;
+                        });
+                    }
+                    showNotification('Скин продан!');
+                    document.getElementById('droppedSkinModal').style.display = 'none';
+                } else {
+                    showNotification('Ошибка при продаже скина');
+                }
+            } catch {
+                showNotification('Ошибка при продаже скина');
+            }
+        };
+        document.getElementById('droppedSkinClose').onclick = function() {
+            document.getElementById('droppedSkinModal').style.display = 'none';
+        };
+    }
+</script>
+</body>
+</html>

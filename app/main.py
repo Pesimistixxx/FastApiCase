@@ -15,6 +15,7 @@ from app.auth.security import get_current_user_or_none
 from app.auth.router import authRouter
 from app.case.models import Case_model
 from app.case.router import caseRouter
+from app.contracts.router import contractRouter
 from app.models_associations import User_Skin_model
 from app.skin.models import Skin_model
 from app.skin.router import skinRouter, add_all_skins_to_db
@@ -43,6 +44,7 @@ app.include_router(caseRouter)
 app.include_router(skinRouter)
 app.include_router(upgradeRouter)
 app.include_router(topRouter)
+app.include_router(contractRouter)
 
 
 @app.on_event("startup")
@@ -59,6 +61,7 @@ async def get_main_page(request: Request,
                         db: Annotated[AsyncSession, Depends(get_db)],
                         user: User_model | None = Depends(get_current_user_or_none),
                         ):
+
     last_skins = await db.scalars(
         select(User_Skin_model)
         .where(User_Skin_model.is_active == True)
@@ -70,7 +73,6 @@ async def get_main_page(request: Request,
     cases = await db.scalars(select(Case_model).where(
         Case_model.is_active == True
     ).order_by(desc('id')))
-
     if user:
         return templates.TemplateResponse('main.html', {'request': request,
                                                         'user': user,

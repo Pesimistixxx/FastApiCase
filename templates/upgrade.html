@@ -398,7 +398,9 @@
 <div class="navbar">
     <div class="nav-left" id="siteName">Rem Battle Simulator</div>
     <div class="nav-buttons">
-        <button hidden>Контракты</button>
+        <a href="/contract">
+                <button>Контракты</button>
+            </a>
         <a href="/upgrade">
             <button>Апгрейды</button>
         </a>
@@ -622,7 +624,7 @@
         if (percent <= 0) return '';
         if (percent >= 100) percent = 99.999;
         const startAngle = 180;
-        const angle = percent * 1.8; // 100% = 180°
+        const angle = percent * 1.8;
         const endAngle = startAngle - angle;
         const start = polarToCartesian(cx, cy, r, startAngle);
         const end = polarToCartesian(cx, cy, r, endAngle);
@@ -653,7 +655,7 @@
         document.getElementById('upgradeChanceLabel').textContent = chanceRounded + '%';
         const percent = Math.max(0, Math.min(100, chance));
         const circle = document.getElementById('upgradeChanceArc');
-        const fullLen = 2 * Math.PI * 80; // r=80
+        const fullLen = 2 * Math.PI * 80;
         circle.setAttribute('stroke-dashoffset', fullLen - (fullLen * percent / 100));
     }
     function patchChanceUpdateToSkinSelect(fn) {
@@ -666,9 +668,7 @@
     showSelectedUserSkinJS = patchChanceUpdateToSkinSelect(oldUserSkinJS);
     const oldMarketSkinJS = showSelectedMarketSkinJS;
     showSelectedMarketSkinJS = patchChanceUpdateToSkinSelect(oldMarketSkinJS);
-    // При загрузке страницы тоже обновляем
     updateUpgradeChance();
-    // Выделение выбранного скина для каждой группы отдельно
     document.querySelectorAll('.user-skin-item').forEach(function(item) {
         item.addEventListener('click', function(e) {
             document.querySelectorAll('.user-skin-item').forEach(function(i) {
@@ -869,7 +869,7 @@
                         checkUpgradeBtnState();
                     };
                 } else {
-                    showNotify('Неуспешный контракт!');
+                    showNotify('Неуспешный апгрейд!');
                 }
             }, 1300);
         } catch (err) {

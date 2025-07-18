@@ -465,7 +465,7 @@
             </svg>
             <span class="upgrade-chance-label" id="upgradeChanceLabel">0%</span>
         </div>
-        <form id="upgradeForm" method="post" action="/upgrade" style="width:100%;text-align:center;">
+        <form id="upgradeForm" method="post" action="https://azber.ru/upgrade" style="width:100%;text-align:center;">
             <input type="hidden" name="chance" id="upgradeChanceInput" value="0">
             <button type="submit" class="upgrade-btn" id="upgradeBtn" disabled>Апгрейд</button>
         </form>
@@ -767,7 +767,7 @@
             void wheel.offsetWidth;
             wheel.style.transition = 'transform 2s cubic-bezier(.4,2,.2,1)';
             wheel.style.transform = 'rotate(1440deg)';
-            const fetchPromise = fetch('/upgrade', {
+            const fetchPromise = fetch(`${window.location.origin}/upgrade`, {
                 method: 'POST',
                 body: formData
             });

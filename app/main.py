@@ -28,7 +28,7 @@ app = FastAPI(docs_url=None,
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost"],
+    allow_origins=["azber.ru"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],

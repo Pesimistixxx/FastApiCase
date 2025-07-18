@@ -59,8 +59,6 @@ async def post_upgrade(db: Annotated[AsyncSession, Depends(get_db)],
                        user_skin_id: int = Form(...),
                        market_skin_id: int = Form(...)
                        ):
-    if not user:
-        return RedirectResponse('/user/login')
     chance = chance * 100
     randint = random.randint(0, 10000)
 

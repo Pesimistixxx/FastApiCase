@@ -1,8 +1,12 @@
-from typing import List
+from typing import List, TYPE_CHECKING
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.models_associations import Case_Skin_model
 from db.db import Base
+
+if TYPE_CHECKING:
+    from app.case.models import Case_model
+    from app.models_associations import User_Skin_model
 
 
 class Skin_model(Base):

@@ -30,7 +30,7 @@ async def verify_session(session_id: str,
     user_id = session.user_id
     user = await db.scalar(select(User_model).where(
         User_model.id == user_id,
-        User_model.is_active == True
+        User_model.is_active
     ))
 
     if not user:

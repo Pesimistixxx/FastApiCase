@@ -55,7 +55,7 @@ async def start_scheduler():
             await clean_expired_sessions(db=db)
         logger.info("Конец очистки бд от старых сессий")
 
-    #scheduler.add_job(job, 'interval', minutes=5, next_run_time=datetime.datetime.now())
+    # scheduler.add_job(job, 'interval', minutes=5, next_run_time=datetime.datetime.now())
     scheduler.add_job(job, 'interval', minutes=5)
 
     scheduler.start()

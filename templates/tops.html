@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <title>Топы пользователей</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+    <link rel="icon" href="/static/icons/ico.png" type="image/png">
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -278,16 +279,32 @@
 </div>
 
 <div class="tops-container">
-    <div class="tabs">
-        <button class="tab-btn active" data-tab="cases-open">Количество кейсов</button>
+    <div class="tabs" style="display: grid; grid-template-columns: repeat(4, 1fr); grid-template-rows: repeat(2, 1fr); gap: 10px; margin-bottom: 20px; border-bottom: 1px solid #333;">
+        <button class="tab-btn active" data-tab="activity">Активность на сайте</button>
+        <button class="tab-btn" data-tab="cases-open">Открыто кейсов</button>
+        <button class="tab-btn" data-tab="upgrades-cnt">Количество апгрейдов</button>
+        <button class="tab-btn" data-tab="contracts-cnt">Количество контрактов</button>
         <button class="tab-btn" data-tab="cases-created">Создано кейсов</button>
-        <button class="tab-btn" data-tab="upgrades-cnt">Апгрейдов</button>
         <button class="tab-btn" data-tab="case-luck">Удача на кейсах</button>
         <button class="tab-btn" data-tab="upgrade-luck">Удача на апгрейдах</button>
-        <button class="tab-btn" data-tab="contracts-cnt">Количество контрактов</button>
         <button class="tab-btn" data-tab="contracts-luck">Удача на контрактах</button>
     </div>
-    <div class="top-block tab-content active" id="tab-cases-open">
+    <div class="top-block tab-content active" id="tab-activity">
+        <table class="top-table">
+            <colgroup>
+                <col style="width:15%">
+                <col style="width:55%">
+                <col style="width:30%">
+            </colgroup>
+            <thead><tr><th>Место</th><th>Пользователь</th><th>Активность</th></tr></thead>
+            <tbody>
+            {% for user, value in top_activity.items() %}
+                <tr{% if user == username %} class="highlighted-row"{% endif %}><td>{{ loop.index }}</td><td>{{ user }}</td><td>{{ value }}</td></tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    <div class="top-block tab-content" id="tab-cases-open">
         <table class="top-table">
             <colgroup>
                 <col style="width:15%">

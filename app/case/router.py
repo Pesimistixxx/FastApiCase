@@ -22,7 +22,7 @@ templates = Jinja2Templates(directory='templates')
 @caseRouter.get('/list')
 async def get_case_list(db: Annotated[AsyncSession, Depends(get_db)]):
     cases = await db.scalars(select(Case_model).where(
-        Case_model.is_active == True
+        Case_model.is_active
     ))
     return cases.all()
 
@@ -97,6 +97,7 @@ async def post_create_case(db: Annotated[AsyncSession, Depends(get_db)],
         ))
 
     user.cases_create += 1
+    user.activity_points += 1000
     await db.commit()
 
     return {'status': status.HTTP_201_CREATED,
@@ -112,7 +113,7 @@ async def delete_case(db: Annotated[AsyncSession, Depends(get_db)],
                             detail='Not allowed')
 
     case = await db.scalar(select(Case_model).where(
-        Case_model.is_active == True,
+        Case_model.is_active,
         Case_model.name == name
     ))
     case.is_active = False
@@ -134,7 +135,7 @@ async def get_case(request: Request,
                    user: User_model | None = Depends(get_current_user_or_none),
                    name: str = Path()):
     case = await db.scalar(select(Case_model).where(
-        Case_model.is_active == True,
+        Case_model.is_active,
         Case_model.name == name
     ))
 
@@ -143,7 +144,7 @@ async def get_case(request: Request,
 
     last_skins = await db.scalars(
         select(User_Skin_model)
-        .where(User_Skin_model.is_active == True)
+        .where(User_Skin_model.is_active)
         .options(selectinload(User_Skin_model.skin))
         .order_by(desc('id'))
         .limit(15)
@@ -152,7 +153,7 @@ async def get_case(request: Request,
     result = await db.scalars(
         select(Skin_model)
         .join(Skin_model.cases)
-        .where(Case_model.id == case.id, Skin_model.is_active == True)
+        .where(Case_model.id == case.id, Skin_model.is_active)
         .order_by(Skin_model.price)
     )
     skins = result.all()
@@ -182,7 +183,7 @@ async def post_open_case(db: Annotated[AsyncSession, Depends(get_db)],
                          user: User_model = Depends(get_user)
                          ):
     case = await db.scalar(select(Case_model).where(
-        Case_model.is_active == True,
+        Case_model.is_active,
         Case_model.name == name
     ))
 
@@ -192,6 +193,7 @@ async def post_open_case(db: Annotated[AsyncSession, Depends(get_db)],
             detail='Case not found'
         )
     user.case_opened += num_cases.cnt
+    user.activity_points += num_cases.cnt
 
     if user.balance < (case.price * num_cases.cnt):
         raise HTTPException(
@@ -205,7 +207,7 @@ async def post_open_case(db: Annotated[AsyncSession, Depends(get_db)],
         select(Skin_model)
         .join(Skin_model.cases)
         .where(Case_model.id == case.id,
-               Skin_model.is_active == True))
+               Skin_model.is_active))
     skins = result.all()
 
     """
@@ -222,6 +224,7 @@ async def post_open_case(db: Annotated[AsyncSession, Depends(get_db)],
     for skin in dropped_items:
         if skin.price >= case.price:
             user.successful_cases_cnt += 1
+            user.activity_points += 1
         result = await db.execute(
             insert(User_Skin_model)
             .values(user_id=user.id, skin_id=skin.id)
@@ -248,7 +251,7 @@ async def post_open_case(db: Annotated[AsyncSession, Depends(get_db)],
 async def get_case_chances(db: Annotated[AsyncSession, Depends(get_db)],
                            name: str = Path()):
     case = await db.scalar(select(Case_model).where(
-        Case_model.is_active == True,
+        Case_model.is_active,
         Case_model.name == name
     ))
 
@@ -262,7 +265,7 @@ async def get_case_chances(db: Annotated[AsyncSession, Depends(get_db)],
         select(Skin_model)
         .join(Skin_model.cases)
         .where(Case_model.id == case.id,
-               Skin_model.is_active == True))
+               Skin_model.is_active))
     skins = result.all()
 
     probabilities = calculate_probabilities(skins,

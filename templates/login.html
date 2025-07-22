@@ -3,6 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <title>Авторизация</title>
+    <link rel="icon" href="/static/icons/ico.png" type="image/png">
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -82,7 +83,7 @@
             <input type="text" name="username" placeholder="Имя пользователя (от 3 до 30 символов)" required>
             <input type="password" name="password" placeholder="Пароль (от 8 до 30 символов)" required>
             <div id="errorMessage" class="error-message"></div>
-            <button type="submit">Войти</button>
+            <button type="button" id="loginBtn">Войти</button>
         </form>
         <div class="register-link">
             <a href="/user/register">Нет аккаунта? Зарегистрироваться</a>
@@ -90,72 +91,54 @@
     </div>
 
     <script>
-    document.getElementById('loginForm').addEventListener('submit', async function(event) {
-        event.preventDefault();
-        const form = event.target;
-        const formData = new FormData(form);
+    const loginForm = document.getElementById('loginForm');
+    const loginBtn = document.getElementById('loginBtn');
+    async function handleLogin() {
+        const form = loginForm;
+        const username = form.username.value;
+        const password = form.password.value;
         const errorElement = document.getElementById('errorMessage');
         errorElement.style.display = 'none';
         errorElement.innerHTML = '';
-
+        if (username.length < 3 || username.length > 30) {
+            errorElement.textContent = 'Имя пользователя должно быть от 3 до 30 символов';
+            errorElement.style.display = 'block';
+            return;
+        }
+        if (password.length < 8 || password.length > 30) {
+            errorElement.textContent = 'Пароль должен быть от 8 до 30 символов';
+            errorElement.style.display = 'block';
+            return;
+        }
         try {
-            const response = await fetch(form.action, {
+            const response = await fetch('/user/login', {
                 method: 'POST',
-                body: new URLSearchParams(formData),
-                headers: {
-                    'Content-Type': 'application/x-www-form-urlencoded'
-                },
-                credentials: 'include'
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ username, password })
             });
-
-            if (response.redirected) {
-                window.location.href = response.url;
+            if (response.redirected || response.status === 303) {
+                window.location.href = '/';
                 return;
             }
-
-            if (!response.ok) {
-                const contentType = response.headers.get('content-type');
-
-                if (contentType && contentType.includes('application/json')) {
-                    const errorData = await response.json();
-                    if (Array.isArray(errorData.detail)) {
-                        let errorMessages = errorData.detail.map(e => e.msg || e.message || JSON.stringify(e));
-                        showError(errorMessages);
-                    } else if (errorData.detail && errorData.detail.errors) {
-                        let errorMessages = [];
-                        for (const errorList of errorData.detail.errors) {
-                            for (const error of errorList) {
-                                errorMessages.push(error.message);
-                            }
-                        }
-                        showError(errorMessages);
-                    } else if (errorData.errors && Array.isArray(errorData.errors)) {
-                        // fallback
-                        let errorMessages = [];
-                        for (const errorList of errorData.errors) {
-                            for (const error of errorList) {
-                                errorMessages.push(error.message);
-                            }
-                        }
-                        showError(errorMessages);
-                    } else {
-                        showError([errorData.message || `Ошибка ${response.status}`]);
-                    }
-                } else {
-                    const text = await response.text();
-                    showError([`Ошибка ${response.status}: ${text}`]);
-                }
-                return;
-            }
-        } catch (error) {
-            showError(['Сетевая ошибка: ' + error.message]);
+            const data = await response.json().catch(() => ({}));
+            errorElement.textContent = data.message || 'Ошибка авторизации';
+            errorElement.style.display = 'block';
+        } catch (e) {
+            errorElement.textContent = 'Ошибка сети';
+            errorElement.style.display = 'block';
+        }
+    }
+    loginBtn.addEventListener('click', handleLogin);
+    loginForm.addEventListener('keydown', function(event) {
+        if (event.key === 'Enter') {
+            event.preventDefault();
+            handleLogin();
         }
     });
 
     function showError(messages) {
         const errorElement = document.getElementById('errorMessage');
         if (Array.isArray(messages)) {
-            // Если элемент — объект с msg/message, выводим пояснение
             errorElement.innerHTML = messages.map(msgObj => {
                 if (typeof msgObj === 'object' && (msgObj.msg || msgObj.message)) {
                     return `<div>${msgObj.msg || msgObj.message}</div>`;

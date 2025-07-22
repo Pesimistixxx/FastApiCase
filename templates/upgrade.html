@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <title>Апгрейды</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+    <link rel="icon" href="/static/icons/ico.png" type="image/png">
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -811,13 +812,15 @@
                     const price = document.getElementById('dropModalPrice');
                     const marketImg = document.getElementById('selectedMarketSkinTopImg').src;
                     const marketName = document.getElementById('selectedMarketSkinTopName').textContent;
-                    const marketPrice = document.getElementById('selectedMarketSkinTopPrice').textContent.replace(/[^\d.]/g, '');
+                    const marketPrice = (document.getElementById('selectedMarketSkinTopPrice').textContent.match(/([\d,.]+)/) || [''])[0].replace(',', '.');
                     img.src = marketImg;
                     name.textContent = marketName;
                     price.textContent = `Цена: ${marketPrice}`;
                     modal.style.display = 'flex';
                     const sellBtn = document.getElementById('dropSellBtn');
+                    const takeBtn = document.getElementById('dropTakeBtn');
                     sellBtn.textContent = `Продать за ${marketPrice}`;
+                    sellBtn.disabled = false;
                     sellBtn.onclick = async function() {
                         sellBtn.disabled = true;
                         try {
@@ -833,6 +836,7 @@
                                     balanceEls.forEach(el => { el.textContent = `Баланс: ${parseFloat(data.new_balance).toFixed(2)}`; });
                                 }
                                 modal.style.display = 'none';
+                                showNotify('Скин успешно продан!');
                             } else {
                                 const data = await resp.json().catch(() => ({}));
                                 alert(data.detail || 'Ошибка при продаже скина');
@@ -841,7 +845,7 @@
                             alert('Ошибка: ' + err.message);
                         }
                     };
-                    document.getElementById('dropTakeBtn').onclick = function() {
+                    takeBtn.onclick = function() {
                         const userSkinsGrid = document.querySelector('.user-skins-grid');
                         if (userSkinsGrid && result.skin_id) {
                             const div = document.createElement('div');

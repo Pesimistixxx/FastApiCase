@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <title>Создание кейса</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+    <link rel="icon" href="/static/icons/ico.png" type="image/png">
     <style>
         .nav-button-link {
             background-color: #2979ff;
@@ -741,7 +742,6 @@
                 autocompleteItems.style.display = 'block';
             });
 
-            // Показывать все скины при фокусе на поле, если оно пустое
             skinSearch.addEventListener('focus', function() {
                 if (this.value === '') {
                     autocompleteItems.innerHTML = '';
@@ -761,7 +761,6 @@
                 }
             });
 
-            // Показывать все скины при нажатии Enter, если поле пустое
             skinSearch.addEventListener('keydown', function(e) {
                 if (e.key === 'Enter' && this.value === '') {
                     e.preventDefault();
@@ -810,7 +809,6 @@
                         }
                     }
                 } catch (e) {
-                    // Можно добавить showErrorNotification('Ошибка расчёта цены кейса');
                 }
             }
 
@@ -820,7 +818,6 @@
                 const skins = selectedSkins.map(s => s.id);
 
                 if (!avgDropPrice || !dropDeviation || skins.length === 0) {
-                    // Очищаем шансы, если данных недостаточно
                     document.querySelectorAll('#skins-list tr').forEach(row => {
                         const chanceCell = row.querySelector('.skin-chance');
                         if (chanceCell) chanceCell.textContent = '-';
@@ -865,7 +862,6 @@
                 }
             }
 
-            // Пересчёт при изменении средней цены дропа или отклонения
             document.getElementById('avg-drop-price').addEventListener('input', function() {
                 recalculateCasePrice();
                 recalculateChances();
@@ -875,7 +871,6 @@
                 recalculateChances();
             });
 
-            // Пересчёт при добавлении/удалении скина
             function addSkinToList(skin) {
                 if (selectedSkins.some(s => s.id === skin.id)) {
                     const notification = document.getElementById('duplicateNotification');

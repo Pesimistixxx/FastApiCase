@@ -16,7 +16,7 @@ skinRouter = APIRouter(prefix='/skin', tags=['skin'])
 @skinRouter.get('/list')
 async def get_skin_list(db: Annotated[AsyncSession, Depends(get_db)]):
     skins = await db.scalars(select(Skin_model).where(
-        Skin_model.is_active == True
+        Skin_model.is_active
     ))
     return skins.all()
 
@@ -26,7 +26,7 @@ async def post_sell_all_skins(db: Annotated[AsyncSession, Depends(get_db)],
                               user: User_model = Depends(get_user)):
     result = await db.scalars(select(User_Skin_model).where(
         User_Skin_model.user_id == user.id,
-        User_Skin_model.is_active == True
+        User_Skin_model.is_active
     ).options(selectinload(User_Skin_model.skin)))
     if not result:
         raise HTTPException(
@@ -59,7 +59,7 @@ async def post_sell_skin(db: Annotated[AsyncSession, Depends(get_db)],
     user_skin = await db.scalar(select(User_Skin_model).where(
         User_Skin_model.id == id,
         User_Skin_model.user_id == user.id,
-        User_Skin_model.is_active == True
+        User_Skin_model.is_active
     ).options(selectinload(User_Skin_model.skin)))
 
     if not user_skin:
@@ -72,24 +72,24 @@ async def post_sell_skin(db: Annotated[AsyncSession, Depends(get_db)],
     user_skin.is_active = False
     await db.commit()
     return {
-            "detail": "successfully sold",
-            'new_balance': new_balance
-            }
+        "detail": "successfully sold",
+        "new_balance": new_balance,
+    }
 
 
 @skinRouter.get('/{name}')
 async def get_skin(db: Annotated[AsyncSession, Depends(get_db)],
                    name: str = Path()):
     skin = await db.scalar(select(Skin_model).where(
-        Skin_model.is_active == True,
+        Skin_model.is_active,
         Skin_model.name == name
     ))
     prev_skin = await db.scalar(select(Skin_model).where(
-        Skin_model.is_active == True,
+        Skin_model.is_active,
         Skin_model.id < skin.id
     ).order_by(desc('id')))
     next_skin = await db.scalar(select(Skin_model).where(
-        Skin_model.is_active == True,
+        Skin_model.is_active,
         Skin_model.id > skin.id
     ).order_by('id'))
     if not skin:

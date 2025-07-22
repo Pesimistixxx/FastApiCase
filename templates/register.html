@@ -3,6 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <title>Регистрация</title>
+    <link rel="icon" href="/static/icons/ico.png" type="image/png">
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -85,72 +86,67 @@
             <input type="email" name="email" placeholder="Email (от 10 до 40 символов)" required>
             <input type="password" name="password" placeholder="Пароль (от 8 до 30 символов)" required>
             <div id="errorMessage" class="error-message"></div>
-            <button type="submit">Зарегистрироваться</button>
+            <button type="button" id="registerBtn">Зарегистрироваться</button>
         </form>
         <div class="login-link">
             <a href="/user/login">Eсть Аккаунт? Войти</a>
         </div>
     </div>
 <script>
-        document.getElementById('registerForm').addEventListener('submit', async function(event) {
-            event.preventDefault()
-
-            const form = event.target;
-            const formData = new FormData(form);
+        const registerForm = document.getElementById('registerForm');
+        const registerBtn = document.getElementById('registerBtn');
+        async function handleRegister() {
+            const form = registerForm;
+            const username = form.username.value;
+            const name = form.name.value;
+            const email = form.email.value;
+            const password = form.password.value;
             const errorElement = document.getElementById('errorMessage');
             errorElement.style.display = 'none';
             errorElement.innerHTML = '';
-
+            if (username.length < 3 || username.length > 30) {
+                errorElement.textContent = 'Имя пользователя должно быть от 3 до 30 символов';
+                errorElement.style.display = 'block';
+                return;
+            }
+            if (name.length < 3 || name.length > 30) {
+                errorElement.textContent = 'Имя должно быть от 3 до 30 символов';
+                errorElement.style.display = 'block';
+                return;
+            }
+            if (email.length < 10 || email.length > 40) {
+                errorElement.textContent = 'Email должен быть от 10 до 40 символов';
+                errorElement.style.display = 'block';
+                return;
+            }
+            if (password.length < 8 || password.length > 30) {
+                errorElement.textContent = 'Пароль должен быть от 8 до 30 символов';
+                errorElement.style.display = 'block';
+                return;
+            }
             try {
-                const response = await fetch(form.action, {
+                const response = await fetch('/user/register', {
                     method: 'POST',
-                    body: new URLSearchParams(formData),
-                    headers: {
-                        'Content-Type': 'application/x-www-form-urlencoded'
-                    },
-                    credentials: 'include'
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ username, name, email, password })
                 });
-
-                if (response.redirected) {
-                    window.location.href = response.url;
+                if (response.redirected || response.status === 303) {
+                    window.location.href = '/';
                     return;
                 }
-
-                if (!response.ok) {
-                    const contentType = response.headers.get('content-type');
-
-                    if (contentType && contentType.includes('application/json')) {
-                        const errorData = await response.json();
-                        if (Array.isArray(errorData.detail)) {
-                            let errorMessages = errorData.detail.map(e => e.msg || e.message || JSON.stringify(e));
-                            showError(errorMessages);
-                        } else if (errorData.detail && errorData.detail.errors) {
-                            let errorMessages = [];
-                            for (const errorList of errorData.detail.errors) {
-                                for (const error of errorList) {
-                                    errorMessages.push(error.message);
-                                }
-                            }
-                            showError(errorMessages);
-                        } else if (errorData.errors && Array.isArray(errorData.errors)) {
-                            let errorMessages = [];
-                            for (const errorList of errorData.errors) {
-                                for (const error of errorList) {
-                                    errorMessages.push(error.message);
-                                }
-                            }
-                            showError(errorMessages);
-                        } else {
-                            showError([errorData.message || `Ошибка ${response.status}`]);
-                        }
-                    } else {
-                        const text = await response.text();
-                        showError([`Ошибка ${response.status}: ${text}`]);
-                    }
-                    return;
-                }
-            } catch (error) {
-                showError(['Сетевая ошибка: ' + error.message]);
+                const data = await response.json().catch(() => ({}));
+                errorElement.textContent = data.message || 'Ошибка регистрации';
+                errorElement.style.display = 'block';
+            } catch (e) {
+                errorElement.textContent = 'Ошибка сети';
+                errorElement.style.display = 'block';
+            }
+        }
+        registerBtn.addEventListener('click', handleRegister);
+        registerForm.addEventListener('keydown', function(event) {
+            if (event.key === 'Enter') {
+                event.preventDefault();
+                handleRegister();
             }
         });
 

@@ -13,7 +13,7 @@ from sqlalchemy.orm import selectinload
 from starlette.responses import JSONResponse, RedirectResponse
 
 from app.auth.models import User_model, Session_model
-from app.auth.schemas import UserRegister, UserLogin, user_register_form, user_login_form
+from app.auth.schemas import UserRegister, UserLogin
 from db.db_depends import get_db
 from app.auth.security import get_user, get_current_user_or_none
 from app.models_associations import User_Skin_model
@@ -29,7 +29,7 @@ async def get_all_users(db: Annotated[AsyncSession, Depends(get_db)],
     if not user or not user.is_admin:
         return RedirectResponse('/')
     users_list = await db.scalars(select(User_model).where(
-        User_model.is_active == True
+        User_model.is_active
     ))
     return users_list.all()
 
@@ -46,15 +46,15 @@ async def get_login_page(request: Request):
 
 @authRouter.post('/register')
 async def post_create_user(db: Annotated[AsyncSession, Depends(get_db)],
-                           register_inp: UserRegister = Depends(user_register_form),
+                           register_inp: UserRegister,
                            ):
     try:
         user = User_model(
-                          username=register_inp.username,
-                          name=register_inp.name,
-                          email=register_inp.email,
-                          password=bcrypt_context.hash(register_inp.password),
-                         )
+            username=register_inp.username,
+            name=register_inp.name,
+            email=register_inp.email,
+            password=bcrypt_context.hash(register_inp.password),
+        )
         db.add(user)
         await db.flush()
 
@@ -92,7 +92,7 @@ async def post_create_user(db: Annotated[AsyncSession, Depends(get_db)],
 
 @authRouter.post('/login')
 async def post_login_user(db: Annotated[AsyncSession, Depends(get_db)],
-                          login_inp: UserLogin = Depends(user_login_form)):
+                          login_inp: UserLogin):
     user = await db.scalar(select(User_model)
                            .where(login_inp.username == User_model.username))
     if not user:
@@ -140,7 +140,7 @@ async def get_user_profile(request: Request,
         select(User_Skin_model)
         .where(
             User_Skin_model.user_id == user.id,
-            User_Skin_model.is_active == True
+            User_Skin_model.is_active
         )
         .options(selectinload(User_Skin_model.skin))
         .order_by(desc(User_Skin_model.id))
@@ -149,15 +149,15 @@ async def get_user_profile(request: Request,
     total_sum = sum(skin.skin.price for skin in all_skins_list)
     last_skins = all_skins_list[:24]
 
-    return templates.TemplateResponse('profile.html',
+    return templates.TemplateResponse("profile.html",
                                       {
-                                       'request': request,
-                                       'username': user.username,
-                                       'balance': user.balance,
-                                       'last_skins': last_skins,
-                                       'skins_price': total_sum,
-                                       'avatar': user.avatar
-                                       })
+                                          "request": request,
+                                          "username": user.username,
+                                          "balance": user.balance,
+                                          "last_skins": last_skins,
+                                          "skins_price": total_sum,
+                                          "avatar": user.avatar
+                                      })
 
 
 @authRouter.get('/sessions')
@@ -173,7 +173,6 @@ async def get_sessions_list(db: Annotated[AsyncSession, Depends(get_db)],
 async def post_add_money_to_account(db: Annotated[AsyncSession, Depends(get_db)],
                                     user: User_model = Depends(get_user),
                                     amount: float = Path()):
-
     new_balance = user.balance + amount
     user.balance = new_balance
     username = user.username
@@ -189,7 +188,7 @@ async def post_add_money_to_account(db: Annotated[AsyncSession, Depends(get_db)]
 async def logout_user(db: Annotated[AsyncSession, Depends(get_db)],
                       response: Response,
                       user: User_model = Depends(get_user)
-                     ):
+                      ):
     await db.execute(delete(Session_model).where(
         Session_model.user_id == user.id
     ))

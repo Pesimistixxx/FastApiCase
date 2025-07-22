@@ -27,7 +27,7 @@ async def get_contract(request: Request,
 
     user_skins = await db.scalars(select(User_Skin_model).where(
         User_Skin_model.user_id == user.id,
-        User_Skin_model.is_active == True,
+        User_Skin_model.is_active,
     ).options(selectinload(User_Skin_model.skin))
      .order_by(desc('id')))
 
@@ -50,10 +50,11 @@ async def post_contract(db: Annotated[AsyncSession, Depends(get_db)],
     user_skins = await db.scalars(select(User_Skin_model).where(
         User_Skin_model.user_id == user.id,
         User_Skin_model.id.in_(skins.skins),
-        User_Skin_model.is_active == True
+        User_Skin_model.is_active
     ).options(selectinload(User_Skin_model.skin)))
 
     user.contracts_cnt += 1
+    user.activity_points += 30
 
     for skin in user_skins.all():
         skin.is_active = False
@@ -62,12 +63,13 @@ async def post_contract(db: Annotated[AsyncSession, Depends(get_db)],
 
     dropped_skin = await db.scalar(select(Skin_model).where(
         Skin_model.price < drop_price,
-        Skin_model.is_active == True
+        Skin_model.is_active
     ).order_by(desc(Skin_model.price))
      .limit(1))
 
     if dropped_skin.price > total_price:
         user.successful_contracts_cnt += 1
+        user.activity_points += 15
 
     result = await db.execute(insert(User_Skin_model).values(
         user_id=user.id,
@@ -77,7 +79,9 @@ async def post_contract(db: Annotated[AsyncSession, Depends(get_db)],
 
     await db.commit()
 
-    dropped_skin_obj = await db.scalar(select(User_Skin_model).where(User_Skin_model.id == user_skin_id).options(selectinload(User_Skin_model.skin)))
+    dropped_skin_obj = await db.scalar(select(User_Skin_model)
+                                       .where(User_Skin_model.id == user_skin_id)
+                                       .options(selectinload(User_Skin_model.skin)))
     return {
         'status': status.HTTP_200_OK,
         'dropped_skin': user_skin_id,

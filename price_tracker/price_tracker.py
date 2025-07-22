@@ -35,7 +35,7 @@ class Skin_model(Base):
 
 async def fetch_steam_prices(db: AsyncSession, client: httpx.AsyncClient):
     try:
-        result = await db.execute(select(Skin_model).where(Skin_model.is_active == True))
+        result = await db.execute(select(Skin_model).where(Skin_model.is_active))
         items = result.scalars().all()
 
         for item in items:
@@ -78,7 +78,7 @@ async def start_scheduler():
         logger.info("Задача обновления цен завершена")
 
     scheduler.add_job(job, 'interval', minutes=60, next_run_time=datetime.datetime.now())
-    #scheduler.add_job(job, 'interval', minutes=60)
+    # scheduler.add_job(job, 'interval', minutes=60)
     scheduler.start()
 
 

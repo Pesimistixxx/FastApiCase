@@ -1,10 +1,13 @@
 from datetime import datetime
-from typing import List
+from typing import List, TYPE_CHECKING
 
 from sqlalchemy.orm import mapped_column, Mapped, relationship
 from sqlalchemy import ForeignKey, DateTime
 
 from db.db import Base
+
+if TYPE_CHECKING:
+    from app.models_associations import User_Skin_model
 
 
 class User_model(Base):
@@ -27,6 +30,7 @@ class User_model(Base):
     successful_contracts_cnt: Mapped[int] = mapped_column(default=0, server_default='0', nullable=False)
     successful_upgrades_cnt: Mapped[int] = mapped_column(default=0, server_default='0', nullable=False)
     cases_create: Mapped[int] = mapped_column(default=0, server_default='0', nullable=False)
+    activity_points: Mapped[int] = mapped_column(default=0, server_default='0', nullable=False)
 
     sessions: Mapped[List["Session_model"]] = relationship(back_populates="user")
     skins: Mapped[List["User_Skin_model"]] = relationship("User_Skin_model", back_populates="user")

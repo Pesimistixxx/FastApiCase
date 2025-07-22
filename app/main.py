@@ -64,14 +64,14 @@ async def get_main_page(request: Request,
 
     last_skins = await db.scalars(
         select(User_Skin_model)
-        .where(User_Skin_model.is_active == True)
+        .where(User_Skin_model.is_active)
         .options(selectinload(User_Skin_model.skin))
         .order_by(desc('id'))
         .limit(15)
     )
 
     cases = await db.scalars(select(Case_model).where(
-        Case_model.is_active == True
+        Case_model.is_active
     ).order_by(desc('id')))
     if user:
         return templates.TemplateResponse('main.html', {'request': request,

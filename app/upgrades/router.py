@@ -27,7 +27,7 @@ async def get_upgrade(db: Annotated[AsyncSession, Depends(get_db)],
         return RedirectResponse('/user/login')
 
     skins = await db.scalars(select(Skin_model).where(
-        Skin_model.is_active == True,
+        Skin_model.is_active,
         Skin_model.price != 0
     ).order_by('price'))
 
@@ -35,7 +35,7 @@ async def get_upgrade(db: Annotated[AsyncSession, Depends(get_db)],
         select(User_Skin_model)
         .where(
             User_Skin_model.user_id == user.id,
-            User_Skin_model.is_active == True
+            User_Skin_model.is_active
         )
         .options(selectinload(User_Skin_model.skin))
         .order_by(desc(User_Skin_model.id))
@@ -65,7 +65,7 @@ async def post_upgrade(db: Annotated[AsyncSession, Depends(get_db)],
     user_skin = await db.scalar((select(User_Skin_model).where(
         User_Skin_model.id == user_skin_id,
         User_Skin_model.user_id == user.id,
-        User_Skin_model.is_active == True
+        User_Skin_model.is_active
     )))
 
     if not user_skin:
@@ -76,6 +76,7 @@ async def post_upgrade(db: Annotated[AsyncSession, Depends(get_db)],
 
     user_skin.is_active = False
     user.upgrades_cnt += 1
+    user.activity_points += 15
 
     if randint < chance:
         result = await db.execute(insert(User_Skin_model).values(
@@ -84,6 +85,7 @@ async def post_upgrade(db: Annotated[AsyncSession, Depends(get_db)],
         ).returning(User_Skin_model.id))
         user_skin_id = result.scalar_one()
         user.successful_upgrades_cnt += 1
+        user.activity_points += (100 - chance // 100) // 2
 
         await db.commit()
         return {'is_success': True,

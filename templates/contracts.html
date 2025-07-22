@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <title>Контракты</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+    <link rel="icon" href="/static/icons/ico.png" type="image/png">
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -689,6 +690,51 @@
         ctx.globalCompositeOperation = 'source-over';
     });
 
+    canvas.addEventListener('touchstart', function(e) {
+        if (e.touches.length > 0) {
+            const rect = canvas.getBoundingClientRect();
+            const touch = e.touches[0];
+            lastX = touch.clientX - rect.left;
+            lastY = touch.clientY - rect.top;
+            drawing = true;
+            ctx.beginPath();
+            ctx.moveTo(lastX, lastY);
+            e.preventDefault();
+        }
+    }, { passive: false });
+    canvas.addEventListener('touchmove', function(e) {
+        if (!drawing) return;
+        if (e.touches.length > 0) {
+            const rect = canvas.getBoundingClientRect();
+            const touch = e.touches[0];
+            const x = touch.clientX - rect.left;
+            const y = touch.clientY - rect.top;
+            if (isErasing) {
+                ctx.globalCompositeOperation = 'destination-out';
+                ctx.lineWidth = 16;
+            } else {
+                ctx.globalCompositeOperation = 'source-over';
+                ctx.strokeStyle = drawColor;
+                ctx.lineWidth = 2;
+            }
+            ctx.lineTo(x, y);
+            ctx.stroke();
+            lastX = x;
+            lastY = y;
+            e.preventDefault();
+        }
+    }, { passive: false });
+    canvas.addEventListener('touchend', function(e) {
+        drawing = false;
+        ctx.globalCompositeOperation = 'source-over';
+        e.preventDefault();
+    }, { passive: false });
+    canvas.addEventListener('touchcancel', function(e) {
+        drawing = false;
+        ctx.globalCompositeOperation = 'source-over';
+        e.preventDefault();
+    }, { passive: false });
+
     const selectedSkins = [];
     function renderSelectedSkins() {
         const list = document.getElementById('selectedSkinsList');
@@ -828,9 +874,9 @@
         document.getElementById('droppedSkinImg').src = `/static/skins/${skin.image}`;
         document.getElementById('droppedSkinName').textContent = skin.name;
         document.getElementById('droppedSkinPrice').textContent = `Цена: ${skin.price}`;
+        document.getElementById('sellDroppedSkinBtn').textContent = `Продать за ${skin.price}`;
         document.getElementById('droppedSkinModal').style.display = 'flex';
         document.getElementById('takeDroppedSkinBtn').onclick = function() {
-            // Добавить скин в 'Ваши скины'
             const userSkinsGrid = document.getElementById('userSkinsGrid');
             if (userSkinsGrid && skin.id && skin.image && skin.name && skin.price) {
                 const div = document.createElement('div');

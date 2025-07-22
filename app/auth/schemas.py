@@ -1,5 +1,4 @@
-from fastapi import Form, HTTPException, status
-from pydantic import BaseModel, Field, EmailStr, ValidationError
+from pydantic import BaseModel, Field, EmailStr
 
 
 class UserRegister(BaseModel):

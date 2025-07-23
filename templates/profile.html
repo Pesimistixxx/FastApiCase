@@ -546,6 +546,9 @@
                 updateTotalPrice();
 
                 showNotification(`Продано скинов: ${result.sold_count} на сумму ${result.total_sold.toFixed(2)}`, false);
+                if (document.querySelectorAll('.skins-grid .skin-item').length === 0) {
+                    document.getElementById('skins-pagination').style.display = 'none';
+                }
             } else {
                 throw new Error(result.detail || 'Ошибка продажи скинов');
             }
@@ -735,19 +738,48 @@
                 item.style.display = (idx >= (page-1)*skinsPerPage && idx < page*skinsPerPage) ? '' : 'none';
             });
             renderPagination(page);
+            if (document.querySelectorAll('.skins-grid .skin-item').length === 0) {
+                pagination.style.display = 'none';
+            } else {
+                pagination.style.display = 'flex';
+            }
         }
 
         function renderPagination(page) {
             pagination.innerHTML = '';
             if (totalPages <= 1) return;
-            for (let i = 1; i <= totalPages; i++) {
-                const btn = document.createElement('button');
-                btn.textContent = i;
-                btn.style = 'padding: 6px 12px; border-radius: 4px; border: none; background:' + (i === page ? '#2979ff' : '#222') + '; color: #fff; margin: 0 2px; cursor:pointer;';
-                if (i === page) btn.disabled = true;
-                btn.onclick = () => showPage(i);
-                pagination.appendChild(btn);
+            let pages = [];
+            if (totalPages <= 5) {
+                for (let i = 1; i <= totalPages; i++) pages.push(i);
+            } else {
+                if (page <= 3) {
+                    pages = [1, 2, 3, 4, '...', totalPages];
+                } else if (page >= totalPages - 2) {
+                    pages = [1, '...', totalPages - 3, totalPages - 2, totalPages - 1, totalPages];
+                } else {
+                    pages = [1, '...', page - 1, page, page + 1, '...', totalPages];
+                }
             }
+            let lastWasDots = false;
+            pages.forEach(p => {
+                if (p === '...') {
+                    if (!lastWasDots) {
+                        const span = document.createElement('span');
+                        span.textContent = '...';
+                        span.style = 'padding: 6px 12px; color: #fff;';
+                        pagination.appendChild(span);
+                        lastWasDots = true;
+                    }
+                } else {
+                    const btn = document.createElement('button');
+                    btn.textContent = p;
+                    btn.style = 'padding: 6px 12px; border-radius: 4px; border: none; background:' + (p === page ? '#2979ff' : '#222') + '; color: #fff; margin: 0 2px; cursor:pointer;';
+                    if (p === page) btn.disabled = true;
+                    btn.onclick = () => showPage(p);
+                    pagination.appendChild(btn);
+                    lastWasDots = false;
+                }
+            });
         }
 
         showPage(1);
@@ -769,7 +801,6 @@
             });
         }
 
-        // --- Пагинация для кейсов ---
         const myCases = [
             {% for case in my_cases %}
             {
@@ -817,7 +848,6 @@
                 }
                 li.innerHTML = caseContent;
 
-                // Навигация по клику
                 const editBtn = li.querySelector('.case-edit-btn');
                 if (editBtn) {
                     editBtn.addEventListener('click', function(e) {
@@ -841,18 +871,39 @@
             pag.innerHTML = '';
             const totalPages = Math.ceil(myCases.length / CASES_PER_PAGE);
             if (totalPages <= 1) return;
-            for (let i = 1; i <= totalPages; i++) {
-                const btn = document.createElement('button');
-                btn.textContent = i;
-                btn.style = 'padding: 6px 12px; border-radius: 4px; border: none; background:' + (i === page ? '#2979ff' : '#222') + '; color: #fff; margin: 0 2px; cursor:pointer;';
-                if (i === page) btn.disabled = true;
-                btn.onclick = () => {
-                    myCasesCurrentPage = i;
-                    renderMyCasesPage(myCasesCurrentPage);
-                    renderMyCasesPagination(myCasesCurrentPage);
-                };
-                pag.appendChild(btn);
-            }
+            const pages = [];
+            if (page > 2) pages.push(1);
+            if (page > 3) pages.push('...');
+            if (page - 1 > 1) pages.push(page - 1);
+            pages.push(page);
+            if (page + 1 < totalPages) pages.push(page + 1);
+            if (page < totalPages - 2) pages.push('...');
+            if (page < totalPages) pages.push(totalPages);
+
+            let lastWasDots = false;
+            pages.forEach(p => {
+                if (p === '...') {
+                    if (!lastWasDots) {
+                        const span = document.createElement('span');
+                        span.textContent = '...';
+                        span.style = 'padding: 6px 12px; color: #fff;';
+                        pag.appendChild(span);
+                        lastWasDots = true;
+                    }
+                } else {
+                    const btn = document.createElement('button');
+                    btn.textContent = p;
+                    btn.style = 'padding: 6px 12px; border-radius: 4px; border: none; background:' + (p === page ? '#2979ff' : '#222') + '; color: #fff; margin: 0 2px; cursor:pointer;';
+                    if (p === page) btn.disabled = true;
+                    btn.onclick = () => {
+                        myCasesCurrentPage = p;
+                        renderMyCasesPage(myCasesCurrentPage);
+                        renderMyCasesPagination(myCasesCurrentPage);
+                    };
+                    pag.appendChild(btn);
+                    lastWasDots = false;
+                }
+            });
         }
 
         function showMyCasesPage(page) {

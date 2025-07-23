@@ -4,6 +4,7 @@ from fastapi.responses import RedirectResponse
 from fastapi.templating import Jinja2Templates
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.orm import joinedload
 
 from app.auth.models import User_model
 from app.auth.security import get_current_user_or_none
@@ -21,12 +22,10 @@ async def get_admin_panel(request: Request,
     if not user or not user.is_admin:
         return RedirectResponse('/')
 
-    cases = await db.scalars(select(Case_model))
-    approval_cases = await db.scalars(select(Case_model)
-                                      .where(~Case_model.is_approved))
+    cases = await db.scalars(select(Case_model)
+                             .options(joinedload(Case_model.author)))
     return templates.TemplateResponse('admin.html', {'request': request,
                                                      'username': user.username,
                                                      'balance': user.balance,
                                                      'user': user,
-                                                     'cases': cases.all(),
-                                                     'approval_cases': approval_cases.all()})
+                                                     'cases': cases.all()})

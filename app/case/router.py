@@ -339,9 +339,9 @@ async def post_open_case(db: Annotated[AsyncSession, Depends(get_db)],
     author = await db.scalar(select(User_model)
                              .where(User_model.id == case.author_id))
     if author:
-        author.balance += (case.price * num_cases) / 10000  # 0.01 % цены идет автору
-        author.case_opened += num_cases
-        case.opened_count += 1
+        author.balance += (case.price * num_cases.cnt) / 10000  # 0.01 % цены идет автору
+        author.author_case_opened += num_cases.cnt
+    case.opened_count += num_cases.cnt
 
     result = await db.scalars(
         select(Skin_model)

@@ -49,7 +49,8 @@ async def get_upgrade(db: Annotated[AsyncSession, Depends(get_db)],
                                                        'user_skins': user_skins_all,
                                                        'user': user,
                                                        'balance': user.balance,
-                                                       'username': user.username})
+                                                       'username': user.username,
+                                                       'is_admin': user.is_admin})
 
 
 @upgradeRouter.post('/')

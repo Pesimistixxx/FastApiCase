@@ -14,6 +14,7 @@ from starlette.responses import JSONResponse, RedirectResponse
 
 from app.auth.models import User_model, Session_model
 from app.auth.schemas import UserRegister, UserLogin
+from app.case.models import Case_model
 from db.db_depends import get_db
 from app.auth.security import get_user, get_current_user_or_none
 from app.models_associations import User_Skin_model
@@ -73,7 +74,7 @@ async def post_create_user(db: Annotated[AsyncSession, Depends(get_db)],
     await db.execute(insert(Session_model).values(
         session_token=session_token,
         user_id=user.id,
-        expires=datetime.datetime.now() + datetime.timedelta(hours=1)
+        expires=datetime.datetime.now() + datetime.timedelta(hours=24)
     ))
     await db.commit()
     response = RedirectResponse('/', status_code=303)
@@ -82,7 +83,7 @@ async def post_create_user(db: Annotated[AsyncSession, Depends(get_db)],
         value=session_token,
         httponly=True,
         secure=True,
-        max_age=3600,
+        max_age=86400,
         samesite="lax",
         path='/'
     )
@@ -111,7 +112,7 @@ async def post_login_user(db: Annotated[AsyncSession, Depends(get_db)],
     await db.execute(insert(Session_model).values(
         session_token=session_token,
         user_id=user.id,
-        expires=datetime.datetime.now() + datetime.timedelta(hours=1)
+        expires=datetime.datetime.now() + datetime.timedelta(hours=24)
     ))
     await db.commit()
 
@@ -121,7 +122,7 @@ async def post_login_user(db: Annotated[AsyncSession, Depends(get_db)],
         value=session_token,
         httponly=True,
         secure=False,
-        max_age=3600,
+        max_age=86400,
         samesite="lax",
         path='/'
     )
@@ -146,17 +147,20 @@ async def get_user_profile(request: Request,
         .order_by(desc(User_Skin_model.id))
     )
     all_skins_list = all_skins.all()
+    my_cases = await db.scalars(select(Case_model)
+                                .where(Case_model.author_id == user.id))
     total_sum = sum(skin.skin.price for skin in all_skins_list)
-    last_skins = all_skins_list[:24]
 
     return templates.TemplateResponse("profile.html",
                                       {
                                           "request": request,
                                           "username": user.username,
                                           "balance": user.balance,
-                                          "last_skins": last_skins,
+                                          "last_skins": all_skins_list,
                                           "skins_price": total_sum,
-                                          "avatar": user.avatar
+                                          "avatar": user.avatar,
+                                          "my_cases": my_cases.all(),
+                                          'is_admin': user.is_admin
                                       })
 
 

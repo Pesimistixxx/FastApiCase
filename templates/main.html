@@ -35,16 +35,23 @@
         }
         .nav-buttons {
             display: flex;
-            gap: 40px;
+            flex-wrap: wrap;
+            gap: 16px;
+            row-gap: 8px;
+            max-width: 100vw;
         }
         .nav-buttons button {
             background-color: #2979ff;
             color: white;
             border: none;
-            padding: 10px 15px;
-            font-size: 14px;
+            padding: clamp(4px, 1vw, 10px) clamp(8px, 2vw, 15px);
+            font-size: clamp(10px, 2vw, 15px);
             border-radius: 4px;
             cursor: pointer;
+            min-width: 80px;
+            min-height: 32px;
+            white-space: nowrap;
+            transition: font-size 0.2s, padding 0.2s;
         }
         .nav-buttons button:hover {
             background-color: #1c54b2;
@@ -79,12 +86,21 @@
             background-color: #4caf50;
             color: white;
             border: none;
-            width: 30px;
-            height: 30px;
+            width: 32px;
+            height: 32px;
+            min-width: 32px;
+            min-height: 32px;
+            max-width: 32px;
+            max-height: 32px;
             font-size: 20px;
             border-radius: 50%;
             cursor: pointer;
             margin-left: 10px;
+            box-sizing: border-box;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 0;
         }
         .add-balance-button:hover {
             background-color: #388e3c;
@@ -249,6 +265,32 @@
             font-size: 14px;
         }
     </style>
+    <style>
+@media (max-width: 900px) {
+    #contactAuthorBtn {
+        padding: 10px 16px 10px 12px !important;
+        font-size: 15px !important;
+    }
+    #contactAuthorBtn i {
+        font-size: 20px !important;
+    }
+    #contactAuthorBtn span {
+        font-size: 14px !important;
+    }
+}
+@media (max-width: 600px) {
+    #contactAuthorBtn {
+        padding: 7px 10px 7px 8px !important;
+        font-size: 12px !important;
+    }
+    #contactAuthorBtn i {
+        font-size: 15px !important;
+    }
+    #contactAuthorBtn span {
+        font-size: 11px !important;
+    }
+}
+</style>
 </head>
 <body>
 <div class="navbar">
@@ -268,6 +310,11 @@
         <a href="/top/">
             <button>Топ пользователей</button>
         </a>
+        {% if is_admin %}
+        <a href="/admin">
+            <button>Админка</button>
+        </a>
+        {% endif %}
     </div>
     {% if user %}
     <div class="user-profile" id="userProfile">
@@ -326,6 +373,12 @@
         {% endfor %}
     </div>
 </div>
+
+<a href="https://t.me/pesim1st" target="_blank" id="contactAuthorBtn" title="Связаться с автором"
+   style="position:fixed; right:32px; bottom:32px; z-index:2000; background:#229ED9; color:#fff; border-radius:50px; box-shadow:0 4px 16px #0006; display:flex; align-items:center; gap:12px; padding:14px 22px 14px 18px; font-size:18px; font-weight:bold; text-decoration:none; transition:background 0.2s; opacity:0.5;">
+    <i class="fab fa-telegram-plane" style="font-size:26px;"></i>
+    <span style="font-size:17px; font-weight:500;">Автор</span>
+</a>
 
 <script>
     function parseMoney(value) {

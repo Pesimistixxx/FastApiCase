@@ -8,6 +8,7 @@ from db.db import Base
 
 if TYPE_CHECKING:
     from app.models_associations import User_Skin_model
+    from app.case.models import Case_model
 
 
 class User_model(Base):
@@ -30,9 +31,11 @@ class User_model(Base):
     successful_contracts_cnt: Mapped[int] = mapped_column(default=0, server_default='0', nullable=False)
     successful_upgrades_cnt: Mapped[int] = mapped_column(default=0, server_default='0', nullable=False)
     cases_create: Mapped[int] = mapped_column(default=0, server_default='0', nullable=False)
+    author_case_opened: Mapped[int] = mapped_column(default=0, server_default='0', nullable=False)
     activity_points: Mapped[int] = mapped_column(default=0, server_default='0', nullable=False)
 
     sessions: Mapped[List["Session_model"]] = relationship(back_populates="user")
+    case: Mapped[List["Case_model"]] = relationship("Case_model", back_populates="author")
     skins: Mapped[List["User_Skin_model"]] = relationship("User_Skin_model", back_populates="user")
 
 

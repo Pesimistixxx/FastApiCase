@@ -34,16 +34,23 @@
         }
         .nav-buttons {
             display: flex;
-            gap: 40px;
+            flex-wrap: wrap;
+            gap: 16px;
+            row-gap: 8px;
+            max-width: 100vw;
         }
         .nav-buttons button {
             background-color: #2979ff;
             color: white;
             border: none;
-            padding: 10px 15px;
-            font-size: 14px;
+            padding: clamp(4px, 1vw, 10px) clamp(8px, 2vw, 15px);
+            font-size: clamp(10px, 2vw, 15px);
             border-radius: 4px;
             cursor: pointer;
+            min-width: 80px;
+            min-height: 32px;
+            white-space: nowrap;
+            transition: font-size 0.2s, padding 0.2s;
         }
         .nav-buttons button:hover {
             background-color: #1c54b2;
@@ -274,12 +281,21 @@
             background-color: #4caf50;
             color: white;
             border: none;
-            width: 30px;
-            height: 30px;
+            width: 32px;
+            height: 32px;
+            min-width: 32px;
+            min-height: 32px;
+            max-width: 32px;
+            max-height: 32px;
             font-size: 20px;
             border-radius: 50%;
             cursor: pointer;
             margin-left: 10px;
+            box-sizing: border-box;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 0;
         }
         .add-balance-button:hover {
             background-color: #388e3c;
@@ -411,6 +427,11 @@
         <a href="/top">
             <button>Топ пользователей</button>
         </a>
+        {% if is_admin %}
+        <a href="/admin">
+            <button>Админка</button>
+        </a>
+        {% endif %}
     </div>
     <div class="user-profile" id="userProfile">
         <a href="/user/profile" class="profile-link">

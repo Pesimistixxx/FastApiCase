@@ -2,7 +2,7 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <title>Создание кейса</title>
+    <title>{{ 'Редактирование кейса' if 'edit' in request.path else 'Создание кейса' }}</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
     <link rel="icon" href="/static/icons/ico.png" type="image/png">
     <style>
@@ -60,21 +60,26 @@
 
         .nav-buttons {
             display: flex;
-            gap: 40px;
+            flex-wrap: wrap;
+            gap: 16px;
+            row-gap: 8px;
             align-items: center;
+            max-width: 100vw;
         }
-
         .nav-buttons button,
         .nav-buttons .nav-button-link {
             background-color: #2979ff;
             color: white;
             border: none;
-            padding: 10px 15px;
-            font-size: 14px;
+            padding: clamp(4px, 1vw, 10px) clamp(8px, 2vw, 15px);
+            font-size: clamp(10px, 2vw, 15px);
             border-radius: 4px;
             cursor: pointer;
+            min-width: 80px;
+            min-height: 32px;
+            white-space: nowrap;
+            transition: font-size 0.2s, padding 0.2s;
         }
-
         .nav-buttons button:hover,
         .nav-buttons .nav-button-link:hover {
             background-color: #1c54b2;
@@ -123,12 +128,21 @@
             background-color: #4caf50;
             color: white;
             border: none;
-            width: 30px;
-            height: 30px;
+            width: 32px;
+            height: 32px;
+            min-width: 32px;
+            min-height: 32px;
+            max-width: 32px;
+            max-height: 32px;
             font-size: 20px;
             border-radius: 50%;
             cursor: pointer;
             margin-left: 10px;
+            box-sizing: border-box;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 0;
         }
 
         .add-balance-button:hover {
@@ -443,6 +457,67 @@
             transform: translateX(0);
         }
 
+        /* Модальное окно подтверждения для редактирования */
+        .confirmation-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.7);
+            z-index: 4000;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .confirmation-modal.active {
+            display: flex;
+        }
+
+        .confirmation-content {
+            background-color: #1e1e1e;
+            padding: 25px;
+            border-radius: 8px;
+            max-width: 500px;
+            width: 90%;
+            border: 1px solid #333;
+        }
+
+        .confirmation-content h3 {
+            margin-bottom: 15px;
+            color: #aeeaff;
+        }
+
+        .confirmation-content p {
+            margin-bottom: 20px;
+            line-height: 1.5;
+        }
+
+        .confirmation-buttons {
+            display: flex;
+            gap: 15px;
+            justify-content: flex-end;
+        }
+
+        .confirmation-buttons button {
+            padding: 8px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+
+        #confirm-edit {
+            background-color: #4CAF50;
+            color: white;
+        }
+
+        #cancel-edit {
+            background-color: #f44336;
+            color: white;
+        }
+
         @media (max-width: 768px) {
             .form-row {
                 flex-direction: column;
@@ -480,6 +555,14 @@
                 width: 90%;
                 text-align: center;
             }
+
+            .confirmation-content {
+                padding: 15px;
+            }
+
+            .confirmation-buttons {
+                flex-direction: column;
+            }
         }
     </style>
 </head>
@@ -499,6 +582,11 @@
             <a href="/top/">
                 <button>Топ пользователей</button>
             </a>
+            {% if is_admin %}
+            <a href="/admin">
+                <button>Админка</button>
+            </a>
+            {% endif %}
         </div>
 
         <div class="user-profile" id="userProfile">
@@ -537,14 +625,14 @@
                     <div class="form-col">
                         <div class="form-group">
                             <label for="case-name">Название кейса</label>
-                            <input type="text" id="case-name" class="form-control" placeholder="Введите название" required>
+                            <input type="text" id="case-name" class="form-control" placeholder="Введите название" required value="{{ case_data.name if case_data and case_data.name else '' }}">
                         </div>
                     </div>
 
                     <div class="form-col">
                         <div class="form-group" style="position: relative;">
                             <label for="case-price">Цена кейса</label>
-                            <input type="number" id="case-price" class="form-control" placeholder="Цена генерируется автоматически" min="1" step="1" required disabled>
+                            <input type="number" id="case-price" class="form-control" placeholder="Цена генерируется автоматически" min="1" step="1" required value="{{ case_data.price if case_data and case_data.price is not none else '' }}" {% if not is_admin %}disabled{% endif %}>
                         </div>
                     </div>
                 </div>
@@ -553,14 +641,14 @@
                     <div class="form-col">
                         <div class="form-group">
                             <label for="avg-drop-price">Средняя цена дропа</label>
-                            <input type="number" id="avg-drop-price" class="form-control" placeholder="Скины какой цены чаще будут выпадать" min="1" step="1" required>
+                            <input type="number" id="avg-drop-price" class="form-control" placeholder="Скины какой цены чаще будут выпадать" min="1" step="1" required value="{{ case_data.math_exception if case_data and case_data.math_exception is not none else '' }}">
                         </div>
                     </div>
 
                     <div class="form-col">
                         <div class="form-group">
                             <label for="drop-deviation">Среднее отклонение</label>
-                            <input type="number" id="drop-deviation" class="form-control" placeholder="Чем больше число тем различнее скины" min="1" step="1" required>
+                            <input type="number" id="drop-deviation" class="form-control" placeholder="Чем больше число тем различнее скины" min="1" step="1" required value="{{ case_data.sigma if case_data and case_data.sigma is not none else '' }}">
                         </div>
                     </div>
                 </div>
@@ -584,6 +672,20 @@
                             </tr>
                         </thead>
                         <tbody id="skins-list">
+                        {% if case_data and case_data.skins %}
+                            {% for skin in case_data.skins %}
+                            <tr data-id="{{ skin.id }}">
+                                <td>{{ skin.name }}</td>
+                                <td>
+                                    <span class="skin-price">{{ skin.price }}</span>
+                                </td>
+                                <td class="skin-chance" data-name="{{ skin.name }}"></td>
+                                <td class="remove-skin">
+                                    <i class="fas fa-trash" title="Удалить скин"></i>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        {% endif %}
                         </tbody>
                     </table>
                 </div>
@@ -592,7 +694,7 @@
                 </div>
 
                 <button type="submit" class="create-btn">
-                    Создать кейс
+                    {{ 'Изменить кейс' if 'edit' in request.url.path else 'Создать кейс' }}
                 </button>
             </form>
         </div>
@@ -607,6 +709,21 @@
         <i class="fas fa-exclamation-circle"></i>
         <span id="errorNotificationText"></span>
     </div>
+
+    <div class="confirmation-modal" id="confirmationModal">
+        <div class="confirmation-content">
+            <h3>Подтверждение изменений</h3>
+            <p>Изменение кейса отправит его на повторное рассмотрение администратором. Вы уверены, что хотите изменить кейс?</p>
+            <div class="confirmation-buttons">
+                <button id="confirm-edit">Подтверждаю</button>
+                <button id="cancel-edit">Отказываюсь</button>
+            </div>
+        </div>
+    </div>
+
+    {% if case_data and case_data.name %}
+    <script>window.caseEditName = {{ case_data.name | tojson }};</script>
+    {% endif %}
 
     <script>
         function parseMoney(value) {
@@ -703,6 +820,29 @@
             document.getElementById('addMoneyBtn').addEventListener('click', addMoney);
 
             allSkins = await fetchAllSkins();
+            if (window.initialSkinIds && Array.isArray(window.initialSkinIds)) {
+                window.initialSkinIds.forEach(function(skinId) {
+                    const skinObj = allSkins.find(s => s.id == skinId);
+                    if (skinObj) addSkinToList(skinObj);
+                });
+            }
+            document.querySelectorAll('#skins-list tr[data-id]').forEach(function(row) {
+                const skinId = row.getAttribute('data-id');
+                if (!selectedSkins.some(s => s.id == skinId)) {
+                    const skinObj = allSkins.find(s => s.id == skinId);
+                    if (skinObj) selectedSkins.push(skinObj);
+                }
+                const removeIcon = row.querySelector('.remove-skin i');
+                if (removeIcon) {
+                    removeIcon.onclick = function() {
+                        row.remove();
+                        selectedSkins = selectedSkins.filter(s => s.id != skinId);
+                        recalculateCasePrice();
+                        recalculateChances();
+                    };
+                }
+            });
+            recalculateChances();
 
             const skinSearch = document.getElementById('skin-search');
             const autocompleteItems = document.getElementById('autocomplete-items');
@@ -908,6 +1048,75 @@
 
             const caseForm = document.getElementById('case-form');
             const notification = document.getElementById('notification');
+            const confirmationModal = document.getElementById('confirmationModal');
+            const confirmEditBtn = document.getElementById('confirm-edit');
+            const cancelEditBtn = document.getElementById('cancel-edit');
+            let formDataForConfirmation = null;
+
+            confirmationModal.addEventListener('click', function(e) {
+                if (e.target === confirmationModal) {
+                    confirmationModal.classList.remove('active');
+                }
+            });
+
+            confirmEditBtn.addEventListener('click', async function() {
+                if (formDataForConfirmation) {
+                    confirmationModal.classList.remove('active');
+                    await submitCaseForm(formDataForConfirmation);
+                }
+            });
+
+            cancelEditBtn.addEventListener('click', function() {
+                confirmationModal.classList.remove('active');
+            });
+
+            async function submitCaseForm(formData) {
+                const isEdit = window.location.pathname.includes('/edit');
+                let url = '/case/create_case';
+                let method = 'POST';
+
+                if (isEdit) {
+                    let caseEditName = formData.name;
+                    if (window.caseEditName) {
+                        caseEditName = window.caseEditName;
+                    } else {
+                        const match = window.location.pathname.match(/case\/([^/]+)\/edit/);
+                        if (match) caseEditName = decodeURIComponent(match[1]);
+                    }
+                    url = `/case/${encodeURIComponent(caseEditName)}`;
+                    method = 'PATCH';
+                }
+
+                try {
+                    const response = await fetch(url, {
+                        method: method,
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify(formData)
+                    });
+
+                    if (!response.ok) {
+                        const result = await response.json();
+                        if (result.message && result.message.includes("уже занято")) {
+                        showErrorNotification('aad');
+                        }
+                        if (result.detail && result.detail.includes("уже существует")) {
+                            showErrorNotification("Кейс с таким именем уже существует");
+                        } else {
+                            showErrorNotification(result.detail || (isEdit ?
+                                'Ошибка при изменении кейса' : 'Ошибка при создании кейса'));
+                        }
+                        return;
+                    }
+
+                    notification.classList.add('show');
+                    notification.classList.remove('show');
+                    window.location.href = '/';
+                } catch (error) {
+                    showErrorNotification(error.message);
+                }
+            }
 
             caseForm.addEventListener('submit', async function(e) {
                 e.preventDefault();
@@ -943,34 +1152,20 @@
                     return;
                 }
 
-                try {
-                    const response = await fetch('/case/create_case', {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                        },
-                        body: JSON.stringify({
-                            name: caseName,
-                            price: parseFloat(casePrice),
-                            math_exception: parseFloat(avgDropPrice),
-                            sigma: parseFloat(dropDeviation),
-                            image: 'default.png',
-                            skins: skins
-                        })
-                    });
-                    if (!response.ok) {
-                        const result = await response.json();
-                        showErrorNotification(result.detail || 'Ошибка при создании кейса');
-                        return;
-                    }
-                    notification.classList.add('show');
-                    notification.classList.remove('show');
-                    caseForm.reset();
-                    document.getElementById('skins-list').innerHTML = '';
-                    selectedSkins = [];
-                    window.location.href = '/';
-                } catch (error) {
-                    showErrorNotification(error.message);
+                const formData = {
+                    name: caseName,
+                    price: parseFloat(casePrice),
+                    math_exception: parseFloat(avgDropPrice),
+                    sigma: parseFloat(dropDeviation),
+                    image: 'default.png',
+                    skins: skins
+                };
+
+                if (window.location.pathname.includes('/edit')) {
+                    formDataForConfirmation = formData;
+                    confirmationModal.classList.add('active');
+                } else {
+                    await submitCaseForm(formData);
                 }
             });
         });

@@ -9,6 +9,7 @@ from sqlalchemy.orm import selectinload
 from fastapi.middleware.cors import CORSMiddleware
 from starlette.staticfiles import StaticFiles
 
+from app.admin.router import adminRouter
 from app.auth.models import User_model
 from app.auth.security import get_current_user_or_none
 
@@ -45,6 +46,7 @@ app.include_router(skinRouter)
 app.include_router(upgradeRouter)
 app.include_router(topRouter)
 app.include_router(contractRouter)
+app.include_router(adminRouter)
 
 
 @app.on_event("startup")
@@ -64,14 +66,14 @@ async def get_main_page(request: Request,
 
     last_skins = await db.scalars(
         select(User_Skin_model)
-        .where(User_Skin_model.is_active)
         .options(selectinload(User_Skin_model.skin))
         .order_by(desc('id'))
         .limit(15)
     )
 
     cases = await db.scalars(select(Case_model).where(
-        Case_model.is_active
+        Case_model.is_active,
+        Case_model.is_approved
     ).order_by(desc('id')))
     if user:
         return templates.TemplateResponse('main.html', {'request': request,
@@ -79,7 +81,8 @@ async def get_main_page(request: Request,
                                                         'username': user.username,
                                                         'balance': user.balance,
                                                         'last_skins': last_skins,
-                                                        'cases': cases})
+                                                        'cases': cases,
+                                                        'is_admin': user.is_admin})
 
     return templates.TemplateResponse('main.html', {'request': request,
                                                     'last_skins': last_skins,

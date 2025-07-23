@@ -35,7 +35,8 @@ async def get_contract(request: Request,
                                                          'user': user,
                                                          'balance': user.balance,
                                                          'username': user.username,
-                                                         'user_skins': user_skins.all()})
+                                                         'user_skins': user_skins.all(),
+                                                         'is_admin': user.is_admin})
 
 
 @contractRouter.post('/')

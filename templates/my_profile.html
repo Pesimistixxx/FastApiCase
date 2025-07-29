@@ -2,7 +2,7 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <title>Профиль пользователя</title>
+    <title>Мой профиль</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
     <link rel="icon" href="/static/icons/ico.png" type="image/png">
     <style>
@@ -394,18 +394,32 @@
             cursor: pointer;
             opacity: 1;
         }
+        .nav-logo{
+            height: 40px;
+        }
+        .nav-brand {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
     </style>
 </head>
 <body>
 
 <div class="navbar">
-    <div class="nav-left" id="siteName">Rem Battle Simulator</div>
+    <div class="nav-brand">
+        <img src="/static/etc/logo.png" alt='logo' class="nav-logo">
+        <div class="nav-left" id="siteName">Rem Battle Simulator</div>
+    </div>
     <div class="nav-buttons">
         <a href="/contract">
                 <button>Контракты</button>
             </a>
         <a href="/upgrade">
             <button id="upgrade">Апгрейды</button>
+        </a>
+        <a href="/battle">
+            <button>Баттлы</button>
         </a>
         <a href="/case/create">
             <button>Добавить кейс</button>
@@ -871,15 +885,18 @@
             pag.innerHTML = '';
             const totalPages = Math.ceil(myCases.length / CASES_PER_PAGE);
             if (totalPages <= 1) return;
-            const pages = [];
-            if (page > 2) pages.push(1);
-            if (page > 3) pages.push('...');
-            if (page - 1 > 1) pages.push(page - 1);
-            pages.push(page);
-            if (page + 1 < totalPages) pages.push(page + 1);
-            if (page < totalPages - 2) pages.push('...');
-            if (page < totalPages) pages.push(totalPages);
-
+            let pages = [];
+            if (totalPages <= 5) {
+                for (let i = 1; i <= totalPages; i++) pages.push(i);
+            } else {
+                if (page <= 3) {
+                    pages = [1, 2, 3, 4, '...', totalPages];
+                } else if (page >= totalPages - 2) {
+                    pages = [1, '...', totalPages - 3, totalPages - 2, totalPages - 1, totalPages];
+                } else {
+                    pages = [1, '...', page - 1, page, page + 1, '...', totalPages];
+                }
+            }
             let lastWasDots = false;
             pages.forEach(p => {
                 if (p === '...') {

@@ -14,6 +14,7 @@ from app.auth.models import User_model
 from app.auth.security import get_current_user_or_none
 
 from app.auth.router import authRouter
+from app.battles.router import battleRouter
 from app.case.models import Case_model
 from app.case.router import caseRouter
 from app.contracts.router import contractRouter
@@ -47,6 +48,7 @@ app.include_router(upgradeRouter)
 app.include_router(topRouter)
 app.include_router(contractRouter)
 app.include_router(adminRouter)
+app.include_router(battleRouter)
 
 
 @app.on_event("startup")

@@ -1,3 +1,4 @@
+import asyncio
 from typing import Annotated
 from sqlalchemy import select, insert, desc, delete
 from sqlalchemy.exc import IntegrityError
@@ -7,9 +8,11 @@ from sqlalchemy.orm import selectinload
 from starlette.responses import RedirectResponse
 from starlette.templating import Jinja2Templates
 
+from app.battles.lobby_manager import manager
 from app.auth.models import User_model
 from app.auth.security import get_user, get_current_user_or_none
-from app.models_associations import Case_Skin_model, User_Skin_model
+from app.battles.models import Battle_model
+from app.models_associations import Case_Skin_model, User_Skin_model, User_Battle_model
 from db.db_depends import get_db
 from app.case.models import Case_model
 from app.skin.models import Skin_model
@@ -120,7 +123,6 @@ async def get_edit_case(db: Annotated[AsyncSession, Depends(get_db)],
                         user: User_model | None = Depends(get_current_user_or_none),
                         name: str = Path(),
                         ):
-
     case = await db.scalar(select(Case_model)
                            .where(Case_model.name == name,
                                   Case_model.is_active)
@@ -197,7 +199,6 @@ async def patch_case(db: Annotated[AsyncSession, Depends(get_db)],
                      case_inp: CaseCreate,
                      user: User_model | None = Depends(get_current_user_or_none),
                      name: str = Path()):
-
     case = await db.scalar(select(Case_model)
                            .where(Case_model.name == name,
                                   Case_model.is_active)
@@ -284,7 +285,8 @@ async def get_case(request: Request,
     skins = result.all()
 
     author = await db.scalar(select(User_model)
-                             .where(User_model.id == case.author_id))
+                             .where(User_model.id == case.author_id,
+                                    User_model.is_active))
 
     if user:
         return templates.TemplateResponse('case_opener.html', {'request': request,
@@ -385,6 +387,89 @@ async def post_open_case(db: Annotated[AsyncSession, Depends(get_db)],
 
     return {'new_balance': new_balance,
             'skins': result_items}
+
+
+@caseRouter.post('/battle/{name}')
+async def post_open_case_battle(db: Annotated[AsyncSession, Depends(get_db)],
+                                battle_id: int,
+                                name: str = Path()):
+    battle = await db.scalar(select(Battle_model)
+                             .where(Battle_model.id == battle_id,
+                                    Battle_model.is_active))
+
+    if not battle:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail='Battle not found'
+        )
+    case = await db.scalar(select(Case_model)
+                           .where(Case_model.is_active,
+                                  Case_model.name == name
+                                  ))
+
+    if not case:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail='Case not found'
+        )
+
+    result = await db.execute(
+        select(User_Battle_model.user_id)
+        .where(User_Battle_model.battle_id == battle.id)
+    )
+    user_ids = result.scalars().all()
+
+    result = await db.scalars(
+        select(Skin_model)
+        .join(Skin_model.cases)
+        .where(Case_model.id == case.id,
+               Skin_model.is_active))
+    skins = result.all()
+
+    items_by_player = {}
+    items_by_player_sum = {}
+    max_val = 0
+    winner_id = None
+    dropped_items = get_item_by_probability(skins,
+                                            case.sigma,
+                                            case.math_exception,
+                                            battle.players_cnt * battle.case_cnt)
+    for i, user_id in enumerate(user_ids):
+        user_skins = dropped_items[0 + i: battle.players_cnt * battle.case_cnt: battle.players_cnt]
+        items_by_player[user_id] = [skin.id for skin in user_skins]
+        user_skins_price_sum = sum([skin.price for skin in user_skins])
+        items_by_player_sum[user_id] = user_skins_price_sum
+
+    for user_id in user_ids:
+        if items_by_player_sum[user_id] > max_val:
+            max_val = items_by_player_sum[user_id]
+            winner_id = user_id
+
+    for skin in dropped_items:
+        await db.execute(
+            insert(User_Skin_model)
+            .values(user_id=winner_id,
+                    skin_id=skin.id))
+
+    for round in range(battle.case_cnt):
+        for user_id in items_by_player:
+            skins = items_by_player[user_id]
+            if len(skins) > round:
+                await manager.send_case_result(
+                    battle_id,
+                    user_id,
+                    [skins[round]],
+                    round
+                )
+        await asyncio.sleep(5)
+    await db.commit()
+
+    await manager.send_battle_end(battle_id, winner_id)
+
+    return {'winner': winner_id,
+            'dropped_user_skins': items_by_player,
+            'dropped_user_skins_sum': items_by_player_sum
+            }
 
 
 @caseRouter.get('/{name}/chances')

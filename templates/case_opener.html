@@ -461,23 +461,36 @@
         .logout-button i {
             font-size: 14px;
         }
-
+        .nav-logo{
+            height: 40px;
+        }
+        .nav-brand {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
     </style>
 </head>
 <body>
 <div class="navbar">
-    <div class="nav-left" id="siteName">Rem Battle Simulator</div>
+    <div class="nav-brand">
+        <img src="/static/etc/logo.png" alt='logo' class="nav-logo">
+        <div class="nav-left" id="siteName">Rem Battle Simulator</div>
+    </div>
     <div class="nav-buttons">
         {% if user %}
             <a href="/contract">
                 <button>Контракты</button>
             </a>
             <a href="/upgrade">
-            <button>Апгрейды</button>
+                <button>Апгрейды</button>
             </a>
-        <a href="/case/create">
-            <button>Добавить кейс</button>
-        </a>
+            <a href="/battle">
+                <button>Баттлы</button>
+            </a>
+            <a href="/case/create">
+                <button>Добавить кейс</button>
+            </a>
         {% endif %}
         <a href="/top/">
             <button>Топ пользователей</button>
@@ -533,11 +546,13 @@
 
     <div class="case-open-container">
         {% if author %}
-        <div style="position:absolute; right:18px; top:18px; min-width:150px; max-width:200px; background:#1e1e1e; border-radius:10px; padding:14px 12px 12px 12px; box-shadow:0 0 10px #000a; display:flex; flex-direction:column; align-items:center; z-index:2;">
-            <div style="font-size:14px; color:#aeeaff; font-weight:bold; margin-bottom:8px;">Автор кейса</div>
-            <img src="/static/avatars/{{ author.avatar }}" alt="Аватар автора" style="width:48px; height:48px; border-radius:50%; object-fit:cover; border:2px solid #2979ff; background:#222; margin-bottom:7px;" onerror="this.onerror=null; this.src='https://via.placeholder.com/100'">
-            <div style="font-size:15px; color:#fff; font-weight:bold; text-align:center;">{{ author.username }}</div>
-        </div>
+        <a href ='/user/profile/{{ author.username }}'>
+            <div style="position:absolute; right:18px; top:18px; min-width:150px; max-width:200px; background:#1e1e1e; border-radius:10px; padding:14px 12px 12px 12px; box-shadow:0 0 10px #000a; display:flex; flex-direction:column; align-items:center; z-index:2;">
+                <div style="font-size:14px; color:#aeeaff; font-weight:bold; margin-bottom:8px;">Автор кейса</div>
+                <img src="/static/avatars/{{ author.avatar }}" alt="Аватар автора" style="width:48px; height:48px; border-radius:50%; object-fit:cover; border:2px solid #2979ff; background:#222; margin-bottom:7px;" onerror="this.onerror=null; this.src='https://via.placeholder.com/100'">
+                <div style="font-size:15px; color:#fff; font-weight:bold; text-align:center;">{{ author.username }}</div>
+            </div>
+        </a>
         {% endif %}
         <div class="case-title">{{ case_name }}</div>
             <img src="/static/cases/{{case_image}}"
@@ -548,7 +563,8 @@
         </div>
 
         <div class="action-buttons">
-            <button id="openBtn">Открыть за {{ case_price }}</button>
+            <button id="openSlowBtn" style="margin-right:8px; max-width:180px;">Открыть за {{ case_price }}</button>
+            <button id="openBtn">Быстро за {{ case_price }}</button>
         </div>
 
         <div class="items-list">Список скинов</div>
@@ -598,10 +614,13 @@
         const totalPrice = casePrice * selectedQuantity;
         const formattedPrice = totalPrice.toFixed(2);
 
-        document.getElementById('openBtn').textContent = `Открыть за ${formattedPrice}`;
+        document.getElementById('openBtn').textContent = `Быстро за ${formattedPrice}`;
+        document.getElementById('openSlowBtn').textContent = `Открыть за ${formattedPrice}`;
 
         const isDisabled = totalPrice > userBalance;
         document.getElementById('openBtn').disabled = isDisabled;
+        document.getElementById('openSlowBtn').disabled = isDisabled;
+
     }
 
     function formatBalances() {
@@ -741,7 +760,7 @@
         } finally {
             const totalPrice = casePrice * selectedQuantity;
             const openBtn = document.getElementById('openBtn');
-            openBtn.textContent = `Открыть за ${totalPrice.toFixed(2)}`;
+            openBtn.textContent = `Быстро за ${totalPrice.toFixed(2)}`;
             openBtn.disabled = totalPrice > userBalance;
         }
     }
@@ -853,6 +872,173 @@
     });
 
     document.getElementById('openBtn').addEventListener('click', openCase);
+
+    function slowOpenCase() {
+        const openSlowBtn = document.getElementById('openSlowBtn');
+        openSlowBtn.disabled = true;
+        openSlowBtn.textContent = 'Прокрутка...';
+        const caseName = "{{ case_name }}";
+        const url = `/case/${encodeURIComponent(caseName)}`;
+        const data = {
+            cnt: selectedQuantity,
+            fast: true
+        };
+        fetch(url, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(data)
+        }).then(async response => {
+            const result = await response.json();
+            if (!response.ok) throw new Error(result.detail || 'Ошибка при открытии кейса');
+            // Теперь строим overlay и анимацию
+            let overlay = document.createElement('div');
+            overlay.id = 'slowRollOverlay';
+            overlay.style.position = 'fixed';
+            overlay.style.left = '0';
+            overlay.style.top = '0';
+            overlay.style.width = '100vw';
+            overlay.style.height = '100vh';
+            overlay.style.background = 'rgba(0,0,0,0.7)';
+            overlay.style.zIndex = '3000';
+            overlay.style.display = 'flex';
+            overlay.style.flexDirection = 'column';
+            overlay.style.justifyContent = 'center';
+            overlay.style.alignItems = 'center';
+            // Контейнер для полос
+            let gridWrapper = document.createElement('div');
+            gridWrapper.style.background = 'rgba(24,29,35,0.97)';
+            gridWrapper.style.borderRadius = '18px';
+            gridWrapper.style.padding = '36px 36px 28px 36px';
+            gridWrapper.style.boxShadow = '0 0 32px #000a';
+            gridWrapper.style.display = 'flex';
+            gridWrapper.style.justifyContent = 'center';
+            gridWrapper.style.alignItems = 'center';
+            gridWrapper.style.flexDirection = 'column';
+            gridWrapper.style.marginLeft = '120px';
+            let grid = document.createElement('div');
+            grid.style.display = 'grid';
+            grid.style.gridTemplateColumns = 'repeat(2, 1fr)';
+            grid.style.gap = '18px 32px';
+            grid.style.justifyItems = 'center';
+            grid.style.alignItems = 'center';
+            gridWrapper.appendChild(grid);
+            overlay.appendChild(gridWrapper);
+            document.body.appendChild(overlay);
+            let skinImages = Array.from(document.querySelectorAll('.item-card img')).map(img => img.src);
+            let n = selectedQuantity;
+            let animsFinished = 0;
+            for (let k = 0; k < n; k++) {
+                let animDiv = document.createElement('div');
+                animDiv.className = 'slowRollAnim';
+                animDiv.style.background = 'rgba(24,29,35,0.97)';
+                animDiv.style.border = '1.5px solid #2979ff77';
+                animDiv.style.borderRadius = '12px';
+                animDiv.style.padding = '0';
+                animDiv.style.width = '420px';
+                animDiv.style.height = '80px';
+                animDiv.style.overflow = 'hidden';
+                animDiv.style.display = 'flex';
+                animDiv.style.alignItems = 'center';
+                animDiv.style.boxShadow = '0 0 16px #2979ff33';
+                animDiv.innerHTML = '<div class="rollSkins" style="display:flex;gap:12px;align-items:center;height:100%;"></div>';
+                // Добавляем центральное выделение (рамку)
+                let highlight = document.createElement('div');
+                highlight.style.position = 'absolute';
+                highlight.style.left = '50%';
+                highlight.style.top = '50%';
+                highlight.style.transform = 'translate(-50%, -50%)';
+                highlight.style.width = '68px';
+                highlight.style.height = '68px';
+                highlight.style.border = '3px solid #2979ff';
+                highlight.style.borderRadius = '10px';
+                highlight.style.boxSizing = 'border-box';
+                highlight.style.pointerEvents = 'none';
+                highlight.style.zIndex = '10';
+                animDiv.style.position = 'relative';
+                animDiv.appendChild(highlight);
+                if (n % 2 === 1 && k === n - 1) {
+                    animDiv.style.gridColumn = '1 / span 2';
+                    animDiv.style.margin = '0 auto';
+                } else {
+                    animDiv.style.gridColumn = '';
+                    animDiv.style.margin = '';
+                }
+                grid.appendChild(animDiv);
+                let rollDiv = animDiv.querySelector('.rollSkins');
+                // Формируем ленту: 18 полностью случайных скинов
+                for (let i = 0; i < 18; i++) {
+                    let img = document.createElement('img');
+                    img.src = skinImages[Math.floor(Math.random() * skinImages.length)];
+                    img.style.width = '64px';
+                    img.style.height = '64px';
+                    img.style.borderRadius = '8px';
+                    img.style.objectFit = 'cover';
+                    rollDiv.appendChild(img);
+                }
+                // Добавляем нужный скин (выпавший) и ещё 3 скина после него
+                let winSkin = result.skins[k];
+                let img = document.createElement('img');
+                img.src = '/static/skins/' + winSkin.image;
+                img.style.width = '64px';
+                img.style.height = '64px';
+                img.style.borderRadius = '8px';
+                img.style.objectFit = 'cover';
+                rollDiv.appendChild(img);
+                for (let j = 0; j < 3; j++) {
+                    let extraImg = document.createElement('img');
+                    extraImg.src = skinImages[(18 + k + j) % skinImages.length];
+                    extraImg.style.width = '64px';
+                    extraImg.style.height = '64px';
+                    extraImg.style.borderRadius = '8px';
+                    extraImg.style.objectFit = 'cover';
+                    rollDiv.appendChild(extraImg);
+                }
+                // Рассчитываем целевой offset, чтобы нужный скин оказался по центру (n-3)
+                let skinWidth = 64 + 12; // ширина + gap
+                let centerIdx = rollDiv.children.length - 4;
+                let centerPos = centerIdx * skinWidth;
+                let offsetToCenter = centerPos - (420/2 - 34);
+                // Плавная ease-out анимация от 0 до нужного положения
+                let duration = 3300;
+                let startTimeAnim = null;
+                function animateToTarget(ts) {
+                    if (!startTimeAnim) startTimeAnim = ts;
+                    let progress = Math.min(1, (ts - startTimeAnim) / duration);
+                    // easeOutCubic
+                    let ease = 1 - Math.pow(1 - progress, 3);
+                    let current = 0 + (-offsetToCenter) * ease;
+                    rollDiv.style.transform = `translateX(${current}px)`;
+                    if (progress < 1) {
+                        requestAnimationFrame(animateToTarget);
+                    } else {
+                        animsFinished++;
+                        if (animsFinished === n) {
+                            setTimeout(() => {
+                                document.body.removeChild(overlay);
+                                // openCase();
+                                // Вместо повторного запроса показываем скины из result.skins
+                                userBalance = parseMoney(result.new_balance);
+                                document.querySelector('.user-balance').textContent = `Баланс: ${result.new_balance.toFixed(2)}`;
+                                allSkins = result.skins;
+                                currentSkinIndex = 0;
+                                showSkin();
+                                updateOpenButton();
+                                openSlowBtn.disabled = false;
+                                const totalPrice = casePrice * selectedQuantity;
+                                openSlowBtn.textContent = `Открыть за ${totalPrice.toFixed(2)}`;
+                            }, 700);
+                        }
+                    }
+                }
+                requestAnimationFrame(animateToTarget);
+            }
+        }).catch(error => {
+            alert(error.message);
+            openSlowBtn.disabled = false;
+            openSlowBtn.textContent = 'Открыть за ${totalPrice.toFixed(2)}';
+        });
+    }
+    document.getElementById('openSlowBtn').addEventListener('click', slowOpenCase);
 </script>
 </body>
 </html>

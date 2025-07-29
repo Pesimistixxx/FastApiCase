@@ -23,7 +23,8 @@ async def get_admin_panel(request: Request,
         return RedirectResponse('/')
 
     cases = await db.scalars(select(Case_model)
-                             .options(joinedload(Case_model.author)))
+                             .options(joinedload(Case_model.author))
+                             .order_by(Case_model.is_approved))
     return templates.TemplateResponse('admin.html', {'request': request,
                                                      'username': user.username,
                                                      'balance': user.balance,

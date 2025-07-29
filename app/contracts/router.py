@@ -31,12 +31,12 @@ async def get_contract(request: Request,
     ).options(selectinload(User_Skin_model.skin))
      .order_by(desc('id')))
 
-    return templates.TemplateResponse('contracts.html', {'request': request,
-                                                         'user': user,
-                                                         'balance': user.balance,
-                                                         'username': user.username,
-                                                         'user_skins': user_skins.all(),
-                                                         'is_admin': user.is_admin})
+    return templates.TemplateResponse('contract.html', {'request': request,
+                                                        'user': user,
+                                                        'balance': user.balance,
+                                                        'username': user.username,
+                                                        'user_skins': user_skins.all(),
+                                                        'is_admin': user.is_admin})
 
 
 @contractRouter.post('/')

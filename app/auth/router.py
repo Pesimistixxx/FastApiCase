@@ -148,10 +148,11 @@ async def get_user_profile(request: Request,
     )
     all_skins_list = all_skins.all()
     my_cases = await db.scalars(select(Case_model)
-                                .where(Case_model.author_id == user.id))
+                                .where(Case_model.author_id == user.id)
+                                .order_by(Case_model.is_approved))
     total_sum = sum(skin.skin.price for skin in all_skins_list)
 
-    return templates.TemplateResponse("profile.html",
+    return templates.TemplateResponse("my_profile.html",
                                       {
                                           "request": request,
                                           "username": user.username,
@@ -207,3 +208,47 @@ async def logout_user(db: Annotated[AsyncSession, Depends(get_db)],
     )
 
     return RedirectResponse('/user/login', status_code=303)
+
+
+@authRouter.get('/profile/{username}')
+async def get_another_user_profile(request: Request,
+                                   db: Annotated[AsyncSession, Depends(get_db)],
+                                   user: User_model | None = Depends(get_current_user_or_none),
+                                   username: str = Path()):
+    profile_user = await db.scalar(select(User_model)
+                                   .where(User_model.is_active,
+                                          User_model.username == username))
+    if not profile_user:
+        return RedirectResponse('/')
+
+    profile_cases = await db.scalars(select(Case_model)
+                                     .where(Case_model.author_id == profile_user.id,
+                                            Case_model.is_active,
+                                            Case_model.is_approved))
+
+    if user:
+        return templates.TemplateResponse('user_profile.html', {'request': request,
+                                                                'user': user,
+                                                                'balance': user.balance,
+                                                                'user_username': user.username,
+                                                                'user_avatar': user.avatar,
+                                                                'is_admin': user.is_admin,
+                                                                'profile_cases': profile_cases.all(),
+                                                                'profile_username': profile_user.username,
+                                                                'name': profile_user.name,
+                                                                'profile_avatar': profile_user.avatar,
+                                                                'activity': profile_user.activity_points,
+                                                                'cases_opened': profile_user.case_opened,
+                                                                'upgrades_cnt': profile_user.upgrades_cnt,
+                                                                'contracts_cnt': profile_user.contracts_cnt,
+                                                                })
+    return templates.TemplateResponse('user_profile.html', {'request': request,
+                                                            'profile_cases': profile_cases.all(),
+                                                            'profile_username': profile_user.username,
+                                                            'name': profile_user.name,
+                                                            'profile_avatar': profile_user.avatar,
+                                                            'activity': profile_user.activity_points,
+                                                            'cases_opened': profile_user.case_opened,
+                                                            'upgrades_cnt': profile_user.upgrades_cnt,
+                                                            'contracts_cnt': profile_user.contracts_cnt,
+                                                            })

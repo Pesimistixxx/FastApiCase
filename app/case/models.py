@@ -9,6 +9,7 @@ from db.db import Base
 if TYPE_CHECKING:
     from app.skin.models import Skin_model
     from app.auth.models import User_model
+    from app.battles.models import Battle_model
 
 
 class Case_model(Base):
@@ -27,6 +28,7 @@ class Case_model(Base):
 
     skin_associations: Mapped[List["Case_Skin_model"]] = relationship("Case_Skin_model", back_populates="case")
     author: Mapped[List["User_model"]] = relationship("User_model", back_populates="case")
+    battle: Mapped[["Battle_model"]] = relationship("Battle_model", back_populates="case")
     skins: Mapped[List["Skin_model"]] = relationship(
         "Skin_model",
         secondary="case_models",

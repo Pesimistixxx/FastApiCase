@@ -1,13 +1,12 @@
 from datetime import datetime
 from typing import List, TYPE_CHECKING
-
 from sqlalchemy.orm import mapped_column, Mapped, relationship
-from sqlalchemy import ForeignKey, DateTime
+from sqlalchemy import ForeignKey, DateTime, UniqueConstraint
 
 from db.db import Base
 
 if TYPE_CHECKING:
-    from app.models_associations import User_Skin_model
+    from app.models_associations import User_Skin_model, User_Battle_model
     from app.case.models import Case_model
 
 
@@ -37,6 +36,16 @@ class User_model(Base):
     sessions: Mapped[List["Session_model"]] = relationship(back_populates="user")
     case: Mapped[List["Case_model"]] = relationship("Case_model", back_populates="author")
     skins: Mapped[List["User_Skin_model"]] = relationship("User_Skin_model", back_populates="user")
+    battles: Mapped[List["User_Battle_model"]] = relationship("User_Battle_model", back_populates="user")
+    friends_as_first: Mapped[List["Friends_model"]] = relationship(
+        back_populates="first_user",
+        foreign_keys="Friends_model.first_user_id"
+    )
+
+    friends_as_second: Mapped[List["Friends_model"]] = relationship(
+        back_populates="second_user",
+        foreign_keys="Friends_model.second_user_id"
+    )
 
 
 class Session_model(Base):
@@ -48,3 +57,19 @@ class Session_model(Base):
     expires: Mapped[datetime] = mapped_column(DateTime, nullable=False)
 
     user: Mapped["User_model"] = relationship(back_populates="sessions")
+
+
+class Friends_model(Base):
+    __tablename__ = 'friends'
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    first_user_id: Mapped[int] = mapped_column(ForeignKey('users.id'), nullable=False)
+    second_user_id: Mapped[int] = mapped_column(ForeignKey('users.id'), nullable=False)
+    is_accepted: Mapped[bool] = mapped_column(nullable=False, default=False, server_default='False')
+
+    first_user: Mapped["User_model"] = relationship(foreign_keys=[first_user_id], back_populates="friends_as_first")
+    second_user: Mapped["User_model"] = relationship(foreign_keys=[second_user_id], back_populates="friends_as_second")
+
+    __table_args__ = (
+        UniqueConstraint('first_user_id', 'second_user_id', name='uix_friendship'),
+    )

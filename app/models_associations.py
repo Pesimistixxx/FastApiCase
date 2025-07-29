@@ -9,6 +9,7 @@ if TYPE_CHECKING:
     from app.skin.models import Skin_model
     from app.case.models import Case_model
     from app.auth.models import User_model
+    from app.battles.models import Battle_model
 
 
 class Case_Skin_model(Base):
@@ -32,3 +33,14 @@ class User_Skin_model(Base):
 
     user: Mapped["User_model"] = relationship("User_model", back_populates="skins")
     skin: Mapped["Skin_model"] = relationship("Skin_model", back_populates="users")
+
+
+class User_Battle_model(Base):
+    __tablename__ = 'users_battles'
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    user_id: Mapped[int] = mapped_column(ForeignKey('users.id'))
+    battle_id: Mapped[int] = mapped_column(ForeignKey('battles.id'))
+
+    user: Mapped["User_model"] = relationship("User_model", back_populates="battles")
+    battle: Mapped["Battle_model"] = relationship("Battle_model", back_populates="users")

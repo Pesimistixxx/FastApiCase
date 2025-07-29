@@ -419,7 +419,6 @@
         }
         @media (max-width: 700px) {
             .navbar {
-                font-size: clamp(10px, 2vw, 14px);
                 padding: clamp(2px, 1vw, 7px) clamp(4px, 2vw, 12px);
             }
             .nav-left {
@@ -436,7 +435,6 @@
         }
         @media (max-width: 600px) {
             .navbar {
-                font-size: 10px;
                 padding: 2px 2vw;
                 gap: 2px;
             }
@@ -444,7 +442,7 @@
                 font-size: 11px;
             }
             .nav-buttons button {
-                font-size: 10px;
+                font-size: clamp(10px, 2vw, 15px);
                 padding: 2px 4px;
             }
         }
@@ -464,11 +462,22 @@
             color: inherit;
             cursor: pointer;
         }
+        .nav-logo{
+            height: 40px;
+        }
+        .nav-brand {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
     </style>
 </head>
 <body>
 <div class="navbar">
-    <div class="nav-left" id="siteName">Rem Battle Simulator</div>
+    <div class="nav-brand">
+        <img src="/static/etc/logo.png" alt='logo' class="nav-logo">
+        <div class="nav-left" id="siteName">Rem Battle Simulator</div>
+    </div>
     <div class="nav-buttons">
         {% if user %}
             <a href="/contract">
@@ -476,6 +485,9 @@
             </a>
             <a href="/upgrade">
                 <button>Апгрейды</button>
+            </a>
+            <a href="/battle">
+                <button>Баттлы</button>
             </a>
             <a href="/case/create">
                 <button>Добавить кейс</button>

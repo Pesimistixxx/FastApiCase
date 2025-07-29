@@ -409,17 +409,31 @@
             opacity: 0.97;
             display: block;
         }
+        .nav-logo{
+            height: 40px;
+        }
+        .nav-brand {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
     </style>
 </head>
 <body>
 <div class="navbar">
-    <div class="nav-left" id="siteName">Rem Battle Simulator</div>
+    <div class="nav-brand">
+        <img src="/static/etc/logo.png" alt='logo' class="nav-logo">
+        <div class="nav-left" id="siteName">Rem Battle Simulator</div>
+    </div>
     <div class="nav-buttons">
         <a href="/contract">
                 <button>Контракты</button>
             </a>
         <a href="/upgrade">
             <button>Апгрейды</button>
+        </a>
+        <a href="/battle">
+            <button>Баттлы</button>
         </a>
         <a href="/case/create">
             <button>Добавить кейс</button>

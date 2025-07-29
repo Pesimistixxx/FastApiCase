@@ -66,7 +66,6 @@ class LobbyManager:
             "count": player_count
         })
 
-
     async def schedule_disconnect(self,
                                   battle_id: int,
                                   user_id: int,
@@ -192,7 +191,6 @@ class LobbyManager:
                 "type": "player_count",
                 "count": player_count
             })
-
 
     async def broadcast(self, battle_id: int, message: dict):
         async with self.lock:

@@ -17,7 +17,10 @@
             text-decoration: none;
             display: inline-block;
         }
-
+        .user-avatar {
+            width: 40px !important;
+            height: 40px !important;
+        }
         .nav-button-link:hover {
             background-color: #1c54b2;
         }
@@ -35,177 +38,6 @@
             padding: 0;
             color: #ffffff;
             overflow-x: hidden;
-        }
-
-        .navbar {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            background-color: #1e1e1e;
-            padding: 15px 30px;
-            border-bottom: 1px solid #333;
-            position: sticky;
-            top: 0;
-            z-index: 3000;
-        }
-
-        .nav-left {
-            font-size: 20px;
-            font-weight: bold;
-            color: #2979ff;
-            cursor: pointer;
-            text-decoration: none;
-        }
-
-        .nav-buttons {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 16px;
-            row-gap: 8px;
-            max-width: 100vw;
-        }
-        .nav-buttons button,
-        .nav-buttons .nav-button-link {
-            background-color: #2979ff;
-            color: white;
-            border: none;
-            padding: clamp(4px, 1vw, 10px) clamp(8px, 2vw, 15px);
-            font-size: clamp(10px, 2vw, 15px);
-            border-radius: 4px;
-            cursor: pointer;
-            min-width: 80px;
-            min-height: 32px;
-            white-space: nowrap;
-            transition: font-size 0.2s, padding 0.2s;
-        }
-        .nav-buttons button:hover,
-        .nav-buttons .nav-button-link:hover {
-            background-color: #1c54b2;
-        }
-
-        .user-profile {
-            display: flex;
-            align-items: center;
-            gap: 15px;
-            position: relative;
-        }
-
-        .profile-link {
-            display: flex;
-            align-items: center;
-            gap: 15px;
-            text-decoration: none;
-            color: inherit;
-            cursor: pointer;
-        }
-
-        .user-avatar {
-            width: 45px;
-            height: 45px;
-            border-radius: 50%;
-            object-fit: cover;
-            border: 2px solid #2979ff;
-            cursor: pointer;
-        }
-
-        .user-info {
-            text-align: left;
-            font-size: 14px;
-        }
-
-        .user-username {
-            font-weight: bold;
-        }
-
-        .user-balance {
-            color: #aeeaff;
-            font-size: 12px;
-        }
-
-        .add-balance-button {
-            background-color: #4caf50;
-            color: white;
-            border: none;
-            width: 32px;
-            height: 32px;
-            min-width: 32px;
-            min-height: 32px;
-            max-width: 32px;
-            max-height: 32px;
-            font-size: 20px;
-            border-radius: 50%;
-            cursor: pointer;
-            margin-left: 10px;
-            box-sizing: border-box;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            padding: 0;
-        }
-
-        .add-balance-button:hover {
-            background-color: #388e3c;
-        }
-
-        .balance-menu {
-            position: absolute;
-            top: 50px;
-            right: 0;
-            background-color: #2a2a2a;
-            padding: 15px;
-            border-radius: 6px;
-            box-shadow: 0 0 10px rgba(0,0,0,0.5);
-            width: 200px;
-            display: none;
-            flex-direction: column;
-            gap: 10px;
-        }
-
-        .balance-menu input {
-            padding: 8px;
-            border: 1px solid #444;
-            border-radius: 4px;
-            background-color: #1e1e1e;
-            color: #fff;
-        }
-
-        .balance-menu button {
-            padding: 8px;
-            background-color: #2979ff;
-            color: white;
-            border: none;
-            border-radius: 4px;
-            cursor: pointer;
-        }
-
-        .balance-menu button:hover {
-            background-color: #1c54b2;
-        }
-
-        .logout-form {
-            margin-right: 15px;
-        }
-
-        .logout-button {
-            background-color: #f44336;
-            color: white;
-            border: none;
-            padding: 8px 15px;
-            font-size: 14px;
-            border-radius: 4px;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            gap: 5px;
-            transition: background-color 0.3s;
-        }
-
-        .logout-button:hover {
-            background-color: #d32f2f;
-        }
-
-        .logout-button i {
-            font-size: 14px;
         }
 
         .main-container {
@@ -370,27 +202,6 @@
             transform: translateX(0);
         }
 
-        .duplicate-notification {
-            position: fixed;
-            top: 20px;
-            left: 50%;
-            transform: translateX(-50%);
-            background-color: #f44336;
-            color: white;
-            padding: 15px 25px;
-            border-radius: 4px;
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            z-index: 2000;
-            opacity: 0;
-            transition: opacity 0.4s ease;
-        }
-
-        .duplicate-notification.show {
-            opacity: 1;
-        }
 
         .autocomplete {
             position: relative;
@@ -544,10 +355,6 @@
                 width: 10%;
             }
 
-            .duplicate-notification {
-                width: 90%;
-                text-align: center;
-            }
 
             .confirmation-content {
                 padding: 15px;
@@ -557,73 +364,10 @@
                 flex-direction: column;
             }
         }
-        .nav-logo{
-            height: 40px;
-        }
-        .nav-brand {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
     </style>
 </head>
 <body>
-    <nav class="navbar">
-        <div class="nav-brand">
-            <img src="/static/etc/logo.png" alt='logo' class="nav-logo">
-            <div class="nav-left" id="siteName">Rem Battle Simulator</div>
-        </div>
-        <div class="nav-buttons">
-            <a href="/contract">
-                <button>Контракты</button>
-            </a>
-            <a href="/upgrade">
-                <button id="upgrade">Апгрейды</button>
-            </a>
-            <a href="/battle">
-                <button>Баттлы</button>
-            </a>
-            <a href="/case/create">
-                <button>Добавить кейс</button>
-            </a>
-            <a href="/top/">
-                <button>Топ пользователей</button>
-            </a>
-            {% if is_admin %}
-            <a href="/admin">
-                <button>Админка</button>
-            </a>
-            {% endif %}
-        </div>
-
-        <div class="user-profile" id="userProfile">
-            <a href="/user/profile" class="profile-link">
-                <img src="/static/avatars/{{avatar}}"
-                         alt="Аватар"
-                         class="user-avatar"
-                         onerror="this.onerror=null; this.src='https://via.placeholder.com/100'">
-                <div class="user-info">
-                    <div class="user-username">{{username}}</div>
-                    <div class="user-balance">Баланс: {{balance}}</div>
-                </div>
-            </a>
-            <button class="add-balance-button" id="toggleBalanceMenu">+</button>
-            <div class="balance-menu" id="balanceMenu">
-                <input type="number" id="amountInput" placeholder="Сумма пополнения" min="1" step="1" required>
-                <button id="addMoneyBtn">Пополнить</button>
-            </div>
-            <form action="/user/logout" method="POST" class="logout-form">
-                <button type="submit" class="logout-button">
-                    <i class="fas fa-sign-out-alt"></i> Выйти
-                </button>
-            </form>
-        </div>
-    </nav>
-
-    <div class="duplicate-notification" id="duplicateNotification">
-        <i class="fas fa-exclamation-triangle"></i>
-        <span>Этот скин уже добавлен!</span>
-    </div>
+    {% include 'includes/navbar.html' %}
 
     <div class="main-container">
         <div class="create-case-form">
@@ -739,12 +483,7 @@
             return parseFloat(cleaned) || 0;
         }
 
-        function formatBalances() {
-            document.querySelectorAll('.user-balance, .balance').forEach(el => {
-                const num = parseMoney(el.textContent);
-                el.textContent = `Баланс: ${num.toFixed(2)}`;
-            });
-        }
+
 
         function showErrorNotification(message) {
             const errorNotification = document.getElementById('errorNotification');
@@ -756,38 +495,7 @@
             }, 3000);
         }
 
-        async function addMoney() {
-            const amountInput = document.getElementById('amountInput');
-            const amount = parseMoney(amountInput.value);
 
-            if (isNaN(amount) || amount <= 0) {
-                showErrorNotification('Введите корректную сумму');
-                return;
-            }
-
-            try {
-                const response = await fetch(`/user/add_money/${amount}`, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    }
-                });
-
-                const result = await response.json();
-
-                if (response.ok) {
-                    document.querySelector('.user-balance').textContent = `Баланс: ${result.new_balance}`;
-                    formatBalances();
-                    balanceMenu.style.display = 'none';
-                    amountInput.value = '';
-                } else {
-                    showErrorNotification(result.detail || 'Ошибка пополнения');
-                    return;
-                }
-            } catch (error) {
-                showErrorNotification(error.message);
-            }
-        }
 
         async function fetchAllSkins() {
             try {
@@ -810,9 +518,9 @@
             document.getElementById("siteName").addEventListener("click", function() {
                 window.location.href = "/";
             });
-
-            const balanceMenu = document.getElementById("balanceMenu");
-            const toggleButton = document.getElementById("toggleBalanceMenu");
+            document.getElementById("siteLogo").addEventListener("click", function() {
+                window.location.href = "/";
+            });
 
             toggleButton.addEventListener("click", function () {
                 balanceMenu.style.display = balanceMenu.style.display === "flex" ? "none" : "flex";
@@ -824,7 +532,6 @@
                 }
             });
 
-            document.getElementById('addMoneyBtn').addEventListener('click', addMoney);
 
             allSkins = await fetchAllSkins();
             if (window.initialSkinIds && Array.isArray(window.initialSkinIds)) {
@@ -1019,14 +726,6 @@
             });
 
             function addSkinToList(skin) {
-                if (selectedSkins.some(s => s.id === skin.id)) {
-                    const notification = document.getElementById('duplicateNotification');
-                    notification.classList.add('show');
-                    setTimeout(() => {
-                        notification.classList.remove('show');
-                    }, 2000);
-                    return;
-                }
                 selectedSkins.push(skin);
                 const skinsList = document.getElementById('skins-list');
                 const row = document.createElement('tr');

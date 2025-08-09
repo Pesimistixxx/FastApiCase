@@ -14,156 +14,6 @@
             color: #ffffff;
             overflow-x: hidden;
         }
-        .navbar {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            background-color: #1e1e1e;
-            padding: 15px 30px;
-            border-bottom: 1px solid #333;
-            position: sticky;
-            top: 0;
-            z-index: 1000;
-        }
-        .nav-logo {
-            height: 40px;
-        }
-        .nav-brand {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-        .nav-left {
-            font-size: 20px;
-            font-weight: bold;
-            color: #2979ff;
-            cursor: pointer;
-            text-decoration: none;
-        }
-        .nav-buttons {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 16px;
-            row-gap: 8px;
-            max-width: 100vw;
-        }
-        .nav-buttons button {
-            background-color: #2979ff;
-            color: white;
-            border: none;
-            padding: clamp(4px, 1vw, 10px) clamp(8px, 2vw, 15px);
-            font-size: clamp(10px, 2vw, 15px);
-            border-radius: 4px;
-            cursor: pointer;
-            min-width: 80px;
-            min-height: 32px;
-            white-space: nowrap;
-            transition: font-size 0.2s, padding 0.2s;
-        }
-        .nav-buttons button:hover {
-            background-color: #1c54b2;
-        }
-        .user-profile {
-            display: flex;
-            align-items: center;
-            gap: 15px;
-            position: relative;
-        }
-        .user-avatar {
-            width: 40px;
-            height: 40px;
-            border-radius: 50%;
-            object-fit: cover;
-            border: 2px solid #2979ff;
-            cursor: pointer;
-        }
-        .user-info {
-            text-align: left;
-            font-size: 14px;
-        }
-        .user-username {
-            font-weight: bold;
-        }
-        .user-balance {
-            color: #aeeaff;
-            font-size: 12px;
-        }
-        .add-balance-button {
-            background-color: #4caf50;
-            color: white;
-            border: none;
-            width: 32px;
-            height: 32px;
-            min-width: 32px;
-            min-height: 32px;
-            max-width: 32px;
-            max-height: 32px;
-            font-size: 20px;
-            border-radius: 50%;
-            cursor: pointer;
-            margin-left: 10px;
-            box-sizing: border-box;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            padding: 0;
-        }
-        .add-balance-button:hover {
-            background-color: #388e3c;
-        }
-        .balance-menu {
-            position: absolute;
-            top: 50px;
-            right: 0;
-            background-color: #2a2a2a;
-            padding: 15px;
-            border-radius: 6px;
-            box-shadow: 0 0 10px rgba(0,0,0,0.5);
-            width: 200px;
-            display: none;
-            flex-direction: column;
-            gap: 10px;
-        }
-        .balance-menu input {
-            padding: 8px;
-            border: 1px solid #444;
-            border-radius: 4px;
-            background-color: #1e1e1e;
-            color: #fff;
-        }
-        .balance-menu button {
-            padding: 8px;
-            background-color: #2979ff;
-            color: white;
-            border: none;
-            border-radius: 4px;
-            cursor: pointer;
-        }
-        .balance-menu button:hover {
-            background-color: #1c54b2;
-        }
-        .logout-form {
-            margin-right: 15px;
-        }
-        .logout-button {
-            background-color: #f44336;
-            color: white;
-            border: none;
-            padding: 8px 15px;
-            font-size: 14px;
-            border-radius: 4px;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            gap: 5px;
-            transition: background-color 0.3s;
-        }
-        .logout-button:hover {
-            background-color: #d32f2f;
-        }
-        .logout-button i {
-            font-size: 14px;
-        }
         .battle-container {
             display: grid;
             width: 100vw;
@@ -227,14 +77,6 @@
         @media (max-width: 600px) {
             .battle-user-avatar { width: 50px; height: 50px; }
             .battle-user-name { font-size: 13px; }
-        }
-        .profile-link {
-            display: flex;
-            align-items: center;
-            gap: 15px;
-            text-decoration: none;
-            color: inherit;
-            cursor: pointer;
         }
         .case-animation-block {
             width: 100%;
@@ -614,65 +456,8 @@
     </style>
 </head>
 <body>
-<div class="navbar">
-    <div class="nav-brand">
-        <img src="/static/etc/logo.png" alt='logo' class="nav-logo">
-        <div class="nav-left" id="siteName">Rem Battle Simulator</div>
-    </div>
-    <div class="nav-buttons">
-        {% if user %}
-            <a href="/contract">
-                <button>Контракты</button>
-            </a>
-            <a href="/upgrade">
-                <button>Апгрейды</button>
-            </a>
-            <a href="/battle">
-                <button>Баттлы</button>
-            </a>
-            <a href="/case/create">
-                <button>Добавить кейс</button>
-            </a>
-        {% endif %}
-        <a href="/top/">
-            <button>Топ пользователей</button>
-        </a>
-        {% if is_admin %}
-        <a href="/admin">
-            <button>Админка</button>
-        </a>
-        {% endif %}
-    </div>
-    {% if user %}
-    <div class="user-profile" id="userProfile">
-        <a href="/user/profile" class="profile-link">
-            <img src="/static/avatars/{{user.avatar}}"
-                 alt="Аватар"
-                 class="user-avatar"
-                 onerror="this.onerror=null; this.src='https://via.placeholder.com/100'">
-            <div class="user-info">
-                <div class="user-username">{{username}}</div>
-                <div class="user-balance">Баланс: {{balance}}</div>
-            </div>
-        </a>
-        <button class="add-balance-button" id="toggleBalanceMenu">+</button>
-        <div class="balance-menu" id="balanceMenu">
-            <input type="number" id="amountInput" placeholder="Сумма пополнения" min="1" required>
-            <button id="addMoneyBtn">Пополнить</button>
-        </div>
-        <form action="/user/logout" method="POST" class="logout-form">
-            <button type="submit" class="logout-button">
-                <i class="fas fa-sign-out-alt"></i> Выйти
-            </button>
-        </form>
-    </div>
-    {% else %}
-    <div class="nav-buttons">
-        <a href="/user/register"> <button>Зарегистрироваться</button> </a>
-        <a href="/user/login"> <button>Войти</button> </a>
-    </div>
-    {% endif %}
-</div>
+    {% include 'includes/navbar.html' %}
+
 <div class="loading-overlay" id="loadingOverlay">
     <div class="spinner"></div>
     <div>Инициализация баттла...</div>
@@ -756,26 +541,7 @@
     const maxReconnectAttempts = 10;
     let reconnectTimer = null;
     let battleStarted = false;
-    function parseMoney(value) {
-        if (typeof value === 'number') return value;
-        const cleaned = String(value).replace(/[^\d.,]/g, '').replace(',', '.');
-        return parseFloat(cleaned) || 0;
-    }
-    document.getElementById("siteName").addEventListener("click", function() {
-        window.location.href = "/";
-    });
-    const balanceMenu = document.getElementById("balanceMenu");
-    const toggleButton = document.getElementById("toggleBalanceMenu");
-    if (toggleButton) {
-        toggleButton.addEventListener("click", function () {
-            balanceMenu.style.display = balanceMenu.style.display === "flex" ? "none" : "flex";
-        });
-    }
-    document.addEventListener("click", function (event) {
-        if (balanceMenu && !document.querySelector(".user-profile").contains(event.target)) {
-            balanceMenu.style.display = "none";
-        }
-    });
+
     window.skinMap = {
         {% for skin in all_skins %}
         {{ skin.id }}: {
@@ -894,7 +660,7 @@
         }
         const statusEl = document.getElementById(`status-${userId}`);
         if (statusEl) {
-            const nextCaseNumber = Math.min(round + 1 + 1, caseCnt); // round + 2, но не больше caseCnt
+            const nextCaseNumber = Math.min(round + 1 + 1, caseCnt);
             setTimeout(() => {
             statusEl.textContent = `Кейс ${nextCaseNumber}/${caseCnt}`;
         }, 1300);
@@ -1007,7 +773,21 @@
             updateUsers(data.users);
         }
         else if (data.type === "battle_started") {
-            console.log("Battle already started on server.");
+            console.log("Battle started signal received from server.");
+            battleStarted = true;
+
+            Object.keys(totalSums).forEach(userId => {
+                const statusEl = document.getElementById(`status-${userId}`);
+                if (statusEl && !winnerDeclared) {
+                    const nextCaseNumber = 1;
+                    statusEl.textContent = `Кейс ${nextCaseNumber}/${caseCnt}`;
+                }
+            });
+            document.querySelectorAll('.battle-user-leave-button').forEach(btn => btn.remove());
+            const startBattleBtn = document.getElementById('startBattleBtn');
+            if (startBattleBtn) {
+                 startBattleBtn.style.display = 'none';
+            }
         }
         else if (data.type === "start_battle") {
             startBattleProcess();
@@ -1054,7 +834,6 @@
             const initialUsersCount = {{ user_battles|length }};
             const isLobbyInitiallyFull = initialUsersCount >= playersCount;
             const startBattleBtn = document.getElementById('startBattleBtn');
-
             document.querySelectorAll('.battle-user').forEach(userBlock => {
                 const userId = userBlock.id.split('-')[1];
                 const statusEl = document.getElementById(`status-${userId}`);
@@ -1064,7 +843,6 @@
                     }
                 }
             });
-
             if (startBattleBtn) {
                 if (isLobbyInitiallyFull && isHost && !battleStarted) {
                     startBattleBtn.style.display = 'block';
@@ -1127,14 +905,12 @@
     async function startBattleProcess() {
         if (openedCases >= caseCnt || battleStarted) return;
         battleStarted = true;
-
         Object.keys(totalSums).forEach(userId => {
             const statusEl = document.getElementById(`status-${userId}`);
             if (statusEl && !winnerDeclared) {
                 statusEl.textContent = `Кейс 1/${caseCnt}`;
             }
         });
-
         document.querySelectorAll('.battle-user-leave-button').forEach(btn => btn.remove());
         const startBattleBtn = document.getElementById('startBattleBtn');
         if (startBattleBtn) startBattleBtn.style.display = 'none';
@@ -1286,7 +1062,6 @@
         if (playerCounter && startBattleBtn) {
             const currentCount = users.length;
             const isLobbyFull = currentCount >= playersCount;
-
             users.forEach(user => {
                 const userIdStr = String(user.id);
                 const statusEl = document.getElementById(`status-${userIdStr}`);
@@ -1299,7 +1074,6 @@
                     }
                 }
             });
-
             if (isLobbyFull && isHost && !battleStarted) {
                 startBattleBtn.style.display = 'block';
                 startBattleBtn.disabled = false;
@@ -1322,22 +1096,9 @@
             processWebSocketMessage(data);
         }
     }
-    function formatBalances() {
-        document.querySelectorAll('.user-balance').forEach(el => {
-            const text = el.textContent;
-            const match = text.match(/(Баланс: )([\d,.]+)/);
-            if (match) {
-                const prefix = match[1];
-                const balanceValue = parseFloat(match[2].replace(',', ''));
-                if (!isNaN(balanceValue)) {
-                    el.textContent = `${prefix}${balanceValue.toFixed(2)}`;
-                }
-            }
-        });
-    }
+
     document.addEventListener('DOMContentLoaded', function() {
         domReady = false;
-        formatBalances();
         connectWebSocket();
         window.addEventListener('beforeunload', closeWebSocket);
         window.addEventListener('pagehide', closeWebSocket);
@@ -1375,32 +1136,6 @@
             e.target.src = 'https://via.placeholder.com/100';
         }
     }, true);
-    document.getElementById('addMoneyBtn').addEventListener('click', async function() {
-        const amountInput = document.getElementById('amountInput');
-        const amount = parseMoney(amountInput.value);
-        if (isNaN(amount) || amount <= 0) {
-            alert('Введите корректную сумму');
-            return;
-        }
-        try {
-            const response = await fetch(`/user/add_money/${amount}`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                }
-            });
-            const result = await response.json();
-            if (response.ok) {
-                document.querySelector('.user-balance').textContent = `Баланс: ${result.new_balance.toFixed(2)}`;
-                balanceMenu.style.display = 'none';
-                amountInput.value = '';
-            } else {
-                throw new Error(result.detail || 'Ошибка пополнения');
-            }
-        } catch (error) {
-            alert(error.message);
-        }
-    });
 </script>
 </body>
 </html>

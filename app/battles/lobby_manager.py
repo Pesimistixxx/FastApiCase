@@ -86,8 +86,8 @@ class LobbyManager:
         async def delayed_disconnect():
             await asyncio.sleep(10)
             async with self.lock:
-                if (battle_id in self.active_connections and
-                        user_id in self.active_connections[battle_id]):
+                if (battle_id in self.active_connections
+                        and user_id in self.active_connections[battle_id]):
                     print(f"User {user_id} reconnected, canceling disconnect")
                     return
 
@@ -176,8 +176,8 @@ class LobbyManager:
             await db.commit()
 
             async with self.lock:
-                if (battle_id in self.active_connections and
-                        user_id in self.active_connections[battle_id]):
+                if (battle_id in self.active_connections
+                        and user_id in self.active_connections[battle_id]):
                     del self.active_connections[battle_id][user_id]
                     if not self.active_connections[battle_id]:
                         del self.active_connections[battle_id]
@@ -278,6 +278,11 @@ class LobbyManager:
                 task = self.pending_disconnects.pop(key)
                 if not task.done():
                     task.cancel()
+
+    async def send_battle_started(self, battle_id: int):
+        await self.broadcast(battle_id, {
+            "type": "battle_started"
+        })
 
 
 manager = LobbyManager()

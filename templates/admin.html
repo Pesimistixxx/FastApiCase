@@ -14,241 +14,156 @@
             color: #ffffff;
             overflow-x: hidden;
         }
-        .navbar {
+        .tabs {
             display: flex;
-            justify-content: space-between;
-            align-items: center;
-            background-color: #1e1e1e;
-            padding: 15px 30px;
-            border-bottom: 1px solid #333;
-            position: sticky;
-            top: 0;
-            z-index: 1000;
+            gap: 10px;
+            margin: 32px auto 0 auto;
+            justify-content: center;
         }
-        .nav-left {
-            font-size: 20px;
-            font-weight: bold;
-            color: #2979ff;
-            cursor: pointer;
-            text-decoration: none;
-        }
-        .nav-buttons {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 16px;
-            row-gap: 8px;
-            max-width: 100vw;
-        }
-        .nav-buttons button {
-            background-color: #2979ff;
-            color: white;
+        .tab-btn {
+            background: #2979ff;
+            color: #fff;
             border: none;
-            padding: clamp(4px, 1vw, 10px) clamp(8px, 2vw, 15px);
-            font-size: clamp(10px, 2vw, 15px);
-            border-radius: 4px;
-            cursor: pointer;
-            min-width: 80px;
-            min-height: 32px;
-            white-space: nowrap;
-            transition: font-size 0.2s, padding 0.2s;
-        }
-        .nav-buttons button:hover {
-            background-color: #1c54b2;
-        }
-        .user-profile {
-            display: flex;
-            align-items: center;
-            gap: 15px;
-            position: relative;
-        }
-        .user-avatar {
-            width: 40px;
-            height: 40px;
-            border-radius: 50%;
-            object-fit: cover;
-            border: 2px solid #2979ff;
-            cursor: pointer;
-        }
-        .user-info {
-            text-align: left;
-            font-size: 14px;
-        }
-        .user-username {
+            border-radius: 6px 6px 0 0;
+            padding: 12px 32px;
+            font-size: 17px;
             font-weight: bold;
+            cursor: pointer;
+            transition: background 0.2s;
         }
-        .user-balance {
+        .tab-btn.active {
+            background: #1e1e1e;
+            border-bottom: 2px solid #2979ff;
             color: #aeeaff;
-            font-size: 12px;
         }
-        .add-balance-button {
-            background-color: #4caf50;
-            color: white;
+        .tab-content {
+            display: none;
+            max-width: 900px;
+            margin: 0 auto;
+            background: #1e1e1e;
+            border-radius: 10px;
+            padding: 30px 30px 20px 30px;
+            box-shadow: 0 0 15px rgba(255,255,255,0.05);
+        }
+        .tab-content.active {
+            display: block;
+        }
+        .case-table {
+            width: 100%;
+            border-collapse: collapse;
+            background: #242424;
+            border-radius: 8px;
+            overflow: hidden;
+            margin-top: 18px;
+        }
+        .case-table th, .case-table td {
+            padding: 12px 15px;
+            border-bottom: 1px solid #333;
+            text-align: left;
+        }
+        .case-table th {
+            background: #222;
+            color: #aeeaff;
+            font-weight: bold;
+        }
+        .case-table tr:last-child td {
+            border-bottom: none;
+        }
+        .case-action-btn {
+            background: #2979ff;
+            color: #fff;
             border: none;
-            width: 32px;
-            height: 32px;
-            min-width: 32px;
-            min-height: 32px;
+            border-radius: 5px;
+            padding: 7px 16px;
+            font-size: 15px;
+            font-weight: bold;
+            margin-right: 8px;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        .case-action-btn:last-child {
+            margin-right: 0;
+        }
+        .case-action-btn:hover {
+            background: #1c54b2;
+        }
+        .case-status {
+            font-size: 14px;
+            font-weight: bold;
+        }
+        .case-status.approved { color: #4caf50; }
+        .case-status.pending { color: #ff9800; }
+        .case-status.deleted { color: #f44336; }
+        .case-action-btn.small-btn {
+            padding: 5px 8px;
+            font-size: 13px;
+            margin-right: 4px;
+            border-radius: 4px;
+            min-width: 28px;
+            min-height: 28px;
             max-width: 32px;
             max-height: 32px;
-            font-size: 20px;
-            border-radius: 50%;
-            cursor: pointer;
-            margin-left: 10px;
-            box-sizing: border-box;
-            display: flex;
+            display: inline-flex;
             align-items: center;
             justify-content: center;
-            padding: 0;
         }
-        .add-balance-button:hover {
-            background-color: #388e3c;
+        .case-action-btn.delete-btn {
+            background: #f44336;
         }
-        .balance-menu {
-            position: absolute;
-            top: 50px;
-            right: 0;
-            background-color: #2a2a2a;
-            padding: 15px;
-            border-radius: 6px;
-            box-shadow: 0 0 10px rgba(0,0,0,0.5);
-            width: 200px;
-            display: none;
-            flex-direction: column;
-            gap: 10px;
+        .case-action-btn.delete-btn:hover {
+            background: #d32f2f;
         }
-        .balance-menu input {
-            padding: 8px;
-            border: 1px solid #444;
-            border-radius: 4px;
-            background-color: #1e1e1e;
-            color: #fff;
+        .case-action-btn.add-btn {
+            background: #4caf50;
         }
-        .balance-menu button {
-            padding: 8px;
-            background-color: #2979ff;
-            color: white;
-            border: none;
-            border-radius: 4px;
-            cursor: pointer;
+        .case-action-btn.add-btn:hover {
+            background: #388e3c;
         }
-        .balance-menu button:hover {
-            background-color: #1c54b2;
+        .case-action-btn i {
+            font-size: 15px;
         }
-        .profile-link {
-            display: flex;
-            align-items: center;
-            gap: 15px;
-            text-decoration: none;
-            color: inherit;
-            cursor: pointer;
+        .case-action-btn.approve-btn {
+            background: #4caf50;
         }
-        .logout-form {
-            margin-right: 15px;
+        .case-action-btn.approve-btn:hover {
+            background: #388e3c;
         }
-        .logout-button {
-            background-color: #f44336;
-            color: white;
-            border: none;
-            padding: 8px 15px;
-            font-size: 14px;
-            border-radius: 4px;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            gap: 5px;
-            transition: background-color 0.3s;
+        .case-action-btn.reject-btn {
+            background: #f44336;
         }
-        .logout-button:hover {
-            background-color: #d32f2f;
-        }
-        .logout-button i {
-            font-size: 14px;
+        .case-action-btn.reject-btn:hover {
+            background: #d32f2f;
         }
     </style>
     <style>
-@media (max-width: 900px) {
-    #contactAuthorBtn {
-        padding: 10px 16px 10px 12px !important;
-        font-size: 15px !important;
-    }
-    #contactAuthorBtn i {
-        font-size: 20px !important;
-    }
-    #contactAuthorBtn span {
-        font-size: 14px !important;
-    }
-}
-@media (max-width: 600px) {
-    #contactAuthorBtn {
-        padding: 7px 10px 7px 8px !important;
-        font-size: 12px !important;
-    }
-    #contactAuthorBtn i {
-        font-size: 15px !important;
-    }
-    #contactAuthorBtn span {
-        font-size: 11px !important;
-    }
-}
-.nav-logo{
-        height: 40px;
-    }
-    .nav-brand {
-        display: flex;
-        align-items: center;
-        gap: 10px;
-    }
-</style>
+        @media (max-width: 900px) {
+            #contactAuthorBtn {
+                padding: 10px 16px 10px 12px !important;
+                font-size: 15px !important;
+            }
+            #contactAuthorBtn i {
+                font-size: 20px !important;
+            }
+            #contactAuthorBtn span {
+                font-size: 14px !important;
+            }
+        }
+        @media (max-width: 600px) {
+            #contactAuthorBtn {
+                padding: 7px 10px 7px 8px !important;
+                font-size: 12px !important;
+            }
+            #contactAuthorBtn i {
+                font-size: 15px !important;
+            }
+            #contactAuthorBtn span {
+                font-size: 11px !important;
+            }
+        }
+    </style>
 </head>
 <body>
-<div class="navbar">
-    <div class="nav-brand">
-        <img src="/static/etc/logo.png" alt='logo' class="nav-logo">
-        <div class="nav-left" id="siteName">Rem Battle Simulator</div>
-    </div>
-    <div class="nav-buttons">
-        <a href="/contract">
-            <button>Контракты</button>
-        </a>
-        <a href="/upgrade">
-            <button>Апгрейды</button>
-        </a>
-        <a href="/battle">
-            <button>Баттлы</button>
-        </a>
-        <a href="/case/create">
-            <button>Добавить кейс</button>
-        </a>
-        <a href="/top/">
-            <button>Топ пользователей</button>
-        </a>
-        <a href="/admin">
-            <button>Админка</button>
-        </a>
-    </div>
-    <div class="user-profile" id="userProfile">
-        <a href="/user/profile" class="profile-link">
-            <img src="/static/avatars/{{user.avatar}}"
-                     alt="Аватар"
-                     class="user-avatar"
-                     onerror="this.onerror=null; this.src='https://via.placeholder.com/100'">
-            <div class="user-info">
-                <div class="user-username">{{username}}</div>
-                <div class="user-balance">Баланс: {{balance}}</div>
-            </div>
-        </a>
-        <button class="add-balance-button" id="toggleBalanceMenu">+</button>
-        <div class="balance-menu" id="balanceMenu">
-            <input type="number" id="amountInput" placeholder="Сумма пополнения" min="1" required>
-            <button id="addMoneyBtn">Пополнить</button>
-        </div>
-        <form action="/user/logout" method="POST" class="logout-form">
-            <button type="submit" class="logout-button">
-                <i class="fas fa-sign-out-alt"></i> Выйти
-            </button>
-        </form>
-    </div>
-</div>
+    {% include 'includes/navbar.html' %}
 
 <div class="main-container">
     <div class="tabs">
@@ -327,427 +242,242 @@
         </div>
     </div>
 </div>
-<style>
-.tabs {
-    display: flex;
-    gap: 10px;
-    margin: 32px auto 0 auto;
-    justify-content: center;
-}
-.tab-btn {
-    background: #2979ff;
-    color: #fff;
-    border: none;
-    border-radius: 6px 6px 0 0;
-    padding: 12px 32px;
-    font-size: 17px;
-    font-weight: bold;
-    cursor: pointer;
-    transition: background 0.2s;
-}
-.tab-btn.active {
-    background: #1e1e1e;
-    border-bottom: 2px solid #2979ff;
-    color: #aeeaff;
-}
-.tab-content {
-    display: none;
-    max-width: 900px;
-    margin: 0 auto;
-    background: #1e1e1e;
-    border-radius: 10px;
-    padding: 30px 30px 20px 30px;
-    box-shadow: 0 0 15px rgba(255,255,255,0.05);
-}
-.tab-content.active {
-    display: block;
-}
-.case-table {
-    width: 100%;
-    border-collapse: collapse;
-    background: #242424;
-    border-radius: 8px;
-    overflow: hidden;
-    margin-top: 18px;
-}
-.case-table th, .case-table td {
-    padding: 12px 15px;
-    border-bottom: 1px solid #333;
-    text-align: left;
-}
-.case-table th {
-    background: #222;
-    color: #aeeaff;
-    font-weight: bold;
-}
-.case-table tr:last-child td {
-    border-bottom: none;
-}
-.case-action-btn {
-    background: #2979ff;
-    color: #fff;
-    border: none;
-    border-radius: 5px;
-    padding: 7px 16px;
-    font-size: 15px;
-    font-weight: bold;
-    margin-right: 8px;
-    cursor: pointer;
-    transition: background 0.2s;
-}
-.case-action-btn:last-child {
-    margin-right: 0;
-}
-.case-action-btn:hover {
-    background: #1c54b2;
-}
-.case-status {
-    font-size: 14px;
-    font-weight: bold;
-}
-.case-status.approved { color: #4caf50; }
-.case-status.pending { color: #ff9800; }
-.case-status.deleted { color: #f44336; }
-.case-action-btn.small-btn {
-    padding: 5px 8px;
-    font-size: 13px;
-    margin-right: 4px;
-    border-radius: 4px;
-    min-width: 28px;
-    min-height: 28px;
-    max-width: 32px;
-    max-height: 32px;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-}
-.case-action-btn.delete-btn {
-    background: #f44336;
-}
-.case-action-btn.delete-btn:hover {
-    background: #d32f2f;
-}
-.case-action-btn.add-btn {
-    background: #4caf50;
-}
-.case-action-btn.add-btn:hover {
-    background: #388e3c;
-}
-.case-action-btn i {
-    font-size: 15px;
-}
-.case-action-btn.approve-btn {
-    background: #4caf50;
-}
-.case-action-btn.approve-btn:hover {
-    background: #388e3c;
-}
-.case-action-btn.reject-btn {
-    background: #f44336;
-}
-.case-action-btn.reject-btn:hover {
-    background: #d32f2f;
-}
-</style>
 <script>
-function parseMoney(value) {
-    if (typeof value === 'number') return value;
-    const cleaned = String(value).replace(/[^\d.,]/g, '').replace(',', '.');
-    return parseFloat(cleaned) || 0;
-}
-
-function formatBalances() {
-    document.querySelectorAll('.user-balance, .balance').forEach(el => {
-        const num = parseMoney(el.textContent);
-        el.textContent = `Баланс: ${num.toFixed(2)}`;
-    });
-}
-
-async function addMoney() {
-    const amountInput = document.getElementById('amountInput');
-    const amount = parseMoney(amountInput.value);
-
-    if (isNaN(amount) || amount <= 0) {
-        alert('Введите корректную сумму');
-        return;
-    }
-
-    try {
-        const response = await fetch(`/user/add_money/${amount}`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
+    function showConfirmModal(text) {
+        return new Promise(resolve => {
+            const modal = document.getElementById('confirmModal');
+            document.getElementById('confirmModalText').textContent = text;
+            modal.style.display = 'flex';
+            function cleanup(result) {
+                modal.style.display = 'none';
+                yesBtn.removeEventListener('click', yesHandler);
+                noBtn.removeEventListener('click', noHandler);
+                resolve(result);
             }
-        });
-
-        const result = await response.json();
-
-        if (response.ok) {
-            document.querySelector('.user-balance').textContent = `Баланс: ${parseFloat(result.new_balance).toFixed(2)}`;
-            formatBalances();
-            balanceMenu.style.display = 'none';
-            amountInput.value = '';
-        } else {
-            throw new Error(result.detail || 'Ошибка пополнения');
-        }
-    } catch (error) {
-        alert(error.message);
-    }
-}
-
-function showConfirmModal(text) {
-    return new Promise(resolve => {
-        const modal = document.getElementById('confirmModal');
-        document.getElementById('confirmModalText').textContent = text;
-        modal.style.display = 'flex';
-        function cleanup(result) {
-            modal.style.display = 'none';
-            yesBtn.removeEventListener('click', yesHandler);
-            noBtn.removeEventListener('click', noHandler);
-            resolve(result);
-        }
-        const yesBtn = document.getElementById('confirmModalYes');
-        const noBtn = document.getElementById('confirmModalNo');
-        function yesHandler() { cleanup(true); }
-        function noHandler() { cleanup(false); }
-        yesBtn.addEventListener('click', yesHandler);
-        noBtn.addEventListener('click', noHandler);
-    });
-}
-
-function updateCaseRowButtons(row, state) {
-    const td = row.querySelector('td:last-child');
-    td.innerHTML = '';
-    const caseName = row.getAttribute('data-name');
-    if (state === 'deleted') {
-        const addBtn = document.createElement('button');
-        addBtn.className = 'case-action-btn small-btn add-btn';
-        addBtn.title = 'Добавить';
-        addBtn.setAttribute('data-casename', caseName);
-        addBtn.innerHTML = '<i class="fas fa-plus"></i>';
-        addBtn.addEventListener('click', addCaseHandler);
-        td.appendChild(addBtn);
-    } else if (state === 'approved') {
-        td.innerHTML = `
-            <button class="case-action-btn small-btn" title="Посмотреть" onclick="window.location.href='/case/${caseName}'">
-                <i class="fas fa-eye"></i>
-            </button>
-            <button class="case-action-btn small-btn" title="Редактировать" onclick="window.location.href='/case/${caseName}/edit'">
-                <i class="fas fa-edit"></i>
-            </button>
-            <button class="case-action-btn small-btn delete-btn" title="Удалить" data-casename="${caseName}">
-                <i class="fas fa-trash"></i>
-            </button>
-        `;
-        td.querySelector('.delete-btn').addEventListener('click', async function() {
-            const confirmed = await showConfirmModal('Удалить кейс ' + caseName + '?');
-            if (!confirmed) return;
-            fetch(`/case/${encodeURIComponent(caseName)}`, {
-                method: 'DELETE',
-                headers: { 'Content-Type': 'application/json' }
-            }).then(async response => {
-                if (response.ok) {
-                    row.querySelector('.case-status').textContent = 'Удалён';
-                    row.querySelector('.case-status').className = 'case-status deleted';
-                    updateCaseRowButtons(row, 'deleted');
-                } else {
-                    const result = await response.json();
-                    alert(result.detail || 'Ошибка удаления');
-                }
-            }).catch(() => alert('Ошибка удаления'));
-        });
-    } else if (state === 'pending' || state === 'restored') {
-        td.innerHTML = `
-            <button class="case-action-btn small-btn" title="Посмотреть" onclick="window.location.href='/case/${caseName}'">
-                <i class="fas fa-eye"></i>
-            </button>
-            <button class="case-action-btn small-btn" title="Редактировать" onclick="window.location.href='/case/${caseName}/edit'">
-                <i class="fas fa-edit"></i>
-            </button>
-            <button class="case-action-btn small-btn approve-case-btn approve-btn" title="Одобрить" data-casename="${caseName}">
-                <i class="fas fa-check"></i>
-            </button>
-            <button class="case-action-btn small-btn reject-case-btn reject-btn" title="Отклонить" data-casename="${caseName}">
-                <i class="fas fa-times"></i>
-            </button>
-        `;
-        td.querySelector('.approve-case-btn').addEventListener('click', async function() {
-            const confirmed = await showConfirmModal('Одобрить кейс ' + caseName + '?');
-            if (!confirmed) return;
-            fetch(`/case/${encodeURIComponent(caseName)}/approve`, {
-                method: 'PATCH',
-                headers: { 'Content-Type': 'application/json' }
-            }).then(async response => {
-                if (response.ok) {
-                    row.querySelector('.case-status').textContent = 'Одобрен';
-                    row.querySelector('.case-status').className = 'case-status approved';
-                    updateCaseRowButtons(row, 'approved');
-                } else {
-                    const result = await response.json();
-                    alert(result.detail || 'Ошибка одобрения');
-                }
-            }).catch(() => alert('Ошибка одобрения'));
-        });
-        td.querySelector('.reject-case-btn').addEventListener('click', async function() {
-            const confirmed = await showConfirmModal('Отклонить кейс ' + caseName + '?');
-            if (!confirmed) return;
-            fetch(`/case/${encodeURIComponent(caseName)}/reject`, {
-                method: 'PATCH',
-                headers: { 'Content-Type': 'application/json' }
-            }).then(async response => {
-                if (response.ok) {
-                    row.querySelector('.case-status').textContent = 'Удалён';
-                    row.querySelector('.case-status').className = 'case-status deleted';
-                    updateCaseRowButtons(row, 'deleted');
-                } else {
-                    const result = await response.json();
-                    alert(result.detail || 'Ошибка отклонения');
-                }
-            }).catch(() => alert('Ошибка отклонения'));
+            const yesBtn = document.getElementById('confirmModalYes');
+            const noBtn = document.getElementById('confirmModalNo');
+            function yesHandler() { cleanup(true); }
+            function noHandler() { cleanup(false); }
+            yesBtn.addEventListener('click', yesHandler);
+            noBtn.addEventListener('click', noHandler);
         });
     }
-}
 
-async function addCaseHandler() {
-    const caseName = this.getAttribute('data-casename');
-    const row = document.getElementById('case-row-' + caseName);
-    const confirmed = await showConfirmModal('Восстановить кейс ' + caseName + '?');
-    if (!confirmed) return;
-    fetch(`/case/${encodeURIComponent(caseName)}/retrieve`, {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' }
-    }).then(async response => {
-        if (response.ok) {
-            row.querySelector('.case-status').textContent = 'На рассмотрении';
-            row.querySelector('.case-status').className = 'case-status pending';
-            updateCaseRowButtons(row, 'restored');
-        } else {
-            const result = await response.json();
-            alert(result.detail || 'Ошибка восстановления');
-        }
-    }).catch(() => alert('Ошибка восстановления'));
-}
-
-function renderCasesPage(page, perPage) {
-    const rows = Array.from(document.querySelectorAll('.case-row'));
-    const total = rows.length;
-    const totalPages = Math.ceil(total / perPage);
-    rows.forEach((row, idx) => {
-        row.style.display = (idx >= (page-1)*perPage && idx < page*perPage) ? '' : 'none';
-    });
-    function makePagination(id) {
-        const pag = document.getElementById(id);
-        pag.innerHTML = '';
-        if (totalPages <= 1) return;
-        for (let i = 1; i <= totalPages; i++) {
-            const btn = document.createElement('button');
-            btn.textContent = i;
-            btn.className = 'case-action-btn small-btn' + (i === page ? ' approve-btn' : '');
-            btn.onclick = () => renderCasesPage(i, perPage);
-            pag.appendChild(btn);
-        }
-    }
-    makePagination('cases-pagination-bottom');
-}
-
-document.addEventListener('DOMContentLoaded', function() {
-    formatBalances();
-    document.getElementById('addMoneyBtn').addEventListener('click', addMoney);
-
-    const balanceMenu = document.getElementById("balanceMenu");
-    const toggleButton = document.getElementById("toggleBalanceMenu");
-    toggleButton.addEventListener("click", function () {
-        balanceMenu.style.display = balanceMenu.style.display === "flex" ? "none" : "flex";
-    });
-
-    document.addEventListener("click", function (event) {
-        if (!document.querySelector(".user-profile").contains(event.target)) {
-            balanceMenu.style.display = "none";
-        }
-    });
-
-    const siteName = document.getElementById("siteName");
-    if (siteName) siteName.addEventListener("click", function() {
-        window.location.href = "/";
-    });
-
-    document.querySelectorAll('.tab-btn').forEach(btn => {
-        btn.addEventListener('click', function() {
-            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-            this.classList.add('active');
-            const tab = this.getAttribute('data-tab');
-            document.querySelectorAll('.tab-content').forEach(tc => tc.classList.remove('active'));
-            document.getElementById('tab-' + tab).classList.add('active');
-        });
-    });
-    document.querySelectorAll('.delete-btn').forEach(btn => {
-        btn.addEventListener('click', async function() {
-            const caseName = this.getAttribute('data-casename');
-            const confirmed = await showConfirmModal('Удалить кейс ' + caseName + '?');
-            if (!confirmed) return;
-            try {
-                const response = await fetch(`/case/${encodeURIComponent(caseName)}`, {
+    function updateCaseRowButtons(row, state) {
+        const td = row.querySelector('td:last-child');
+        td.innerHTML = '';
+        const caseName = row.getAttribute('data-name');
+        if (state === 'deleted') {
+            const addBtn = document.createElement('button');
+            addBtn.className = 'case-action-btn small-btn add-btn';
+            addBtn.title = 'Добавить';
+            addBtn.setAttribute('data-casename', caseName);
+            addBtn.innerHTML = '<i class="fas fa-plus"></i>';
+            addBtn.addEventListener('click', addCaseHandler);
+            td.appendChild(addBtn);
+        } else if (state === 'approved') {
+            td.innerHTML = `
+                <button class="case-action-btn small-btn" title="Посмотреть" onclick="window.location.href='/case/${caseName}'">
+                    <i class="fas fa-eye"></i>
+                </button>
+                <button class="case-action-btn small-btn" title="Редактировать" onclick="window.location.href='/case/${caseName}/edit'">
+                    <i class="fas fa-edit"></i>
+                </button>
+                <button class="case-action-btn small-btn delete-btn" title="Удалить" data-casename="${caseName}">
+                    <i class="fas fa-trash"></i>
+                </button>
+            `;
+            td.querySelector('.delete-btn').addEventListener('click', async function() {
+                const confirmed = await showConfirmModal('Удалить кейс ' + caseName + '?');
+                if (!confirmed) return;
+                fetch(`/case/${encodeURIComponent(caseName)}`, {
                     method: 'DELETE',
                     headers: { 'Content-Type': 'application/json' }
-                });
-                if (response.ok) {
-                    document.getElementById('case-row-' + caseName).querySelector('.case-status').textContent = 'Удалён';
-                    document.getElementById('case-row-' + caseName).querySelector('.case-status').className = 'case-status deleted';
-                    updateCaseRowButtons(document.getElementById('case-row-' + caseName), 'deleted');
-                } else {
-                    const result = await response.json();
-                    alert(result.detail || 'Ошибка удаления');
-                }
-            } catch (e) {
-                alert('Ошибка удаления');
+                }).then(async response => {
+                    if (response.ok) {
+                        row.querySelector('.case-status').textContent = 'Удалён';
+                        row.querySelector('.case-status').className = 'case-status deleted';
+                        updateCaseRowButtons(row, 'deleted');
+                    } else {
+                        const result = await response.json();
+                        alert(result.detail || 'Ошибка удаления');
+                    }
+                }).catch(() => alert('Ошибка удаления'));
+            });
+        } else if (state === 'pending' || state === 'restored') {
+            td.innerHTML = `
+                <button class="case-action-btn small-btn" title="Посмотреть" onclick="window.location.href='/case/${caseName}'">
+                    <i class="fas fa-eye"></i>
+                </button>
+                <button class="case-action-btn small-btn" title="Редактировать" onclick="window.location.href='/case/${caseName}/edit'">
+                    <i class="fas fa-edit"></i>
+                </button>
+                <button class="case-action-btn small-btn approve-case-btn approve-btn" title="Одобрить" data-casename="${caseName}">
+                    <i class="fas fa-check"></i>
+                </button>
+                <button class="case-action-btn small-btn reject-case-btn reject-btn" title="Отклонить" data-casename="${caseName}">
+                    <i class="fas fa-times"></i>
+                </button>
+            `;
+            td.querySelector('.approve-case-btn').addEventListener('click', async function() {
+                const confirmed = await showConfirmModal('Одобрить кейс ' + caseName + '?');
+                if (!confirmed) return;
+                fetch(`/case/${encodeURIComponent(caseName)}/approve`, {
+                    method: 'PATCH',
+                    headers: { 'Content-Type': 'application/json' }
+                }).then(async response => {
+                    if (response.ok) {
+                        row.querySelector('.case-status').textContent = 'Одобрен';
+                        row.querySelector('.case-status').className = 'case-status approved';
+                        updateCaseRowButtons(row, 'approved');
+                    } else {
+                        const result = await response.json();
+                        alert(result.detail || 'Ошибка одобрения');
+                    }
+                }).catch(() => alert('Ошибка одобрения'));
+            });
+            td.querySelector('.reject-case-btn').addEventListener('click', async function() {
+                const confirmed = await showConfirmModal('Отклонить кейс ' + caseName + '?');
+                if (!confirmed) return;
+                fetch(`/case/${encodeURIComponent(caseName)}/reject`, {
+                    method: 'PATCH',
+                    headers: { 'Content-Type': 'application/json' }
+                }).then(async response => {
+                    if (response.ok) {
+                        row.querySelector('.case-status').textContent = 'Удалён';
+                        row.querySelector('.case-status').className = 'case-status deleted';
+                        updateCaseRowButtons(row, 'deleted');
+                    } else {
+                        const result = await response.json();
+                        alert(result.detail || 'Ошибка отклонения');
+                    }
+                }).catch(() => alert('Ошибка отклонения'));
+            });
+        }
+    }
+
+    async function addCaseHandler() {
+        const caseName = this.getAttribute('data-casename');
+        const row = document.getElementById('case-row-' + caseName);
+        const confirmed = await showConfirmModal('Восстановить кейс ' + caseName + '?');
+        if (!confirmed) return;
+        fetch(`/case/${encodeURIComponent(caseName)}/retrieve`, {
+            method: 'PATCH',
+            headers: { 'Content-Type': 'application/json' }
+        }).then(async response => {
+            if (response.ok) {
+                row.querySelector('.case-status').textContent = 'На рассмотрении';
+                row.querySelector('.case-status').className = 'case-status pending';
+                updateCaseRowButtons(row, 'restored');
+            } else {
+                const result = await response.json();
+                alert(result.detail || 'Ошибка восстановления');
             }
+        }).catch(() => alert('Ошибка восстановления'));
+    }
+
+    function renderCasesPage(page, perPage) {
+        const rows = Array.from(document.querySelectorAll('.case-row'));
+        const total = rows.length;
+        const totalPages = Math.ceil(total / perPage);
+        rows.forEach((row, idx) => {
+            row.style.display = (idx >= (page-1)*perPage && idx < page*perPage) ? '' : 'none';
         });
-    });
-    document.querySelectorAll('.add-btn').forEach(btn => {
-        btn.addEventListener('click', addCaseHandler);
-    });
-    document.querySelectorAll('.approve-case-btn').forEach(btn => {
-        btn.addEventListener('click', async function() {
-            const caseName = this.getAttribute('data-casename');
-            const confirmed = await showConfirmModal('Одобрить кейс ' + caseName + '?');
-            if (!confirmed) return;
-            fetch(`/case/${encodeURIComponent(caseName)}/approve`, {
-                method: 'PATCH',
-                headers: { 'Content-Type': 'application/json' }
-            }).then(async response => {
-                if (response.ok) {
-                    const row = document.getElementById('case-row-' + caseName);
-                    row.querySelector('.case-status').textContent = 'Одобрен';
-                    row.querySelector('.case-status').className = 'case-status approved';
-                    updateCaseRowButtons(row, 'approved');
-                } else {
-                    const result = await response.json();
-                    alert(result.detail || 'Ошибка одобрения');
+        function makePagination(id) {
+            const pag = document.getElementById(id);
+            pag.innerHTML = '';
+            if (totalPages <= 1) return;
+            for (let i = 1; i <= totalPages; i++) {
+                const btn = document.createElement('button');
+                btn.textContent = i;
+                btn.className = 'case-action-btn small-btn' + (i === page ? ' approve-btn' : '');
+                btn.onclick = () => renderCasesPage(i, perPage);
+                pag.appendChild(btn);
+            }
+        }
+        makePagination('cases-pagination-bottom');
+    }
+
+    document.addEventListener('DOMContentLoaded', function() {
+        document.querySelectorAll('.tab-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+                this.classList.add('active');
+                const tab = this.getAttribute('data-tab');
+                document.querySelectorAll('.tab-content').forEach(tc => tc.classList.remove('active'));
+                document.getElementById('tab-' + tab).classList.add('active');
+            });
+        });
+        document.querySelectorAll('.delete-btn').forEach(btn => {
+            btn.addEventListener('click', async function() {
+                const caseName = this.getAttribute('data-casename');
+                const confirmed = await showConfirmModal('Удалить кейс ' + caseName + '?');
+                if (!confirmed) return;
+                try {
+                    const response = await fetch(`/case/${encodeURIComponent(caseName)}`, {
+                        method: 'DELETE',
+                        headers: { 'Content-Type': 'application/json' }
+                    });
+                    if (response.ok) {
+                        document.getElementById('case-row-' + caseName).querySelector('.case-status').textContent = 'Удалён';
+                        document.getElementById('case-row-' + caseName).querySelector('.case-status').className = 'case-status deleted';
+                        updateCaseRowButtons(document.getElementById('case-row-' + caseName), 'deleted');
+                    } else {
+                        const result = await response.json();
+                        alert(result.detail || 'Ошибка удаления');
+                    }
+                } catch (e) {
+                    alert('Ошибка удаления');
                 }
-            }).catch(() => alert('Ошибка одобрения'));
+            });
         });
-    });
-    document.querySelectorAll('.reject-case-btn').forEach(btn => {
-        btn.addEventListener('click', async function() {
-            const caseName = this.getAttribute('data-casename');
-            const confirmed = await showConfirmModal('Отклонить кейс ' + caseName + '?');
-            if (!confirmed) return;
-            fetch(`/case/${encodeURIComponent(caseName)}/reject`, {
-                method: 'PATCH',
-                headers: { 'Content-Type': 'application/json' }
-            }).then(async response => {
-                if (response.ok) {
-                    const row = document.getElementById('case-row-' + caseName);
-                    row.querySelector('.case-status').textContent = 'Удалён';
-                    row.querySelector('.case-status').className = 'case-status deleted';
-                    updateCaseRowButtons(row, 'deleted');
-                } else {
-                    const result = await response.json();
-                    alert(result.detail || 'Ошибка отклонения');
-                }
-            }).catch(() => alert('Ошибка отклонения'));
+        document.querySelectorAll('.add-btn').forEach(btn => {
+            btn.addEventListener('click', addCaseHandler);
         });
+        document.querySelectorAll('.approve-case-btn').forEach(btn => {
+            btn.addEventListener('click', async function() {
+                const caseName = this.getAttribute('data-casename');
+                const confirmed = await showConfirmModal('Одобрить кейс ' + caseName + '?');
+                if (!confirmed) return;
+                fetch(`/case/${encodeURIComponent(caseName)}/approve`, {
+                    method: 'PATCH',
+                    headers: { 'Content-Type': 'application/json' }
+                }).then(async response => {
+                    if (response.ok) {
+                        const row = document.getElementById('case-row-' + caseName);
+                        row.querySelector('.case-status').textContent = 'Одобрен';
+                        row.querySelector('.case-status').className = 'case-status approved';
+                        updateCaseRowButtons(row, 'approved');
+                    } else {
+                        const result = await response.json();
+                        alert(result.detail || 'Ошибка одобрения');
+                    }
+                }).catch(() => alert('Ошибка одобрения'));
+            });
+        });
+        document.querySelectorAll('.reject-case-btn').forEach(btn => {
+            btn.addEventListener('click', async function() {
+                const caseName = this.getAttribute('data-casename');
+                const confirmed = await showConfirmModal('Отклонить кейс ' + caseName + '?');
+                if (!confirmed) return;
+                fetch(`/case/${encodeURIComponent(caseName)}/reject`, {
+                    method: 'PATCH',
+                    headers: { 'Content-Type': 'application/json' }
+                }).then(async response => {
+                    if (response.ok) {
+                        const row = document.getElementById('case-row-' + caseName);
+                        row.querySelector('.case-status').textContent = 'Удалён';
+                        row.querySelector('.case-status').className = 'case-status deleted';
+                        updateCaseRowButtons(row, 'deleted');
+                    } else {
+                        const result = await response.json();
+                        alert(result.detail || 'Ошибка отклонения');
+                    }
+                }).catch(() => alert('Ошибка отклонения'));
+            });
+        });
+        renderCasesPage(1, 10);
     });
-    renderCasesPage(1, 10);
-});
 </script>
+</body>
+</html>

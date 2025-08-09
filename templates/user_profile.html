@@ -14,274 +14,82 @@
             color: #ffffff;
             overflow-y: auto;
         }
-
-        .navbar {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            background-color: #1e1e1e;
-            padding: 15px 30px;
-            border-bottom: 1px solid #333;
-            position: sticky;
-            top: 0;
-            z-index: 1000;
-        }
-
-        .nav-left {
-            font-size: 20px;
-            font-weight: bold;
-            color: #2979ff;
-            cursor: pointer;
-            text-decoration: none;
-        }
-
-        .nav-buttons {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 16px;
-            row-gap: 8px;
-            max-width: 100vw;
-        }
-
-        .nav-buttons button {
-            background-color: #2979ff;
-            color: white;
-            border: none;
-            padding: clamp(4px, 1vw, 10px) clamp(8px, 2vw, 15px);
-            font-size: clamp(10px, 2vw, 15px);
-            border-radius: 4px;
-            cursor: pointer;
-            min-width: 80px;
-            min-height: 32px;
-            white-space: nowrap;
-            transition: font-size 0.2s, padding 0.2s;
-        }
-
-        .nav-buttons button:hover {
-            background-color: #1c54b2;
-        }
-
-        .user-profile {
-            display: flex;
-            align-items: center;
-            gap: 15px;
-            position: relative;
-        }
-
-        .user-avatar {
-            width: 40px;
-            height: 40px;
-            border-radius: 50%;
-            object-fit: cover;
-            border: 2px solid #2979ff;
-            cursor: pointer;
-        }
-
-        .user-info {
-            text-align: left;
-            font-size: 14px;
-        }
-
-        .user-username {
-            font-weight: bold;
-        }
-
-        .user-balance {
-            color: #aeeaff;
-            font-size: 12px;
-        }
-
-        .add-balance-button {
-            background-color: #4caf50;
-            color: white;
-            border: none;
-            width: 32px;
-            height: 32px;
-            min-width: 32px;
-            min-height: 32px;
-            max-width: 32px;
-            max-height: 32px;
-            font-size: 20px;
-            border-radius: 50%;
-            cursor: pointer;
-            margin-left: 10px;
-            box-sizing: border-box;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            padding: 0;
-        }
-
-        .add-balance-button:hover {
-            background-color: #388e3c;
-        }
-
-        .balance-menu {
-            position: absolute;
-            top: 50px;
-            right: 0;
-            background-color: #2a2a2a;
-            padding: 15px;
-            border-radius: 6px;
-            box-shadow: 0 0 10px rgba(0,0,0,0.5);
-            width: 200px;
-            display: none;
-            flex-direction: column;
-            gap: 10px;
-        }
-
-        .balance-menu input {
-            padding: 8px;
-            border: 1px solid #444;
-            border-radius: 4px;
-            background-color: #1e1e1e;
-            color: #fff;
-        }
-
-        .balance-menu button {
-            padding: 8px;
-            background-color: #2979ff;
-            color: white;
-            border: none;
-            border-radius: 4px;
-            cursor: pointer;
-        }
-
-        .balance-menu button:hover {
-            background-color: #1c54b2;
-        }
-
         .profile-container {
-            max-width: 600px;
-            margin: 40px auto;
+            display: flex;
+            align-items: flex-start;
+            gap: 32px;
+            max-width: 700px;
+            margin: 40px auto 0 auto;
             background-color: #1e1e1e;
             border-radius: 10px;
             padding: 30px;
             box-shadow: 0 0 15px rgba(255, 255, 255, 0.1);
-            text-align: center;
         }
-
+        .avatar-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
         .avatar {
             width: 120px;
             height: 120px;
             border-radius: 50%;
             object-fit: cover;
             border: 3px solid #2979ff;
-            margin-bottom: 15px;
+            margin-bottom: 0;
         }
-
-        .username {
-            font-size: 24px;
-            font-weight: bold;
-            margin-bottom: 10px;
-        }
-
-        .balance {
-            font-size: 18px;
-            color: #aeeaff;
-            margin-bottom: 50px;
-        }
-
-        .skins-title {
-            font-size: 20px;
-            font-weight: bold;
-            margin-bottom: 20px;
-            color: #ffffff;
-        }
-
-        .skins-grid {
-            display: grid;
-            grid-template-columns: repeat(4, 1fr);
-            grid-template-rows: repeat(6, auto);
-            grid-gap: 20px 15px;
-            justify-items: center;
-        }
-
-        .skin-item {
-            position: relative;
-            width: 120px;
-            height: 135px;
-            background-color: #242424;
-            border-radius: 8px;
-            overflow: hidden;
-            border: 1px solid #444;
+        .friend-buttons {
             display: flex;
-            flex-direction: column;
+            justify-content: center;
+            gap: 16px;
+            margin-top: 12px;
+        }
+        .friend-btn {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
             align-items: center;
-            justify-content: space-between;
-            padding: 10px 5px 5px;
-            box-sizing: border-box;
+            justify-content: center;
+            background: #2979ff;
+            color: #fff;
+            border: none;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 16px;
+        }
+        .friend-btn:hover {
+            opacity: 0.9;
+            transform: scale(1.05);
+        }
+        .friend-btn.accept {
+            background: #4CAF50;
+        }
+        .friend-btn.reject {
+            background: #f44336;
+        }
+        .friend-btn.cancel {
+            background: #f44336;
+        }
+        .friend-btn.delete {
+            background: #f44336;
+        }
+        .notification {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            padding: 10px 20px;
+            background-color: #4CAF50;
+            color: white;
+            border-radius: 4px;
+            z-index: 10000;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+            opacity: 1;
             transition: opacity 0.3s ease;
         }
-
-        .skin-item img {
-            width: 100%;
-            height: 70px;
-            object-fit: cover;
-            border-radius: 4px;
-            flex-shrink: 0;
-        }
-
-        .skin-label {
-            font-size: 12px;
-            color: #cccccc;
-            text-align: center;
-            margin-top: 5px;
-            width: 100%;
-            word-break: break-word;
-            white-space: normal;
-            max-height: 32px;
-            overflow: hidden;
-            text-overflow: ellipsis;
-        }
-
-        .sell-button {
-            position: absolute;
-            top: 0;
-            right: 0;
-            width: 20px;
-            height: 20px;
-            background-color: rgba(255, 0, 0, 0.5);
-            color: white;
-            font-size: 10px;
-            font-weight: bold;
-            border: none;
-            border-radius: 0 4px 0 0;
-            cursor: pointer;
-            z-index: 2;
-        }
-
-        .sell-button:hover {
-            background-color: rgba(255, 0, 0, 0.7);
-        }
-
-        .profile-link {
-            display: flex;
-            align-items: center;
-            gap: 15px;
-            text-decoration: none;
-            color: inherit;
-            cursor: pointer;
-        }
-
-        .notification {
-           position: fixed;
-           bottom: 20px;
-           right: 20px;
-           padding: 10px 20px;
-           background-color: #4CAF50;
-           color: white;
-           border-radius: 4px;
-           z-index: 10000;
-           box-shadow: 0 2px 10px rgba(0,0,0,0.2);
-           opacity: 1;
-           transition: opacity 0.3s ease;
-        }
-
         .notification.error {
-           background-color: #f44336;
+            background-color: #f44336;
         }
-
         .modal {
             position: fixed;
             top: 0;
@@ -297,12 +105,10 @@
             pointer-events: none;
             transition: opacity 0.3s ease;
         }
-
         .modal.active {
             opacity: 1;
             pointer-events: all;
         }
-
         .modal-content {
             background-color: #2a2a2a;
             padding: 30px;
@@ -312,64 +118,33 @@
             transform: translateY(-20px);
             transition: transform 0.3s ease;
         }
-
         .modal.active .modal-content {
             transform: translateY(0);
         }
-
         .modal-buttons {
             display: flex;
             justify-content: center;
             gap: 15px;
             margin-top: 25px;
         }
-
         .modal-buttons button {
             padding: 8px 20px;
             border: none;
             border-radius: 4px;
             cursor: pointer;
         }
-
         #confirm-sell {
             background-color: #4CAF50;
             color: white;
         }
-
         #cancel-sell {
             background-color: #f44336;
             color: white;
-        }
-        .logout-form {
-            margin-right: 15px;
-        }
-
-        .logout-button {
-            background-color: #f44336;
-            color: white;
-            border: none;
-            padding: 8px 15px;
-            font-size: 14px;
-            border-radius: 4px;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            gap: 5px;
-            transition: background-color 0.3s;
-        }
-
-        .logout-button:hover {
-            background-color: #d32f2f;
-        }
-
-        .logout-button i {
-            font-size: 14px;
         }
         .sell-all-container {
             margin-bottom: 20px;
             text-align: center;
         }
-
         .sell-all-button {
             background-color: #4caf50;
             color: white;
@@ -380,298 +155,392 @@
             cursor: pointer;
             transition: background-color 0.3s;
         }
-
         .sell-all-button:hover {
             background-color: #388e3c;
         }
-
         .sell-all-button:disabled {
             background-color: #666;
             cursor: not-allowed;
         }
-
-        .my-case-item.disabled .case-edit-btn {
-            cursor: pointer;
-            opacity: 1;
-        }
-        .nav-logo{
-            height: 40px;
-        }
-        .nav-brand {
+        .notification-item {
+            background: #1e1e1e;
+            padding: 12px;
+            border-radius: 6px;
+            margin-bottom: 8px;
+            border-left: 3px solid #2979ff;
             display: flex;
+            justify-content: space-between;
             align-items: center;
-            gap: 10px;
+        }
+        .notification-content {
+            flex-grow: 1;
+        }
+        .notification-text {
+            font-size: 14px;
+            color: #ccc;
+        }
+        .notification-time {
+            font-size: 12px;
+            color: #777;
+            margin-top: 5px;
+        }
+        .notification-actions {
+            display: flex;
+            gap: 8px;
+            margin-left: 10px;
         }
     </style>
 </head>
 <body>
+    {% include 'includes/navbar.html' %}
 
-<div class="navbar">
-    <div class="nav-brand">
-        <img src="/static/etc/logo.png" alt='logo' class="nav-logo">
-        <div class="nav-left" id="siteName">Rem Battle Simulator</div>
-    </div>
-    <div class="nav-buttons">
-        {% if user %}
-            <a href="/contract">
-                <button>Контракты</button>
-            </a>
-            <a href="/upgrade">
-                <button>Апгрейды</button>
-            </a>
-            <a href="/battle">
-                <button>Баттлы</button>
-            </a>
-        <a href="/case/create">
-            <button>Добавить кейс</button>
-        </a>
-        {% endif %}
-        <a href="/top/">
-            <button>Топ пользователей</button>
-        </a>
-        {% if is_admin %}
-        <a href="/admin">
-            <button>Админка</button>
-        </a>
-        {% endif %}
-    </div>
-    {% if user %}
-    <div class="user-profile" id="userProfile">
-        <a href="/user/profile" class="profile-link">
-            <img src="/static/avatars/{{user.avatar}}"
-                     alt="Аватар"
-                     class="user-avatar"
-                     onerror="this.onerror=null; this.src='https://via.placeholder.com/100'">
-            <div class="user-info">
-                <div class="user-username">{{username}}</div>
-                <div class="user-balance">Баланс: {{balance}}</div>
+    <div class="profile-container">
+        <div class="avatar-container">
+            <img src="/static/avatars/{{profile_user.avatar}}"
+                 alt="Аватар"
+                 class="avatar">
+            {% if user and user.username != profile_user.username %}
+            <div class="friend-buttons" id="friendButtons">
+                <button id="sendFriendRequestBtn" class="friend-btn" title="Отправить заявку в друзья"
+                    style="display: {% if not friend_request %}flex{% else %}none{% endif %};">
+                    <i class="fas fa-user-plus"></i>
+                </button>
+                <button id="cancelFriendRequestBtn" class="friend-btn cancel" title="Отменить заявку"
+                    style="display: {% if friend_request and not friend_request.is_accepted and friend_request.requester_id == user.id %}flex{% else %}none{% endif %};">
+                    <i class="fas fa-times"></i>
+                </button>
+                <button id="acceptFriendRequestBtn" class="friend-btn accept" title="Принять заявку"
+                    style="display: {% if friend_request and not friend_request.is_accepted and friend_request.requester_id != user.id %}flex{% else %}none{% endif %};">
+                    <i class="fas fa-check"></i>
+                </button>
+                <button id="rejectFriendRequestBtn" class="friend-btn reject" title="Отклонить заявку"
+                    style="display: {% if friend_request and not friend_request.is_accepted and friend_request.requester_id != user.id %}flex{% else %}none{% endif %};">
+                    <i class="fas fa-times"></i>
+                </button>
+                <button id="deleteFriendBtn" class="friend-btn delete" title="Удалить из друзей"
+                    style="display: {% if friend_request and friend_request.is_accepted %}flex{% else %}none{% endif %};">
+                    <i class="fas fa-user-times"></i>
+                </button>
             </div>
-        </a>
-        <button class="add-balance-button" id="toggleBalanceMenu">+</button>
-        <div class="balance-menu" id="balanceMenu">
-            <input type="number" id="amountInput" placeholder="Сумма пополнения" min="1" required>
-            <button id="addMoneyBtn">Пополнить</button>
+            {% endif %}
         </div>
-        <form action="/user/logout" method="POST" class="logout-form">
-            <button type="submit" class="logout-button">
-                <i class="fas fa-sign-out-alt"></i> Выйти
-            </button>
-        </form>
+        <div style="flex: 1; display: flex; flex-direction: column; align-items: flex-start; gap: 12px;">
+            <div style="font-size: 22px; font-weight: bold;">Имя пользователя: <span style="color: #2979ff;">{{profile_user.username}}</span></div>
+            <div style="font-size: 18px;">Имя: <span style="color: #fff;">{{profile_user.name}}</span></div>
+            <div style="font-size: 16px;">Активность: <span style="color: #aeeaff;">{{profile_user.activity_points}}</span></div>
+            <div style="font-size: 16px;">Открыто кейсов: <span style="color: #aeeaff;">{{profile_user.case_opened}}</span></div>
+            <div style="font-size: 16px;">Совершено апгрейдов: <span style="color: #aeeaff;">{{profile_user.upgrades_cnt}}</span></div>
+            <div style="font-size: 16px;">Совершено контрактов: <span style="color: #aeeaff;">{{profile_user.contracts_cnt}}</span></div>
+            <button id="toggleCasesBtn" style="margin-top:18px; background:#2979ff; color:#fff; border:none; border-radius:6px; padding:10px 24px; font-size:16px; font-weight:bold; cursor:pointer;">Кейсы пользователя</button>
+        </div>
     </div>
-    {% else %}
-    <div class="nav-buttons">
-        <a href="/user/register"> <button>Зарегистрироваться</button> </a>
-        <a href="/user/login"> <button>Войти</button> </a>
-    </div>
-    {% endif %}
-</div>
-
-<div class="profile-container" style="display: flex; align-items: flex-start; gap: 32px; max-width: 700px; margin: 40px auto 0 auto; background-color: #1e1e1e; border-radius: 10px; padding: 30px; box-shadow: 0 0 15px rgba(255, 255, 255, 0.1);">
-    <img src="/static/avatars/{{profile_avatar}}"
-                     alt="Аватар"
-                     class="avatar"
-         style="margin-bottom: 0; margin-right: 0; width: 120px; height: 120px; border-radius: 50%; object-fit: cover; border: 3px solid #2979ff;">
-    <div style="flex: 1; display: flex; flex-direction: column; align-items: flex-start; gap: 12px;">
-        <div style="font-size: 22px; font-weight: bold;">Имя пользователя: <span style="color: #2979ff;">{{profile_username}}</span></div>
-        <div style="font-size: 18px;">Имя: <span style="color: #fff;">{{name}}</span></div>
-        <div style="font-size: 16px;">Активность: <span style="color: #aeeaff;">{{activity}}</span></div>
-        <div style="font-size: 16px;">Открыто кейсов: <span style="color: #aeeaff;">{{cases_opened}}</span></div>
-        <div style="font-size: 16px;">Совершено апгрейдов: <span style="color: #aeeaff;">{{upgrades_cnt}}</span></div>
-        <div style="font-size: 16px;">Совершено контрактов: <span style="color: #aeeaff;">{{contracts_cnt}}</span></div>
-        <button id="toggleCasesBtn" style="margin-top:18px; background:#2979ff; color:#fff; border:none; border-radius:6px; padding:10px 24px; font-size:16px; font-weight:bold; cursor:pointer;">Кейсы пользователя</button>
-    </div>
-</div>
 
     <div id="myCasesOverlay" style="display:none; position:fixed; left:0; top:0; width:100vw; height:100vh; background:rgba(18,22,30,0.65); z-index:10000; align-items:center; justify-content:center;">
         <div style="background:#23272e; border-radius:16px; max-width:600px; width:90vw; margin:0 auto; box-shadow:0 2px 24px #2979ff33; padding:32px 24px 24px 24px; position:relative; display:flex; flex-direction:column; align-items:center;">
             <span id="closeCasesOverlay" style="position:absolute; top:18px; right:24px; font-size:28px; color:#aaa; cursor:pointer;">&times;</span>
-        <div style="font-size:22px; color:#aeeaff; font-weight:bold; margin-bottom:18px;">Кейсы пользователя</div>
+            <div style="font-size:22px; color:#aeeaff; font-weight:bold; margin-bottom:18px;">Кейсы пользователя</div>
             <ul id="myCasesList" style="list-style:none; padding:0; margin:0; width:100%; display:flex; flex-direction:column; gap:12px;"></ul>
             <div id="myCasesPagination" style="margin-top:18px; display:flex; justify-content:center; gap:8px;"></div>
-    </div>
-</div>
-
-<script>
-    document.getElementById("siteName").addEventListener("click", function() {
-        window.location.href = "/";
-    });
-    window.addEventListener('DOMContentLoaded', function() {
-        var toggleBtn = document.getElementById('toggleCasesBtn');
-        var overlay = document.getElementById('myCasesOverlay');
-        var closeBtn = document.getElementById('closeCasesOverlay');
-        if (toggleBtn && overlay) {
-            toggleBtn.onclick = function() {
-                overlay.style.display = 'flex';
-            };
-            }
-        if (closeBtn && overlay) {
-            closeBtn.onclick = function() {
-                overlay.style.display = 'none';
-            };
-    }
-        if (overlay) {
-            overlay.addEventListener('mousedown', function(e) {
-                if (e.target === overlay) {
-                    overlay.style.display = 'none';
-                }
-            });
-        }
-        const myCases = [
-{% for case in profile_cases %}    {
-                name: {{ case.name | tojson }},
-                image: {{ case.image | tojson }},
-                is_active: {{ case.is_active | tojson }},
-                is_approved: {{ case.is_approved | tojson }}
-            }{% if not loop.last %},{% endif %}
-            {% endfor %}
-        ];
-        const CASES_PER_PAGE = 5;
-        let myCasesCurrentPage = 1;
-        function renderMyCasesPage(page) {
-            const list = document.getElementById('myCasesList');
-            list.innerHTML = '';
-            const start = (page-1)*CASES_PER_PAGE;
-            const end = start + CASES_PER_PAGE;
-            const casesToShow = myCases.slice(start, end);
-            casesToShow.forEach(function(caseObj) {
-                const li = document.createElement('li');
-                li.className = 'my-case-item' + (!caseObj.is_active || !caseObj.is_approved ? ' disabled' : '');
-                li.setAttribute('data-case-name', caseObj.name);
-                li.setAttribute('data-is-active', caseObj.is_active);
-                li.setAttribute('data-is-approved', caseObj.is_approved);
-                li.style = 'background:#181d23; border-radius:8px; padding:14px 18px; display:flex; align-items:center; gap:18px; position:relative; cursor:pointer;';
-                let caseContent = '';
-                if (caseObj.is_active && caseObj.is_approved) {
-                    caseContent += `<div style=\"display:flex;align-items:center;gap:12px;width:100%\">`;
-                    caseContent += `<img src=\"/static/cases/${caseObj.image}\" alt=\"${caseObj.name}\" style=\"width:48px; height:48px; border-radius:8px; object-fit:cover; background:#222; border:1px solid #2979ff;\">`;
-                    caseContent += `<div style=\"font-size:16px; color:#fff; font-weight:bold;\">${caseObj.name}</div>`;
-                    caseContent += `</div>`;
-                } else {
-                    caseContent += `<div style=\"display:flex;align-items:center;gap:12px;\">`;
-                    caseContent += `<img src=\"/static/cases/${caseObj.image}\" alt=\"${caseObj.name}\" style=\"width:48px; height:48px; border-radius:8px; object-fit:cover; background:#222; border:1px solid #2979ff;\">`;
-                    caseContent += `<div style=\"font-size:16px; color:#fff; font-weight:bold;\">${caseObj.name}</div>`;
-                    caseContent += `</div>`;
-                }
-                li.innerHTML = caseContent;
-                if (caseObj.is_active && caseObj.is_approved) {
-                    li.addEventListener('click', function() {
-                        window.location.href = '/case/' + encodeURIComponent(caseObj.name);
-                });
-                }
-                list.appendChild(li);
-            });
-        }
-        function renderMyCasesPagination(page) {
-            const pag = document.getElementById('myCasesPagination');
-            pag.innerHTML = '';
-            const totalPages = Math.ceil(myCases.length / CASES_PER_PAGE);
-            if (totalPages <= 1) return;
-            let pages = [];
-            if (totalPages <= 5) {
-                for (let i = 1; i <= totalPages; i++) pages.push(i);
-            } else {
-                if (page <= 3) {
-                    pages = [1, 2, 3, 4, '...', totalPages];
-                } else if (page >= totalPages - 2) {
-                    pages = [1, '...', totalPages - 3, totalPages - 2, totalPages - 1, totalPages];
-                } else {
-                    pages = [1, '...', page - 1, page, page + 1, '...', totalPages];
-                }
-            }
-            let lastWasDots = false;
-            pages.forEach(p => {
-                if (p === '...') {
-                    if (!lastWasDots) {
-                        const span = document.createElement('span');
-                        span.textContent = '...';
-                        span.style = 'padding: 6px 12px; color: #fff;';
-                        pag.appendChild(span);
-                        lastWasDots = true;
-                    }
-                } else {
-                    const btn = document.createElement('button');
-                    btn.textContent = p;
-                    btn.style = 'padding: 6px 12px; border-radius: 4px; border: none; background:' + (p === page ? '#2979ff' : '#222') + '; color: #fff; margin: 0 2px; cursor:pointer;';
-                    if (p === page) btn.disabled = true;
-                    btn.onclick = () => showMyCasesPage(p);
-                    pag.appendChild(btn);
-                    lastWasDots = false;
-                }
-            });
-        }
-        function showMyCasesPage(page) {
-            myCasesCurrentPage = page;
-            renderMyCasesPage(page);
-            renderMyCasesPagination(page);
-        }
-        showMyCasesPage(myCasesCurrentPage);
-        const balanceMenu = document.getElementById("balanceMenu");
-        const toggleBalanceBtn = document.getElementById("toggleBalanceMenu");
-        const addMoneyBtn = document.getElementById("addMoneyBtn");
-        const amountInput = document.getElementById("amountInput");
-        function parseMoney(value) {
-            if (typeof value === 'number') return value;
-            const cleaned = String(value).replace(/[^\d.,]/g, '').replace(',', '.');
-            return parseFloat(cleaned) || 0;
-        }
-        function formatBalances() {
-            document.querySelectorAll('.user-balance, .balance').forEach(el => {
-                const num = parseMoney(el.textContent);
-                el.textContent = `Баланс: ${num.toFixed(2)}`;
-            });
-        }
-        if (toggleBalanceBtn && balanceMenu) {
-            toggleBalanceBtn.addEventListener("click", function(event) {
-                event.stopPropagation();
-                balanceMenu.style.display = balanceMenu.style.display === "flex" ? "none" : "flex";
-            });
-        }
-        document.addEventListener("click", function(event) {
-            if (!event.target.closest('.user-profile')) {
-                balanceMenu.style.display = "none";
-            }
-        });
-        if (addMoneyBtn) {
-            addMoneyBtn.addEventListener('click', async function() {
-                const amount = parseMoney(amountInput.value);
-                if (isNaN(amount) || amount <= 0) {
-                    alert('Введите корректную сумму');
-                    return;
-                }
-                try {
-                    const response = await fetch(`/user/add_money/${amount}`, {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' }
-                    });
-                    const result = await response.json();
-                    if (response.ok) {
-                        document.querySelectorAll('.user-balance, .balance').forEach(el => {
-                            el.textContent = `Баланс: ${parseFloat(result.new_balance).toFixed(2)}`;
-                        });
-                        balanceMenu.style.display = 'none';
-                        amountInput.value = '';
-                    } else {
-                        throw new Error(result.detail || 'Ошибка пополнения');
-                    }
-                } catch (error) {
-                    alert(error.message);
-                }
-            });
-        }
-        formatBalances();
-    });
-</script>
-
-<div id="confirmation-modal" class="modal">
-    <div class="modal-content">
-        <h3>Подтверждение продажи</h3>
-        <p id="confirmation-message"></p>
-        <div class="modal-buttons">
-            <button id="confirm-sell">Да</button>
-            <button id="cancel-sell">Нет</button>
         </div>
     </div>
-</div>
 
+    <div id="notificationsOverlay" style="display:none; position:fixed; left:0; top:0; width:100vw; height:100vh; background:rgba(18,22,30,0.65); z-index:10000; align-items:center; justify-content:center;">
+        <div style="background:#23272e; border-radius:16px; max-width:500px; width:90vw; margin:0 auto; box-shadow:0 2px 24px #2979ff33; padding:32px 24px 24px 24px; position:relative; display:flex; flex-direction:column; align-items:center;">
+            <span id="closeNotificationsOverlay" style="position:absolute; top:18px; right:24px; font-size:28px; color:#aaa; cursor:pointer;">&times;</span>
+            <div style="font-size:22px; color:#aeeaff; font-weight:bold; margin-bottom:18px;">Уведомления</div>
+            <ul id="notificationsList" style="list-style:none; padding:0; margin:0; width:100%; display:flex; flex-direction:column; gap:12px; max-height:60vh; overflow-y:auto;">
+                {% for notification in notifications %}
+                <li class="notification-item">
+                    <div class="notification-content">
+                        <div class="notification-text">{{ notification.text }}</div>
+                        <div class="notification-time">{{ notification.created.strftime('%d.%m.%Y %H:%M') }}</div>
+                    </div>
+                    {% if notification.type == 'request' %}
+                    {% set sender_username = notification.notification_sender.username %}
+                    <div class="notification-actions">
+                        <form class="accept-form" data-username="{{ sender_username }}" method="POST">
+                            <button type="submit" class="friend-btn accept">
+                                <i class="fas fa-check"></i>
+                            </button>
+                        </form>
+                        <form class="reject-form" data-username="{{ sender_username }}" method="POST">
+                            <button type="submit" class="friend-btn reject">
+                                <i class="fas fa-times"></i>
+                            </button>
+                        </form>
+                    </div>
+                    {% endif %}
+                </li>
+                {% else %}
+                <li style="text-align:center; color:#777;">Нет уведомлений</li>
+                {% endfor %}
+            </ul>
+        </div>
+    </div>
+
+    <script>
+        function showNotification(message, isError = false) {
+            const notification = document.createElement('div');
+            notification.className = `notification ${isError ? 'error' : ''}`;
+            notification.textContent = message;
+            document.body.appendChild(notification);
+            setTimeout(() => {
+                notification.style.opacity = '0';
+                setTimeout(() => notification.remove(), 300);
+            }, 3000);
+        }
+
+        document.addEventListener('DOMContentLoaded', function() {
+            const profileUsername = {{ profile_user.username | tojson }};
+            const currentUsername = "{{ username }}";
+            const friendButtonsContainer = document.getElementById('friendButtons');
+
+            document.getElementById('myCasesOverlay').addEventListener('click', function(e) {
+                if (e.target === this) this.style.display = 'none';
+            });
+            document.getElementById('notificationsOverlay').addEventListener('click', function(e) {
+                if (e.target === this) this.style.display = 'none';
+            });
+
+            const friendButtons = [
+                'sendFriendRequestBtn',
+                'cancelFriendRequestBtn',
+                'acceptFriendRequestBtn',
+                'rejectFriendRequestBtn',
+                'deleteFriendBtn'
+            ];
+
+            friendButtons.forEach(btnId => {
+                const btn = document.getElementById(btnId);
+                if (btn) {
+                    btn.addEventListener('click', async function() {
+                        const actionMap = {
+                            sendFriendRequestBtn: `request/${encodeURIComponent(profileUsername)}`,
+                            cancelFriendRequestBtn: `cancel/${encodeURIComponent(profileUsername)}`,
+                            acceptFriendRequestBtn: `accept/${encodeURIComponent(profileUsername)}`,
+                            rejectFriendRequestBtn: `reject/${encodeURIComponent(profileUsername)}`,
+                            deleteFriendBtn: `friend/delete/${encodeURIComponent(profileUsername)}`
+                        };
+
+                        const originalHtml = btn.innerHTML;
+                        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+                        btn.disabled = true;
+
+                        try {
+                            const response = await fetch(`/user/${actionMap[btnId]}`, {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json' }
+                            });
+
+                            const contentType = response.headers.get('content-type');
+                            if (contentType && contentType.includes('application/json')) {
+                                const result = await response.json();
+                                if (response.ok) {
+                                    const successMessages = {
+                                        sendFriendRequestBtn: 'Заявка отправлена!',
+                                        cancelFriendRequestBtn: 'Заявка отменена',
+                                        acceptFriendRequestBtn: 'Заявка принята!',
+                                        rejectFriendRequestBtn: 'Заявка отклонена',
+                                        deleteFriendBtn: 'Удален из друзей'
+                                    };
+
+                                    showNotification(successMessages[btnId]);
+
+                                    document.querySelectorAll('.friend-btn').forEach(b => b.style.display = 'none');
+
+                                    if (btnId === 'sendFriendRequestBtn') {
+                                        document.getElementById('cancelFriendRequestBtn').style.display = 'flex';
+                                    } else if (btnId === 'cancelFriendRequestBtn' || btnId === 'rejectFriendRequestBtn') {
+                                        document.getElementById('sendFriendRequestBtn').style.display = 'flex';
+                                    } else if (btnId === 'acceptFriendRequestBtn') {
+                                        document.getElementById('deleteFriendBtn').style.display = 'flex';
+                                    } else {
+                                        document.getElementById('sendFriendRequestBtn').style.display = 'flex';
+                                    }
+                                } else {
+                                    throw new Error(result.detail || 'Ошибка операции');
+                                }
+                            } else {
+                                throw new Error('Ошибка сервера');
+                            }
+                        } catch (error) {
+                            showNotification(error.message, true);
+                        } finally {
+                            btn.innerHTML = originalHtml;
+                            btn.disabled = false;
+                        }
+                    });
+                }
+            });
+
+            document.querySelectorAll('.accept-form').forEach(form => {
+                form.addEventListener('submit', async function(e) {
+                    e.preventDefault();
+                    const username = this.getAttribute('data-username');
+                    const button = this.querySelector('button');
+                    const originalHtml = button.innerHTML;
+
+                    button.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+                    button.disabled = true;
+
+                    try {
+                        const response = await fetch(`/user/accept/${encodeURIComponent(username)}`, {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' }
+                        });
+
+                        const contentType = response.headers.get('content-type');
+                        if (contentType && contentType.includes('application/json')) {
+                            const result = await response.json();
+                            if (response.ok) {
+                                showNotification('Заявка принята!');
+                                location.reload();
+                            } else {
+                                throw new Error(result.detail || 'Ошибка при принятии заявки');
+                            }
+                        } else {
+                            throw new Error('Ошибка сервера');
+                        }
+                    } catch (error) {
+                        showNotification(error.message, true);
+                    } finally {
+                        button.innerHTML = originalHtml;
+                        button.disabled = false;
+                    }
+                });
+            });
+
+            document.querySelectorAll('.reject-form').forEach(form => {
+                form.addEventListener('submit', async function(e) {
+                    e.preventDefault();
+                    const username = this.getAttribute('data-username');
+                    const button = this.querySelector('button');
+                    const originalHtml = button.innerHTML;
+
+                    button.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+                    button.disabled = true;
+
+                    try {
+                        const response = await fetch(`/user/reject/${encodeURIComponent(username)}`, {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' }
+                        });
+
+                        const contentType = response.headers.get('content-type');
+                        if (contentType && contentType.includes('application/json')) {
+                            const result = await response.json();
+                            if (response.ok) {
+                                showNotification('Заявка отклонена');
+                                location.reload();
+                            } else {
+                                throw new Error(result.detail || 'Ошибка при отклонении заявки');
+                            }
+                        } else {
+                            throw new Error('Ошибка сервера');
+                        }
+                    } catch (error) {
+                        showNotification(error.message, true);
+                    } finally {
+                        button.innerHTML = originalHtml;
+                        button.disabled = false;
+                    }
+                });
+            });
+
+            // Кейсы пользователя
+            const toggleBtn = document.getElementById('toggleCasesBtn');
+            const overlay = document.getElementById('myCasesOverlay');
+            const closeBtn = document.getElementById('closeCasesOverlay');
+            if (toggleBtn) toggleBtn.onclick = () => overlay.style.display = 'flex';
+            if (closeBtn) closeBtn.onclick = () => overlay.style.display = 'none';
+
+            const myCases = [
+            {% for case in profile_cases %}
+                {
+                    name: {{ case.name | tojson }},
+                    image: {{ case.image | tojson }},
+                    is_active: {{ case.is_active | tojson }},
+                    is_approved: {{ case.is_approved | tojson }}
+                }{% if not loop.last %},{% endif %}
+            {% endfor %}
+            ];
+
+            const CASES_PER_PAGE = 5;
+            let myCasesCurrentPage = 1;
+
+            function renderMyCasesPage(page) {
+                const list = document.getElementById('myCasesList');
+                list.innerHTML = '';
+                const start = (page - 1) * CASES_PER_PAGE;
+                const end = start + CASES_PER_PAGE;
+                const casesToShow = myCases.slice(start, end);
+
+                casesToShow.forEach(caseObj => {
+                    const li = document.createElement('li');
+                    li.style = 'background:#181d23; border-radius:8px; padding:14px 18px; display:flex; align-items:center; gap:18px; position:relative; cursor:pointer;';
+                    const isActive = caseObj.is_active && caseObj.is_approved;
+
+                    if (isActive) {
+                        li.addEventListener('click', () => window.location.href = '/case/' + encodeURIComponent(caseObj.name));
+                    }
+
+                    li.innerHTML = `
+                        <img src="/static/cases/${caseObj.image}" alt="${caseObj.name}" style="width:48px; height:48px; border-radius:8px; object-fit:cover; background:#222; border:1px solid #2979ff;">
+                        <div style="font-size:16px; color:#fff; font-weight:bold;">${caseObj.name}</div>
+                    `;
+                    list.appendChild(li);
+                });
+            }
+
+            function renderMyCasesPagination(page) {
+                const pag = document.getElementById('myCasesPagination');
+                pag.innerHTML = '';
+                const totalPages = Math.ceil(myCases.length / CASES_PER_PAGE);
+                if (totalPages <= 1) return;
+
+                const pages = [];
+                if (totalPages <= 5) {
+                    for (let i = 1; i <= totalPages; i++) pages.push(i);
+                } else {
+                    if (page <= 3) {
+                        pages.push(1, 2, 3, 4, '...', totalPages);
+                    } else if (page >= totalPages - 2) {
+                        pages.push(1, '...', totalPages - 3, totalPages - 2, totalPages - 1, totalPages);
+                    } else {
+                        pages.push(1, '...', page - 1, page, page + 1, '...', totalPages);
+                    }
+                }
+
+                let lastWasDots = false;
+                pages.forEach(p => {
+                    if (p === '...') {
+                        if (!lastWasDots) {
+                            const span = document.createElement('span');
+                            span.textContent = '...';
+                            span.style = 'padding: 6px 12px; color: #fff;';
+                            pag.appendChild(span);
+                            lastWasDots = true;
+                        }
+                    } else {
+                        const btn = document.createElement('button');
+                        btn.textContent = p;
+                        btn.style = `padding: 6px 12px; border-radius: 4px; border: none; background: ${p === page ? '#2979ff' : '#222'}; color: #fff; margin: 0 2px; cursor:pointer;`;
+                        if (p === page) btn.disabled = true;
+                        btn.onclick = () => showMyCasesPage(p);
+                        pag.appendChild(btn);
+                        lastWasDots = false;
+                    }
+                });
+            }
+
+            function showMyCasesPage(page) {
+                myCasesCurrentPage = page;
+                renderMyCasesPage(page);
+                renderMyCasesPagination(page);
+            }
+
+            showMyCasesPage(myCasesCurrentPage);
+        });
+    </script>
 </body>
 </html>

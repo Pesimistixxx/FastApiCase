@@ -7,14 +7,17 @@ from apscheduler.schedulers.asyncio import AsyncIOScheduler
 import httpx
 from dotenv import load_dotenv
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select, Column, Integer, String, Float, Boolean
-from sqlalchemy.orm import declarative_base
+from sqlalchemy import select
 
+from app.skin.models import Skin_model
+from app.models_associations import Case_Skin_model  # noqa: F401
+from app.case.models import Case_model  # noqa: F401
+from app.auth.models import User_model  # noqa: F401
+from app.battles.models import Battle_model  # noqa: F401
+from app.notification.models import Notification_model  # noqa: F401
 from db.db_depends import get_db
 
 load_dotenv()
-
-Base = declarative_base()
 
 logging.basicConfig(
     level=logging.INFO,
@@ -24,18 +27,11 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 
-class Skin_model(Base):
-    __tablename__ = 'skins'
-
-    id = Column(Integer, primary_key=True, index=True)
-    tag = Column(String)
-    price = Column(Float)
-    is_active = Column(Boolean, default=True)
-
-
 async def fetch_steam_prices(db: AsyncSession, client: httpx.AsyncClient):
     try:
-        result = await db.execute(select(Skin_model).where(Skin_model.is_active))
+        result = await db.execute(select(Skin_model)
+                                  .where(Skin_model.is_active,
+                                         Skin_model.is_trackable))
         items = result.scalars().all()
 
         for item in items:

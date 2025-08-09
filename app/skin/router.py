@@ -4,9 +4,10 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, insert, desc
 import pandas as pd
 from sqlalchemy.orm import selectinload
+from fastapi.responses import RedirectResponse
 
 from app.auth.models import User_model
-from app.auth.security import get_user
+from app.auth.security import get_user, get_current_user_or_none
 from app.models_associations import User_Skin_model
 from app.skin.models import Skin_model
 from db.db_depends import get_db
@@ -102,16 +103,30 @@ async def get_skin(db: Annotated[AsyncSession, Depends(get_db)],
             'next_skin': next_skin}
 
 
-async def add_all_skins_to_db(db: AsyncSession):
+@skinRouter.post('/update')
+async def post_add_all_skins(db: Annotated[AsyncSession, Depends(get_db)],
+                             user: User_model | None = Depends(get_current_user_or_none)):
+    if not user or not user.is_admin:
+        return RedirectResponse('/')
+
     df = pd.read_csv('skins_with_filenames.csv')
+    existing_tags_result = await db.execute(select(Skin_model.tag))
+    existing_tags = {tag[0] for tag in existing_tags_result.all()}
+    new_skins = []
+
     for index, row in df.iterrows():
-        await db.execute(insert(Skin_model).values(
-            name=row['name'],
-            quality=row['quality'],
-            tag=row['tag'],
-            image=row['image']
-        ))
-    await db.commit()
+        if row['tag'] not in existing_tags:
+            new_skins.append({
+                "name": row['name'],
+                "quality": row['quality'],
+                "tag": row['tag'],
+                "image": row['image']
+            })
+    if new_skins:
+        await db.execute(insert(Skin_model), new_skins)
+        await db.commit()
+
+    return {"status": "success", "added": len(new_skins)}
 
 
 # @skinRouter.post('/delete_all_skins')

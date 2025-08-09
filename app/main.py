@@ -3,7 +3,7 @@ from typing import Annotated
 import uvicorn
 from fastapi import FastAPI, Request, Depends
 from fastapi.templating import Jinja2Templates
-from sqlalchemy import select, desc
+from sqlalchemy import select, desc, func
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 from fastapi.middleware.cors import CORSMiddleware
@@ -17,13 +17,15 @@ from app.auth.router import authRouter
 from app.battles.router import battleRouter
 from app.case.models import Case_model
 from app.case.router import caseRouter
+from app.chat.models import Message_model
+from app.chat.router import chatRouter
 from app.contracts.router import contractRouter
 from app.models_associations import User_Skin_model
-from app.skin.models import Skin_model
-from app.skin.router import skinRouter, add_all_skins_to_db
+from app.notification.models import Notification_model
+from app.notification.router import notificationRouter
+from app.skin.router import skinRouter
 from app.tops.router import topRouter
 from app.upgrades.router import upgradeRouter
-from db.db import async_session
 from db.db_depends import get_db
 
 app = FastAPI(docs_url=None,
@@ -49,15 +51,8 @@ app.include_router(topRouter)
 app.include_router(contractRouter)
 app.include_router(adminRouter)
 app.include_router(battleRouter)
-
-
-@app.on_event("startup")
-async def startup_event():
-    async with async_session() as db:
-        result = await db.execute(select(Skin_model))
-        skins = result.scalars().first()
-        if not skins:
-            await add_all_skins_to_db(db)
+app.include_router(notificationRouter)
+app.include_router(chatRouter)
 
 
 @app.get('/')
@@ -77,18 +72,42 @@ async def get_main_page(request: Request,
         Case_model.is_active,
         Case_model.is_approved
     ).order_by(desc('id')))
+    notifications = await db.scalars(select(Notification_model)
+                                     .where(Notification_model.notification_receiver_id == user.id,
+                                            Notification_model.is_active)
+                                     .order_by(desc(Notification_model.created)))
+
+    new_notifications = await db.scalars(select(Notification_model)
+                                         .where(Notification_model.notification_receiver_id == user.id,
+                                                Notification_model.is_active,
+                                                ~Notification_model.is_checked)
+                                         .order_by(Notification_model.created))
+    new_messages = await db.scalars(
+        select(
+            Message_model.chat_id,
+            func.count(Message_model.id).label('unread_count')
+        )
+        .where(
+            Message_model.author_id != user.id,
+            ~Message_model.is_checked
+        )
+        .group_by(Message_model.chat_id)
+    )
+
     if user:
         return templates.TemplateResponse('main.html', {'request': request,
                                                         'user': user,
-                                                        'username': user.username,
-                                                        'balance': user.balance,
                                                         'last_skins': last_skins,
                                                         'cases': cases,
-                                                        'is_admin': user.is_admin})
+                                                        'notifications_cnt': len(new_notifications.all()),
+                                                        'new_messages_cnt': len(new_messages.all()),
+                                                        'notifications': notifications.all(),
+                                                        })
 
     return templates.TemplateResponse('main.html', {'request': request,
                                                     'last_skins': last_skins,
-                                                    'cases': cases})
+                                                    'cases': cases,
+                                                    'user': None})
 
 
 if __name__ == '__main__':

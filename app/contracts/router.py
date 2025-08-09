@@ -2,15 +2,17 @@ import random
 from typing import Annotated
 from fastapi import APIRouter, Request, Depends, status
 from fastapi.responses import RedirectResponse
-from sqlalchemy import select, insert, desc
+from sqlalchemy import select, insert, desc, func
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 from starlette.templating import Jinja2Templates
 
 from app.auth.models import User_model
+from app.chat.models import Message_model
 from app.contracts.schemas import ContractRequest
 from app.models_associations import User_Skin_model
 from app.auth.security import get_current_user_or_none
+from app.notification.models import Notification_model
 from app.skin.models import Skin_model
 from db.db_depends import get_db
 
@@ -31,12 +33,36 @@ async def get_contract(request: Request,
     ).options(selectinload(User_Skin_model.skin))
      .order_by(desc('id')))
 
-    return templates.TemplateResponse('contract.html', {'request': request,
-                                                        'user': user,
-                                                        'balance': user.balance,
-                                                        'username': user.username,
-                                                        'user_skins': user_skins.all(),
-                                                        'is_admin': user.is_admin})
+    notifications = await db.scalars(select(Notification_model)
+                                     .where(Notification_model.notification_receiver_id == user.id,
+                                            Notification_model.is_active)
+                                     .order_by(desc(Notification_model.created)))
+
+    new_notifications = await db.scalars(select(Notification_model)
+                                         .where(Notification_model.notification_receiver_id == user.id,
+                                                Notification_model.is_active,
+                                                ~Notification_model.is_checked)
+                                         .order_by(Notification_model.created))
+    new_messages = await db.scalars(
+        select(
+            Message_model.chat_id,
+            func.count(Message_model.id).label('unread_count')
+        )
+        .where(
+            Message_model.author_id != user.id,
+            ~Message_model.is_checked
+        )
+        .group_by(Message_model.chat_id)
+    )
+
+    return templates.TemplateResponse('contract.html',
+                                      {'request': request,
+                                       'user': user,
+                                       'user_skins': user_skins.all(),
+                                       'notifications': notifications.all(),
+                                       'notifications_cnt': len(new_notifications.all()),
+                                       'new_messages_cnt': len(new_messages.all())
+                                       })
 
 
 @contractRouter.post('/')

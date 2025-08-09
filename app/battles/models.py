@@ -1,9 +1,10 @@
+from datetime import datetime
 from typing import List, TYPE_CHECKING
 
-from sqlalchemy import ForeignKey
+from sqlalchemy import ForeignKey, DateTime, func
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
-from db.db import Base
+from db.base import Base
 
 if TYPE_CHECKING:
     from app.models_associations import User_Battle_model
@@ -22,6 +23,8 @@ class Battle_model(Base):
     is_active: Mapped[bool] = mapped_column(default=True, server_default='True')
     is_started: Mapped[bool] = mapped_column(default=False, server_default='False')
     host: Mapped[int] = mapped_column(ForeignKey('users.id'), nullable=False)
+    created: Mapped[datetime] = mapped_column(DateTime, server_default=func.now())
 
-    users: Mapped[List["User_Battle_model"]] = relationship("User_Battle_model", back_populates="battle")
+    users: Mapped[List["User_Battle_model"]] = relationship("User_Battle_model",
+                                                            back_populates="battle", cascade="all, delete")
     case: Mapped["Case_model"] = relationship("Case_model", back_populates="battle")

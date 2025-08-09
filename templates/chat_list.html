@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Мои чаты</title>
+    <meta name="description" content="Список чатов">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+    <link rel="icon" href="/static/icons/ico.png" type="image/png">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #121212;
+            margin: 0;
+            padding: 0;
+            color: #ffffff;
+            overflow-x: hidden;
+        }
+
+        .main-container {
+            max-width: 800px;
+            margin: 40px auto;
+            padding: 0 20px;
+        }
+
+        .chats-container {
+            background-color: #1e1e1e;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+        }
+
+        .chats-header {
+            padding: 20px;
+            border-bottom: 1px solid #333;
+        }
+
+        .chats-title {
+            font-size: 24px;
+            font-weight: bold;
+            color: #2979ff;
+            text-align: center;
+        }
+
+        .chat-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        .chat-item {
+            display: flex;
+            padding: 15px 20px;
+            border-bottom: 1px solid #333;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+
+        .chat-item:hover {
+            background-color: #2a2a2a;
+        }
+
+        .chat-avatar {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            object-fit: cover;
+            margin-right: 15px;
+            border: 2px solid #2979ff;
+        }
+
+        .chat-info {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+
+        .chat-name {
+            font-weight: bold;
+            font-size: 18px;
+            color: #fff;
+            margin-bottom: 5px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .chat-last-message {
+            font-size: 14px;
+            color: #aaa;
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .chat-last-message-text {
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            max-width: 80%;
+        }
+
+        .chat-time {
+            font-size: 12px;
+            color: #777;
+        }
+
+        .unread-count {
+            background-color: #2979ff;
+            color: white;
+            border-radius: 50%;
+            width: 24px;
+            height: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            font-weight: bold;
+        }
+
+        .no-chats {
+            text-align: center;
+            padding: 40px 20px;
+            color: #777;
+        }
+
+        .chat-right-container {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end;
+            gap: 4px;
+        }
+        .chat-info {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+
+        .chat-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 5px;
+        }
+
+        .chat-name {
+            font-weight: bold;
+            font-size: 18px;
+            color: #fff;
+        }
+
+        .chat-time {
+            font-size: 12px;
+            color: #777;
+            white-space: nowrap;
+        }
+
+        .chat-message-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .chat-last-message-text {
+            font-size: 14px;
+            color: #aaa;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            max-width: 80%;
+        }
+
+        .unread-count {
+            background-color: #2979ff;
+            color: white;
+            border-radius: 50%;
+            width: 24px;
+            height: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            font-weight: bold;
+            flex-shrink: 0;
+            margin-left: 10px;
+        }
+    </style>
+</head>
+<body>
+{% include 'includes/navbar.html' %}
+
+<div class="main-container">
+    <div class="chats-container">
+        <div class="chats-header">
+            <div class="chats-title">Мои чаты</div>
+        </div>
+
+        {% if chats|length > 0 %}
+            <ul class="chat-list">
+                {% for chat in chats %}
+                    <li class="chat-item" data-chat-id="{{ chat.id }}">
+                        <img src="/static/avatars/{{ chat.other_user.avatar }}"
+                             alt="Аватар пользователя"
+                             class="chat-avatar"
+                             onerror="this.onerror=null; this.src='https://via.placeholder.com/100'">
+                        <div class="chat-info">
+                            <div class="chat-header">
+                                <div class="chat-name">{{ chat.other_user.username }}</div>
+                                {% if chat.last_message %}
+                                    <div class="chat-time">
+                                        {% set now = datetime.now() %}
+                                        {% set msg_date = chat.last_message.message_date %}
+                                        {% set diff = now - msg_date %}
+                                        {% if diff.days == 0 %}
+                                            {{ msg_date.strftime('%H:%M') }}
+                                        {% elif diff.days == 1 %}
+                                            Вчера
+                                        {% else %}
+                                            {{ msg_date.strftime('%d.%m.%Y') }}
+                                        {% endif %}
+                                    </div>
+                                {% endif %}
+                            </div>
+                            <div class="chat-message-row">
+                                {% if chat.last_message %}
+                                    <div class="chat-last-message-text">
+                                        {% if chat.last_message.author_id == user.id %}
+                                            Вы:
+                                        {% endif %}
+                                        {{ chat.last_message.message|truncate(30) }}
+                                    </div>
+                                {% else %}
+                                    <div class="chat-last-message-text">Нет сообщений</div>
+                                {% endif %}
+                                {% if chat.unread_count > 0 %}
+                                    <div class="unread-count">{{ chat.unread_count }}</div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </li>
+                {% endfor %}
+            </ul>
+        {% else %}
+            <div class="no-chats">
+                <i class="fas fa-comment-slash" style="font-size: 48px; margin-bottom: 20px;"></i>
+                <h3>У вас пока нет чатов</h3>
+                <p>Начните общение с другими пользователями</p>
+            </div>
+        {% endif %}
+    </div>
+</div>
+
+<a href="https://t.me/pesim1st" target="_blank" id="contactAuthorBtn" title="Связаться с автором"
+   style="position:fixed; right:32px; bottom:32px; z-index:2000; background:#229ED9; color:#fff; border-radius:50px; box-shadow:0 4px 16px #0006; display:flex; align-items:center; gap:12px; padding:14px 22px 14px 18px; font-size:18px; font-weight:bold; text-decoration:none; transition:background 0.2s; opacity:0.5;">
+    <i class="fab fa-telegram-plane" style="font-size:26px;"></i>
+    <span style="font-size:17px; font-weight:500;">Автор</span>
+</a>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        document.querySelectorAll('.chat-item').forEach(item => {
+            item.addEventListener('click', function() {
+                const chatId = this.dataset.chatId;
+                window.location.href = `/chat/${chatId}`;
+            });
+        });
+    });
+</script>
+</body>
+</html>

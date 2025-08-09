@@ -1,6 +1,6 @@
 import asyncio
 from typing import Annotated
-from sqlalchemy import select, insert, desc, delete
+from sqlalchemy import select, insert, desc, delete, func
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 from fastapi import APIRouter, Depends, Path, HTTPException, status, Request
@@ -12,7 +12,9 @@ from app.battles.lobby_manager import manager
 from app.auth.models import User_model
 from app.auth.security import get_user, get_current_user_or_none
 from app.battles.models import Battle_model
+from app.chat.models import Message_model
 from app.models_associations import Case_Skin_model, User_Skin_model, User_Battle_model
+from app.notification.models import Notification_model
 from db.db_depends import get_db
 from app.case.models import Case_model
 from app.skin.models import Skin_model
@@ -33,16 +35,40 @@ async def get_case_list(db: Annotated[AsyncSession, Depends(get_db)]):
 
 @caseRouter.get('/create')
 async def get_case_create(request: Request,
+                          db: Annotated[AsyncSession, Depends(get_db)],
                           user: User_model | None = Depends(get_current_user_or_none)):
     if not user:
         return RedirectResponse('/user/login')
 
+    notifications = await db.scalars(select(Notification_model)
+                                     .where(Notification_model.notification_receiver_id == user.id,
+                                            Notification_model.is_active)
+                                     .order_by(desc(Notification_model.created)))
+
+    new_notifications = await db.scalars(select(Notification_model)
+                                         .where(Notification_model.notification_receiver_id == user.id,
+                                                Notification_model.is_active,
+                                                ~Notification_model.is_checked)
+                                         .order_by(Notification_model.created))
+    new_messages = await db.scalars(
+        select(
+            Message_model.chat_id,
+            func.count(Message_model.id).label('unread_count')
+        )
+        .where(
+            Message_model.author_id != user.id,
+            ~Message_model.is_checked
+        )
+        .group_by(Message_model.chat_id)
+    )
+
     return templates.TemplateResponse('case_create.html',
                                       {'request': request,
-                                       'username': user.username,
-                                       'balance': user.balance,
-                                       'avatar': user.avatar,
-                                       'is_admin': user.is_admin})
+                                       'notifications': notifications.all(),
+                                       'user': user,
+                                       'notifications_cnt': len(new_notifications.all()),
+                                       'new_messages_cnt': len(new_messages.all())
+                                       })
 
 
 @caseRouter.post('/calculate_probability')
@@ -109,7 +135,6 @@ async def post_create_case(db: Annotated[AsyncSession, Depends(get_db)],
             skin_id=skin_id
         ))
 
-    user.cases_create += 1
     user.activity_points += 100
     await db.commit()
 
@@ -135,14 +160,39 @@ async def get_edit_case(db: Annotated[AsyncSession, Depends(get_db)],
     if not user or not (user.is_admin or user.id == case.author_id):
         return RedirectResponse('/')
 
-    return templates.TemplateResponse('case_create.html', {
-        'request': request,
-        'username': user.username,
-        'balance': user.balance,
-        'avatar': user.avatar,
-        'is_admin': user.is_admin,
-        'case_data': case
-    })
+    notifications = await db.scalars(select(Notification_model)
+                                     .where(Notification_model.notification_receiver_id == user.id,
+                                            Notification_model.is_active)
+                                     .order_by(desc(Notification_model.created)))
+
+    new_notifications = await db.scalars(select(Notification_model)
+                                         .where(Notification_model.notification_receiver_id == user.id,
+                                                Notification_model.is_active,
+                                                ~Notification_model.is_checked)
+                                         .order_by(Notification_model.created))
+    new_messages = await db.scalars(
+        select(
+            Message_model.chat_id,
+            func.count(Message_model.id).label('unread_count')
+        )
+        .where(
+            Message_model.author_id != user.id,
+            ~Message_model.is_checked
+        )
+        .group_by(Message_model.chat_id)
+    )
+
+    return templates.TemplateResponse('case_create.html',
+                                      {'request': request,
+                                       'username': user.username,
+                                       'balance': user.balance,
+                                       'avatar': user.avatar,
+                                       'is_admin': user.is_admin,
+                                       'case_data': case,
+                                       'notifications': notifications.all(),
+                                       'notifications_cnt': len(new_notifications.all()),
+                                       'new_messages_cnt': len(new_messages.all())
+                                       })
 
 
 @caseRouter.patch('/{name}/retrieve')
@@ -187,6 +237,10 @@ async def patch_approve_case(db: Annotated[AsyncSession, Depends(get_db)],
     if author:
         author.activity_points += 900
         author.cases_create += 1
+        await db.execute(insert(Notification_model)
+                         .values(notification_receiver_id=author.id,
+                                 type='text',
+                                 text=f'Ваш кейс {case.name} был одобрен, поздравляю!'))
 
     case.is_approved = True
     await db.commit()
@@ -262,11 +316,12 @@ async def get_case(request: Request,
                    user: User_model | None = Depends(get_current_user_or_none),
                    name: str = Path()):
     case = await db.scalar(select(Case_model).where(
-        Case_model.is_approved,
         Case_model.name == name
     ))
 
     if not case:
+        return RedirectResponse('/')
+    if user and (not case.is_approved and not user.is_admin):
         return RedirectResponse('/')
 
     last_skins = await db.scalars(
@@ -288,18 +343,41 @@ async def get_case(request: Request,
                              .where(User_model.id == case.author_id,
                                     User_model.is_active))
 
+    notifications = await db.scalars(select(Notification_model)
+                                     .where(Notification_model.notification_receiver_id == user.id,
+                                            Notification_model.is_active)
+                                     .order_by(desc(Notification_model.created)))
+
+    new_notifications = await db.scalars(select(Notification_model)
+                                         .where(Notification_model.notification_receiver_id == user.id,
+                                                Notification_model.is_active,
+                                                ~Notification_model.is_checked)
+                                         .order_by(Notification_model.created))
+    new_messages = await db.scalars(
+        select(
+            Message_model.chat_id,
+            func.count(Message_model.id).label('unread_count')
+        )
+        .where(
+            Message_model.author_id != user.id,
+            ~Message_model.is_checked
+        )
+        .group_by(Message_model.chat_id)
+    )
+
     if user:
         return templates.TemplateResponse('case_opener.html', {'request': request,
                                                                'user': user,
-                                                               'username': user.username,
-                                                               'balance': user.balance,
                                                                'skins': skins,
                                                                'case_name': case.name,
                                                                'case_price': case.price,
                                                                'case_image': case.image,
                                                                'last_skins': last_skins,
                                                                'author': author,
-                                                               'is_admin': user.is_admin})
+                                                               'notifications': notifications.all(),
+                                                               'notifications_cnt': len(new_notifications.all()),
+                                                               'new_messages_cnt': len(new_messages.all())
+                                                               })
 
     return templates.TemplateResponse('case_opener.html', {'request': request,
                                                            'skins': skins,

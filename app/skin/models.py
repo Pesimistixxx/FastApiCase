@@ -1,12 +1,7 @@
-from typing import List, TYPE_CHECKING
+from typing import List
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
-from app.models_associations import Case_Skin_model
-from db.db import Base
-
-if TYPE_CHECKING:
-    from app.case.models import Case_model
-    from app.models_associations import User_Skin_model
+from db.base import Base
 
 
 class Skin_model(Base):
@@ -19,12 +14,13 @@ class Skin_model(Base):
     price: Mapped[float] = mapped_column(default=0.0)
     is_active: Mapped[bool] = mapped_column(default=True)
     image: Mapped[str]
+    is_trackable: Mapped[bool] = mapped_column(nullable=False, default=True, server_default='True')
 
-    case_associations: Mapped[List["Case_Skin_model"]] = relationship("Case_Skin_model", back_populates="skin")
+    case_associations: Mapped[List["Case_Skin_model"]] = relationship(back_populates="skin")
 
     cases: Mapped[List["Case_model"]] = relationship(
         "Case_model",
-        secondary="case_models",
+        secondary="cases_skins",
         viewonly=True,
         overlaps="case_associations"
     )

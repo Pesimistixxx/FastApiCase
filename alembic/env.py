@@ -8,7 +8,7 @@ from sqlalchemy.ext.asyncio import async_engine_from_config
 from alembic import context
 
 from db.config import settings
-from db.db import Base
+from db.base import Base
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.
@@ -31,6 +31,10 @@ from app.skin.models import Skin_model
 from app.case.models import Case_model
 from app.battles.models import Battle_model
 from app import models_associations
+from app.chat.models import Chat_model, Message_model
+from app.notification.models import Notification_model
+from app.models_associations import User_Chat_model, User_Battle_model, User_Skin_model, Case_Skin_model, User_Achievement_model
+from app.achievement.models import Achievement_model
 target_metadata = Base.metadata
 
 # other values from the config, defined by the needs of env.py,

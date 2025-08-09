@@ -3,7 +3,7 @@ from typing import Annotated
 from fastapi import APIRouter, Depends, Request, status, Path, WebSocket, WebSocketDisconnect, status as ws_status
 from fastapi.responses import RedirectResponse
 from fastapi.websockets import WebSocketState
-from sqlalchemy import select, insert
+from sqlalchemy import select, insert, func, update, desc
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 from starlette.templating import Jinja2Templates
@@ -14,7 +14,9 @@ from app.battles.lobby_manager import manager
 from app.battles.models import Battle_model
 from app.battles.schemas import BattleCreate
 from app.case.models import Case_model
+from app.chat.models import Message_model
 from app.models_associations import User_Battle_model
+from app.notification.models import Notification_model
 from db.db_depends import get_db
 
 battleRouter = APIRouter(prefix='/battle', tags=['battle, user, skins'])
@@ -28,13 +30,15 @@ async def get_battle_list(request: Request,
     if not user:
         return RedirectResponse('/')
 
+    battles_users_cnt = (select(func.count(User_Battle_model.user_id))
+                         .where(User_Battle_model.battle_id == Battle_model.id)
+                         .scalar_subquery())
     battles = await db.scalars(select(Battle_model)
                                .where(Battle_model.is_active,
-                                      ~Battle_model.is_started)
-                               .options(
-                                    selectinload(Battle_model.users)
-                                    .selectinload(User_Battle_model.user)))
-
+                                      ~Battle_model.is_started,
+                                      battles_users_cnt < Battle_model.players_cnt)
+                               .options(selectinload(Battle_model.users)
+                                        .selectinload(User_Battle_model.user)))
     battles_list = battles.all()
     user_battle_ids = set()
     for battle in battles_list:
@@ -42,13 +46,38 @@ async def get_battle_list(request: Request,
             if ub.user_id == user.id:
                 user_battle_ids.add(battle.id)
 
-    return templates.TemplateResponse('battle_list.html', {'request': request,
-                                                           'user': user,
-                                                           'balance': user.balance,
-                                                           'username': user.username,
-                                                           'is_admin': user.is_admin,
-                                                           'battles': battles_list,
-                                                           'user_battle_ids': user_battle_ids})
+    notifications = await db.scalars(select(Notification_model)
+                                     .where(Notification_model.notification_receiver_id == user.id,
+                                            Notification_model.is_active)
+                                     .order_by(desc(Notification_model.created)))
+
+    new_notifications = await db.scalars(select(Notification_model)
+                                         .where(Notification_model.notification_receiver_id == user.id,
+                                                Notification_model.is_active,
+                                                ~Notification_model.is_checked)
+                                         .order_by(Notification_model.created))
+
+    new_messages = await db.scalars(
+        select(
+            Message_model.chat_id,
+            func.count(Message_model.id).label('unread_count')
+        )
+        .where(
+            Message_model.author_id != user.id,
+            ~Message_model.is_checked
+        )
+        .group_by(Message_model.chat_id)
+    )
+
+    return templates.TemplateResponse('battle_list.html',
+                                      {'request': request,
+                                       'user': user,
+                                       'battles': battles_list,
+                                       'user_battle_ids': user_battle_ids,
+                                       'notifications': notifications.all(),
+                                       'notifications_cnt': len(new_notifications.all()),
+                                       'new_messages_cnt': len(new_messages.all())
+                                       })
 
 
 @battleRouter.get('/create')
@@ -61,12 +90,38 @@ async def get_create_battle(request: Request,
     cases = await db.scalars(select(Case_model)
                              .where(Case_model.is_active,
                                     Case_model.is_approved))
-    return templates.TemplateResponse('battle_create.html', {'request': request,
-                                                             'user': user,
-                                                             'balance': user.balance,
-                                                             'username': user.username,
-                                                             'is_admin': user.is_admin,
-                                                             'cases': cases.all()})
+
+    notifications = await db.scalars(select(Notification_model)
+                                     .where(Notification_model.notification_receiver_id == user.id,
+                                            Notification_model.is_active)
+                                     .order_by(desc(Notification_model.created)))
+
+    new_notifications = await db.scalars(select(Notification_model)
+                                         .where(Notification_model.notification_receiver_id == user.id,
+                                                Notification_model.is_active,
+                                                ~Notification_model.is_checked)
+                                         .order_by(Notification_model.created))
+
+    new_messages = await db.scalars(
+        select(
+            Message_model.chat_id,
+            func.count(Message_model.id).label('unread_count')
+        )
+        .where(
+            Message_model.author_id != user.id,
+            ~Message_model.is_checked
+        )
+        .group_by(Message_model.chat_id)
+    )
+
+    return templates.TemplateResponse('battle_create.html',
+                                      {'request': request,
+                                       'user': user,
+                                       'cases': cases.all(),
+                                       'notifications': notifications.all(),
+                                       'notifications_cnt': len(new_notifications.all()),
+                                       'new_messages_cnt': len(new_messages.all())
+                                       })
 
 
 @battleRouter.post('/create')
@@ -121,7 +176,9 @@ async def post_join_battle(db: Annotated[AsyncSession, Depends(get_db)],
                                     ~Battle_model.is_started)
                              .options(selectinload(Battle_model.users).selectinload(User_Battle_model.user)))
 
-    if not battle or user.id in [ub.user_id for ub in battle.users] or user.balance < battle.price:
+    if (not battle or user.id in [ub.user_id for ub in battle.users]
+            or user.balance < battle.price
+            or len(battle.users) >= battle.players_cnt):
         return RedirectResponse('/battle/', status_code=303)
     user.balance -= battle.price
 
@@ -168,17 +225,40 @@ async def get_battle_by_id(request: Request,
         for skin in case.skins
     ]
 
-    return templates.TemplateResponse('battle.html', {
-        'request': request,
-        'user': user,
-        'balance': user.balance,
-        'username': user.username,
-        'is_admin': user.is_admin,
-        'battle': battle,
-        'user_battles': user_battles,
-        'all_skins':  all_skins_serializable,
-        'case': case
-    })
+    notifications = await db.scalars(select(Notification_model)
+                                     .where(Notification_model.notification_receiver_id == user.id,
+                                            Notification_model.is_active)
+                                     .order_by(desc(Notification_model.created)))
+
+    new_notifications = await db.scalars(select(Notification_model)
+                                         .where(Notification_model.notification_receiver_id == user.id,
+                                                Notification_model.is_active,
+                                                ~Notification_model.is_checked)
+                                         .order_by(Notification_model.created))
+
+    new_messages = await db.scalars(
+        select(
+            Message_model.chat_id,
+            func.count(Message_model.id).label('unread_count')
+        )
+        .where(
+            Message_model.author_id != user.id,
+            ~Message_model.is_checked
+        )
+        .group_by(Message_model.chat_id)
+    )
+
+    return templates.TemplateResponse('battle.html',
+                                      {'request': request,
+                                       'user': user,
+                                       'battle': battle,
+                                       'user_battles': user_battles,
+                                       'all_skins': all_skins_serializable,
+                                       'case': case,
+                                       'notifications': notifications.all(),
+                                       'notifications_cnt': len(new_notifications.all()),
+                                       'new_messages_cnt': len(new_messages.all())
+                                       })
 
 
 @battleRouter.websocket('/{id}/ws')
@@ -222,11 +302,19 @@ async def websocket_lobby(websocket: WebSocket,
             try:
                 message = json.loads(data)
                 if message.get("type") == "start_battle" and user.id == battle.host:
-                    battle_to_start = await db.get(Battle_model, id)
+                    battle_to_start = await db.scalar(select(Battle_model)
+                                                      .where(Battle_model.id == id)
+                                                      .options(selectinload(Battle_model.users)))
                     if battle_to_start and not battle_to_start.is_started:
                         battle_to_start.is_started = True
-                        db.add(battle_to_start)
+                        await db.refresh(battle_to_start, ['users'])
+                        user_ids = [ub.user_id for ub in battle_to_start.users]
+                        print(user_ids)
+                        await db.execute(update(User_model).where(User_model.id.in_(user_ids)).values(
+                            battles_cnt=User_model.battles_cnt + 1
+                        ))
                         await db.commit()
+                        await manager.send_battle_started(id)
 
             except json.JSONDecodeError:
                 print("Invalid JSON received")

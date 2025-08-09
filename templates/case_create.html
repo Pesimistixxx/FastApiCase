@@ -25,12 +25,6 @@
             background-color: #1c54b2;
         }
 
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
         body {
             font-family: Arial, sans-serif;
             background-color: #121212;
@@ -73,6 +67,7 @@
             border-radius: 4px;
             color: #fff;
             font-size: 14px;
+            box-sizing: border-box;
         }
 
         .form-control:focus {
@@ -129,6 +124,7 @@
             border: 1px solid #444;
             border-radius: 4px;
             color: #fff;
+            box-sizing: border-box;
         }
 
         .remove-skin {
@@ -155,6 +151,7 @@
             cursor: pointer;
             margin-top: 25px;
             transition: background-color 0.3s;
+            box-sizing: border-box;
         }
 
         .create-btn:hover {
@@ -406,7 +403,7 @@
 
                 <div class="skins-section">
                     <div class="form-group">
-                        <label>Поиск скина</label>
+                        <label>Поиск скинов</label>
                         <div class="autocomplete">
                             <input type="text" id="skin-search" class="form-control" placeholder="Начните вводить название скина..." autocomplete="off" autocorrect="off">
                             <div id="autocomplete-items" class="autocomplete-items"></div>
@@ -483,8 +480,6 @@
             return parseFloat(cleaned) || 0;
         }
 
-
-
         function showErrorNotification(message) {
             const errorNotification = document.getElementById('errorNotification');
             const errorNotificationText = document.getElementById('errorNotificationText');
@@ -495,10 +490,9 @@
             }, 3000);
         }
 
-
-
         async function fetchAllSkins() {
             try {
+
                 const response = await fetch('/skin/list');
                 if (!response.ok) throw new Error('Ошибка загрузки скинов');
                 const skins = await response.json();
@@ -513,33 +507,16 @@
         let selectedSkins = [];
 
         document.addEventListener('DOMContentLoaded', async function() {
-            formatBalances();
-
-            document.getElementById("siteName").addEventListener("click", function() {
-                window.location.href = "/";
-            });
-            document.getElementById("siteLogo").addEventListener("click", function() {
-                window.location.href = "/";
-            });
-
-            toggleButton.addEventListener("click", function () {
-                balanceMenu.style.display = balanceMenu.style.display === "flex" ? "none" : "flex";
-            });
-
-            document.addEventListener("click", function (event) {
-                if (!document.querySelector(".user-profile").contains(event.target)) {
-                    balanceMenu.style.display = "none";
-                }
-            });
-
 
             allSkins = await fetchAllSkins();
+
             if (window.initialSkinIds && Array.isArray(window.initialSkinIds)) {
                 window.initialSkinIds.forEach(function(skinId) {
                     const skinObj = allSkins.find(s => s.id == skinId);
                     if (skinObj) addSkinToList(skinObj);
                 });
             }
+
             document.querySelectorAll('#skins-list tr[data-id]').forEach(function(row) {
                 const skinId = row.getAttribute('data-id');
                 if (!selectedSkins.some(s => s.id == skinId)) {
@@ -603,7 +580,7 @@
                     filteredSkins.forEach(skin => {
                         const item = document.createElement('div');
                         item.className = 'autocomplete-item';
-                        item.innerHTML = `<span>${skin.name}</span> <span style=\"float:right; color:#aeeaff; font-size:13px;\">${skin.price}</span>`;
+                        item.innerHTML = `<span>${skin.name}</span> <span style="float:right; color:#aeeaff; font-size:13px;">${skin.price}</span>`;
                         item.addEventListener('click', function() {
                             addSkinToList(skin);
                             skinSearch.value = '';
@@ -623,7 +600,7 @@
                     filteredSkins.forEach(skin => {
                         const item = document.createElement('div');
                         item.className = 'autocomplete-item';
-                        item.innerHTML = `<span>${skin.name}</span> <span style=\"float:right; color:#aeeaff; font-size:13px;\">${skin.price}</span>`;
+                        item.innerHTML = `<span>${skin.name}</span> <span style="float:right; color:#aeeaff; font-size:13px;">${skin.price}</span>`;
                         item.addEventListener('click', function() {
                             addSkinToList(skin);
                             skinSearch.value = '';
@@ -647,6 +624,7 @@
                 const skins = selectedSkins.map(s => s.id);
                 if (!avgDropPrice || !dropDeviation || skins.length === 0) return;
                 try {
+
                     const response = await fetch('/case/calculate_price', {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
@@ -662,7 +640,9 @@
                             document.getElementById('case-price').value = result.case_price;
                         }
                     }
+
                 } catch (e) {
+                    console.error('Ошибка расчета цены:', e);
                 }
             }
 
@@ -680,6 +660,7 @@
                 }
 
                 try {
+
                     const response = await fetch('/case/calculate_probability', {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
@@ -720,12 +701,15 @@
                 recalculateCasePrice();
                 recalculateChances();
             });
+
             document.getElementById('drop-deviation').addEventListener('input', function() {
                 recalculateCasePrice();
                 recalculateChances();
             });
 
             function addSkinToList(skin) {
+                if (selectedSkins.some(s => s.id === skin.id)) return;
+
                 selectedSkins.push(skin);
                 const skinsList = document.getElementById('skins-list');
                 const row = document.createElement('tr');
@@ -794,6 +778,8 @@
                 }
 
                 try {
+
+
                     const response = await fetch(url, {
                         method: method,
                         headers: {
@@ -805,7 +791,7 @@
                     if (!response.ok) {
                         const result = await response.json();
                         if (result.message && result.message.includes("уже занято")) {
-                        showErrorNotification('aad');
+                            showErrorNotification('aad');
                         }
                         if (result.detail && result.detail.includes("уже существует")) {
                             showErrorNotification("Кейс с таким именем уже существует");

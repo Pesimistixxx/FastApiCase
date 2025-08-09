@@ -72,29 +72,29 @@ async def get_main_page(request: Request,
         Case_model.is_active,
         Case_model.is_approved
     ).order_by(desc('id')))
-    notifications = await db.scalars(select(Notification_model)
-                                     .where(Notification_model.notification_receiver_id == user.id,
-                                            Notification_model.is_active)
-                                     .order_by(desc(Notification_model.created)))
-
-    new_notifications = await db.scalars(select(Notification_model)
-                                         .where(Notification_model.notification_receiver_id == user.id,
-                                                Notification_model.is_active,
-                                                ~Notification_model.is_checked)
-                                         .order_by(Notification_model.created))
-    new_messages = await db.scalars(
-        select(
-            Message_model.chat_id,
-            func.count(Message_model.id).label('unread_count')
-        )
-        .where(
-            Message_model.author_id != user.id,
-            ~Message_model.is_checked
-        )
-        .group_by(Message_model.chat_id)
-    )
 
     if user:
+        notifications = await db.scalars(select(Notification_model)
+                                         .where(Notification_model.notification_receiver_id == user.id,
+                                                Notification_model.is_active)
+                                         .order_by(desc(Notification_model.created)))
+
+        new_notifications = await db.scalars(select(Notification_model)
+                                             .where(Notification_model.notification_receiver_id == user.id,
+                                                    Notification_model.is_active,
+                                                    ~Notification_model.is_checked)
+                                             .order_by(Notification_model.created))
+        new_messages = await db.scalars(
+            select(
+                Message_model.chat_id,
+                func.count(Message_model.id).label('unread_count')
+            )
+            .where(
+                Message_model.author_id != user.id,
+                ~Message_model.is_checked
+            )
+            .group_by(Message_model.chat_id)
+        )
         return templates.TemplateResponse('main.html', {'request': request,
                                                         'user': user,
                                                         'last_skins': last_skins,

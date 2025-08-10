@@ -3,6 +3,7 @@ from typing import Annotated
 from fastapi import APIRouter, Depends, Request
 from sqlalchemy import select, desc, func
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.orm import selectinload
 from starlette.templating import Jinja2Templates
 
 from app.auth.models import User_model
@@ -57,29 +58,30 @@ async def get_top(db: Annotated[AsyncSession, Depends(get_db)],
     top_activity_dict = {user.username: user.activity_points for user in top_activity.all()}
     top_authors_dict = {user.username: user.author_case_opened for user in top_authors.all()}
     top_cases_dict = {case.name: case.opened_count for case in top_cases.all()}
-    notifications = await db.scalars(select(Notification_model)
-                                     .where(Notification_model.notification_receiver_id == user.id,
-                                            Notification_model.is_active)
-                                     .order_by(desc(Notification_model.created)))
-
-    new_notifications = await db.scalars(select(Notification_model)
-                                         .where(Notification_model.notification_receiver_id == user.id,
-                                                Notification_model.is_active,
-                                                ~Notification_model.is_checked)
-                                         .order_by(Notification_model.created))
-    new_messages = await db.scalars(
-        select(
-            Message_model.chat_id,
-            func.count(Message_model.id).label('unread_count')
-        )
-        .where(
-            Message_model.author_id != user.id,
-            ~Message_model.is_checked
-        )
-        .group_by(Message_model.chat_id)
-    )
 
     if user:
+        notifications = await db.scalars(select(Notification_model)
+                                         .where(Notification_model.notification_receiver_id == user.id,
+                                                Notification_model.is_active)
+                                         .order_by(desc(Notification_model.created))
+                                         .options(selectinload(Notification_model.notification_sender)))
+
+        new_notifications = await db.scalars(select(Notification_model)
+                                             .where(Notification_model.notification_receiver_id == user.id,
+                                                    Notification_model.is_active,
+                                                    ~Notification_model.is_checked)
+                                             .order_by(Notification_model.created))
+        new_messages = await db.scalars(
+            select(
+                Message_model.chat_id,
+                func.count(Message_model.id).label('unread_count')
+            )
+            .where(
+                Message_model.author_id != user.id,
+                ~Message_model.is_checked
+            )
+            .group_by(Message_model.chat_id)
+        )
         return templates.TemplateResponse('top.html', {'request': request,
                                                        'user': user,
                                                        'top_cases_open': top_cases_open_dict,

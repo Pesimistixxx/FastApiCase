@@ -157,7 +157,8 @@ async def get_user_profile(request: Request,
     notifications = await db.scalars(select(Notification_model)
                                      .where(Notification_model.notification_receiver_id == user.id,
                                             Notification_model.is_active)
-                                     .order_by(desc(Notification_model.created)))
+                                     .order_by(desc(Notification_model.created))
+                                     .options(selectinload(Notification_model.notification_sender)))
 
     new_notifications = await db.scalars(select(Notification_model)
                                          .where(Notification_model.notification_receiver_id == user.id,
@@ -280,7 +281,9 @@ async def get_another_user_profile(request: Request,
                                                                 })
 
     return templates.TemplateResponse('user_profile.html', {'request': request,
-                                                            'profile_cases': profile_cases.all()
+                                                            'profile_cases': profile_cases.all(),
+                                                            'user': None,
+                                                            'profile_user': profile_user,
                                                             })
 
 

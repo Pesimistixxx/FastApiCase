@@ -4,7 +4,7 @@ from fastapi.responses import RedirectResponse
 from fastapi.templating import Jinja2Templates
 from sqlalchemy import select, desc, func
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy.orm import joinedload
+from sqlalchemy.orm import joinedload, selectinload
 
 from app.auth.models import User_model
 from app.auth.security import get_current_user_or_none
@@ -27,10 +27,12 @@ async def get_admin_panel(request: Request,
     cases = await db.scalars(select(Case_model)
                              .options(joinedload(Case_model.author))
                              .order_by(Case_model.is_approved))
+
     notifications = await db.scalars(select(Notification_model)
                                      .where(Notification_model.notification_receiver_id == user.id,
                                             Notification_model.is_active)
-                                     .order_by(desc(Notification_model.created)))
+                                     .order_by(desc(Notification_model.created))
+                                     .options(selectinload(Notification_model.notification_sender)))
 
     new_notifications = await db.scalars(select(Notification_model)
                                          .where(Notification_model.notification_receiver_id == user.id,

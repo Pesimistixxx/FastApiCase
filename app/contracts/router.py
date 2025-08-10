@@ -36,7 +36,8 @@ async def get_contract(request: Request,
     notifications = await db.scalars(select(Notification_model)
                                      .where(Notification_model.notification_receiver_id == user.id,
                                             Notification_model.is_active)
-                                     .order_by(desc(Notification_model.created)))
+                                     .order_by(desc(Notification_model.created))
+                                     .options(selectinload(Notification_model.notification_sender)))
 
     new_notifications = await db.scalars(select(Notification_model)
                                          .where(Notification_model.notification_receiver_id == user.id,

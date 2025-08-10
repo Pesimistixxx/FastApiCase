@@ -41,7 +41,7 @@
         <button class="notification-button" id="notificationButton">
             <i class="fas fa-bell"></i>
             {% if notifications_cnt > 0 %}
-                <span class="notification-badge">{{ notifications_cnt }}</span>
+                <span class="notification-badge" id="notificationBadge">{{ notifications_cnt }}</span>
             {% endif %}
         </button>
         <a href="/user/profile" class="profile-link">
@@ -87,12 +87,12 @@
                 {% if notification.type == 'request' %}
                 {% set sender_username = notification.notification_sender.username %}
                 <div class="notification-actions">
-                    <form class="accept-form" data-username="{{ sender_username }}" method="POST">
+                    <form class="accept-form" data-id="{{ notification.id }}" data-username="{{ sender_username }}" method="POST">
                         <button type="submit" class="friend-btn accept">
                             <i class="fas fa-check"></i>
                         </button>
                     </form>
-                    <form class="reject-form" data-username="{{ sender_username }}" method="POST">
+                    <form class="reject-form" data-id="{{ notification.id }}" data-username="{{ sender_username }}" method="POST">
                         <button type="submit" class="friend-btn reject">
                             <i class="fas fa-times"></i>
                         </button>
@@ -466,6 +466,28 @@
     const notificationButton = document.getElementById('notificationButton');
     const notificationsOverlay = document.getElementById('notificationsOverlay');
     const closeNotificationsBtn = document.getElementById('closeNotificationsOverlay');
+    let requestNotificationsCount = 0;
+
+    function updateNotificationBadge() {
+        const badge = document.getElementById('notificationBadge');
+        if (requestNotificationsCount > 0) {
+            if (badge) {
+                badge.textContent = requestNotificationsCount;
+            } else {
+                const newBadge = document.createElement('span');
+                newBadge.className = 'notification-badge';
+                newBadge.id = 'notificationBadge';
+                newBadge.textContent = requestNotificationsCount;
+                notificationButton.appendChild(newBadge);
+            }
+        } else {
+            if (badge) badge.remove();
+        }
+    }
+
+    function countRequestNotifications() {
+        return document.querySelectorAll('#notificationsList .notification-actions').length;
+    }
 
     if (notificationButton) {
         notificationButton.addEventListener('click', async function() {
@@ -478,8 +500,8 @@
                 });
 
                 if (response.ok) {
-                    const badge = document.querySelector('.notification-badge');
-                    if (badge) badge.remove();
+                    requestNotificationsCount = countRequestNotifications();
+                    updateNotificationBadge();
                 }
             } catch (error) {
                 console.error('Ошибка при отметке уведомлений:', error);
@@ -493,11 +515,11 @@
         });
     }
 
-    // Обработка принятия заявки в друзья
     document.querySelectorAll('.accept-form').forEach(form => {
         form.addEventListener('submit', async function(e) {
             e.preventDefault();
             const username = this.getAttribute('data-username');
+            const notificationId = this.getAttribute('data-id');
             const button = this.querySelector('button');
             const originalHtml = button.innerHTML;
 
@@ -511,10 +533,21 @@
                 });
 
                 const result = await response.json();
-                if (response.ok && result.status === 'ok') {
+                if (response.ok) {
                     showNotification('Заявка принята!');
-                    // Обновляем список уведомлений без перезагрузки страницы
-                    loadNotifications();
+
+                    const notificationItem = this.closest('.notification-item');
+                    if (notificationItem) {
+                        notificationItem.remove();
+                    }
+
+                    requestNotificationsCount--;
+                    updateNotificationBadge();
+
+                    const notificationsList = document.getElementById('notificationsList');
+                    if (notificationsList.children.length === 0) {
+                        notificationsList.innerHTML = '<li style="text-align:center; color:#777;">Нет уведомлений</li>';
+                    }
                 } else {
                     throw new Error(result.detail || 'Ошибка при принятии заявки');
                 }
@@ -527,11 +560,11 @@
         });
     });
 
-    // Обработка отклонения заявки в друзья
     document.querySelectorAll('.reject-form').forEach(form => {
         form.addEventListener('submit', async function(e) {
             e.preventDefault();
             const username = this.getAttribute('data-username');
+            const notificationId = this.getAttribute('data-id');
             const button = this.querySelector('button');
             const originalHtml = button.innerHTML;
 
@@ -545,10 +578,21 @@
                 });
 
                 const result = await response.json();
-                if (response.ok && result.status === 'ok') {
+                if (response.ok) {
                     showNotification('Заявка отклонена');
-                    // Обновляем список уведомлений без перезагрузки страницы
-                    loadNotifications();
+
+                    const notificationItem = this.closest('.notification-item');
+                    if (notificationItem) {
+                        notificationItem.remove();
+                    }
+
+                    requestNotificationsCount--;
+                    updateNotificationBadge();
+
+                    const notificationsList = document.getElementById('notificationsList');
+                    if (notificationsList.children.length === 0) {
+                        notificationsList.innerHTML = '<li style="text-align:center; color:#777;">Нет уведомлений</li>';
+                    }
                 } else {
                     throw new Error(result.detail || 'Ошибка при отклонении заявки');
                 }
@@ -561,115 +605,10 @@
         });
     });
 
-    // Функция для загрузки уведомлений
-    async function loadNotifications() {
-        try {
-            const response = await fetch('/notification/list');
-            if (response.ok) {
-                const notifications = await response.json();
-                updateNotificationsUI(notifications);
-            }
-        } catch (error) {
-            console.error('Ошибка загрузки уведомлений:', error);
-        }
-    }
-
-    // Функция для обновления UI уведомлений
-    function updateNotificationsUI(notifications) {
-        const notificationsList = document.getElementById('notificationsList');
-        if (!notificationsList) return;
-
-        notificationsList.innerHTML = '';
-
-        if (notifications.length === 0) {
-            notificationsList.innerHTML = '<li style="text-align:center; color:#777;">Нет уведомлений</li>';
-            return;
-        }
-
-        notifications.forEach(notification => {
-            const li = document.createElement('li');
-            li.className = 'notification-item';
-            li.innerHTML = `
-                <div class="notification-content">
-                    <div class="notification-text">${notification.text}</div>
-                    <div class="notification-time">${notification.created}</div>
-                </div>
-                ${notification.type === 'request' ? `
-                <div class="notification-actions">
-                    <form class="accept-form" data-username="${notification.sender_username}" method="POST">
-                        <button type="submit" class="friend-btn accept">
-                            <i class="fas fa-check"></i>
-                        </button>
-                    </form>
-                    <form class="reject-form" data-username="${notification.sender_username}" method="POST">
-                        <button type="submit" class="friend-btn reject">
-                            <i class="fas fa-times"></i>
-                        </button>
-                    </form>
-                </div>
-                ` : ''}
-            `;
-            notificationsList.appendChild(li);
-        });
-
-        // Добавляем обработчики событий для новых форм
-        document.querySelectorAll('.accept-form').forEach(form => {
-            form.addEventListener('submit', function(e) {
-                e.preventDefault();
-                const username = this.getAttribute('data-username');
-                handleFriendAction('accept', username, this.querySelector('button'));
-            });
-        });
-
-        document.querySelectorAll('.reject-form').forEach(form => {
-            form.addEventListener('submit', function(e) {
-                e.preventDefault();
-                const username = this.getAttribute('data-username');
-                handleFriendAction('reject', username, this.querySelector('button'));
-            });
-        });
-
-        // Обновляем счетчик уведомлений
-        const badge = document.querySelector('.notification-badge');
-        if (badge) {
-            const unreadCount = notifications.filter(n => !n.is_read).length;
-            if (unreadCount > 0) {
-                badge.textContent = unreadCount;
-            } else {
-                badge.remove();
-            }
-        }
-    }
-
-    // Общая функция для обработки действий с друзьями
-    async function handleFriendAction(action, username, button) {
-        const originalHtml = button.innerHTML;
-        button.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
-        button.disabled = true;
-
-        try {
-            const response = await fetch(`/user/${action}/${encodeURIComponent(username)}`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' }
-            });
-
-            const result = await response.json();
-            if (response.ok && result.status === 'ok') {
-                showNotification(action === 'accept' ? 'Заявка принята!' : 'Заявка отклонена');
-                loadNotifications();
-            } else {
-                throw new Error(result.detail || `Ошибка при ${action === 'accept' ? 'принятии' : 'отклонении'} заявки`);
-            }
-        } catch (error) {
-            showNotification(error.message, true);
-        } finally {
-            button.innerHTML = originalHtml;
-            button.disabled = false;
-        }
-    }
-
     window.addEventListener('DOMContentLoaded', function() {
         formatBalances();
         if (balanceMenu) balanceMenu.style.display = 'none';
+
+        requestNotificationsCount = countRequestNotifications();
     });
 </script>

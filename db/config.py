@@ -13,7 +13,7 @@ class Settings(BaseSettings):
     TIMEZONE: str
 
     @property
-    def ASYNC_DATABASE_URL(self):
+    def async_database_url(self):
         return (f"postgresql+asyncpg://{self.POSTGRES_USER}:{self.POSTGRES_PASSWORD}"
                 f"@{self.POSTGRES_HOST}:{self.POSTGRES_PORT}/{self.POSTGRES_DB}")
 

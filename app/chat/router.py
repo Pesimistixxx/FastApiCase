@@ -1,22 +1,22 @@
 import datetime
 import json
 from typing import Annotated
-from fastapi import APIRouter, Depends, Request, Path, status
-from sqlalchemy import select, func, insert, update, desc
-from sqlalchemy.ext.asyncio import AsyncSession
-from fastapi.responses import RedirectResponse
 from sqlalchemy.orm import selectinload
+from sqlalchemy import select, func, insert, update
+from sqlalchemy.ext.asyncio import AsyncSession
+from fastapi import APIRouter, Depends, Request, Path, status
+from fastapi.responses import RedirectResponse
 from fastapi.templating import Jinja2Templates
 from fastapi.websockets import WebSocketDisconnect, WebSocket
-from starlette.websockets import WebSocketState
+from fastapi.websockets import WebSocketState
 
-from app.auth.models import User_model, Friends_model
+from app.auth.models import UserModel, FriendsModel
 from app.auth.security import get_current_user_or_none, verify_session
 from app.chat.chat_manager import chat_manager
-from app.chat.models import Chat_model, Message_model
+from app.chat.models import ChatModel, MessageModel
 from app.chat.schemas import SendMessage, EditMessage
-from app.models_associations import User_Chat_model
-from app.notification.models import Notification_model
+from app.models_associations import UserChatModel
+from app.utils.db_queries import get_user_notifications, get_unread_messages, get_user_new_notifications
 from db.db_depends import get_db
 
 chatRouter = APIRouter(prefix='/chat', tags=['user, chat, messages'])
@@ -26,48 +26,48 @@ templates = Jinja2Templates(directory='templates')
 @chatRouter.get('/list')
 async def get_chat_list(db: Annotated[AsyncSession, Depends(get_db)],
                         request: Request,
-                        user: User_model | None = Depends(get_current_user_or_none)):
+                        user: UserModel | None = Depends(get_current_user_or_none)):
     if not user:
         return RedirectResponse('/')
 
     last_msg_subquery = (
         select(
-            Message_model.chat_id,
-            func.max(Message_model.id).label('last_msg_id')
+            MessageModel.chat_id,
+            func.max(MessageModel.id).label('last_msg_id')
         )
-        .group_by(Message_model.chat_id)
+        .group_by(MessageModel.chat_id)
         .subquery()
     )
 
     unread_count_subquery = (
         select(
-            Message_model.chat_id,
-            func.count(Message_model.id).label('unread_count')
+            MessageModel.chat_id,
+            func.count(MessageModel.id).label('unread_count')  # pylint: disable=not-callable
         )
         .where(
-            Message_model.author_id != user.id,
-            ~Message_model.is_checked
+            MessageModel.author_id != user.id,
+            ~MessageModel.is_checked
         )
-        .group_by(Message_model.chat_id)
+        .group_by(MessageModel.chat_id)
         .subquery()
     )
 
     stmt = (
         select(
-            Chat_model,
-            User_Chat_model.unread_messages,
-            Message_model.message,
-            Message_model.message_date,
-            Message_model.author_id,
+            ChatModel,
+            UserChatModel.unread_messages,
+            MessageModel.message,
+            MessageModel.message_date,
+            MessageModel.author_id,
             func.coalesce(unread_count_subquery.c.unread_count, 0).label('unread_count')
         )
-        .join(User_Chat_model, User_Chat_model.chat_id == Chat_model.id)
-        .outerjoin(last_msg_subquery, last_msg_subquery.c.chat_id == Chat_model.id)
-        .outerjoin(Message_model, Message_model.id == last_msg_subquery.c.last_msg_id)
-        .outerjoin(unread_count_subquery, unread_count_subquery.c.chat_id == Chat_model.id)
-        .where(User_Chat_model.user_id == user.id)
+        .join(UserChatModel, UserChatModel.chat_id == ChatModel.id)
+        .outerjoin(last_msg_subquery, last_msg_subquery.c.chat_id == ChatModel.id)
+        .outerjoin(MessageModel, MessageModel.id == last_msg_subquery.c.last_msg_id)
+        .outerjoin(unread_count_subquery, unread_count_subquery.c.chat_id == ChatModel.id)
+        .where(UserChatModel.user_id == user.id)
         .options(
-            selectinload(Chat_model.users_associations).joinedload(User_Chat_model.user)
+            selectinload(ChatModel.users_associations).joinedload(UserChatModel.user)
         )
     )
 
@@ -98,28 +98,9 @@ async def get_chat_list(db: Annotated[AsyncSession, Depends(get_db)],
             } if last_msg else None
         })
 
-    notifications = await db.scalars(select(Notification_model)
-                                     .where(Notification_model.notification_receiver_id == user.id,
-                                            Notification_model.is_active)
-                                     .order_by(desc(Notification_model.created)))
-
-    new_notifications = await db.scalars(select(Notification_model)
-                                         .where(Notification_model.notification_receiver_id == user.id,
-                                                Notification_model.is_active,
-                                                ~Notification_model.is_checked)
-                                         .order_by(Notification_model.created))
-
-    new_messages = await db.scalars(
-        select(
-            Message_model.chat_id,
-            func.count(Message_model.id).label('unread_count')
-        )
-        .where(
-            Message_model.author_id != user.id,
-            ~Message_model.is_checked
-        )
-        .group_by(Message_model.chat_id)
-    )
+    notifications = await get_user_notifications(db, user.id)
+    new_notifications = await get_user_new_notifications(db, user.id)
+    new_messages = await get_unread_messages(db, user.id)
 
     return templates.TemplateResponse('chat_list.html', {
         'datetime': datetime.datetime,
@@ -132,18 +113,18 @@ async def get_chat_list(db: Annotated[AsyncSession, Depends(get_db)],
     })
 
 
-@chatRouter.get('/{id}')
+@chatRouter.get('/{chat_id}')
 async def get_chat_by_id(db: Annotated[AsyncSession, Depends(get_db)],
                          request: Request,
-                         user: User_model | None = Depends(get_current_user_or_none),
-                         id: int = Path()):
+                         user: UserModel | None = Depends(get_current_user_or_none),
+                         chat_id: int = Path()):
     if not user:
         return RedirectResponse('/')
 
-    chat = await db.scalar(select(Chat_model)
-                           .where(Chat_model.id == id)
-                           .options(selectinload(Chat_model.users_associations)
-                                    .selectinload(User_Chat_model.user)))
+    chat = await db.scalar(select(ChatModel)
+                           .where(ChatModel.id == chat_id)
+                           .options(selectinload(ChatModel.users_associations)
+                                    .selectinload(UserChatModel.user)))
     if not chat:
         return RedirectResponse('/')
 
@@ -151,10 +132,10 @@ async def get_chat_by_id(db: Annotated[AsyncSession, Depends(get_db)],
     if user.id not in users:
         return RedirectResponse('/')
 
-    friends = await db.scalar(select(Friends_model)
-                              .where(Friends_model.first_user_id == min(users),
-                                     Friends_model.second_user_id == max(users),
-                                     Friends_model.is_accepted))
+    friends = await db.scalar(select(FriendsModel)
+                              .where(FriendsModel.first_user_id == min(users),
+                                     FriendsModel.second_user_id == max(users),
+                                     FriendsModel.is_accepted))
 
     other_user = None
     for association in chat.users_associations:
@@ -163,17 +144,17 @@ async def get_chat_by_id(db: Annotated[AsyncSession, Depends(get_db)],
             break
 
     result = await db.execute(
-        select(Message_model)
-        .where(Message_model.chat_id == id,
-               ~Message_model.is_checked,
-               Message_model.author_id != user.id)
+        select(MessageModel)
+        .where(MessageModel.chat_id == chat_id,
+               ~MessageModel.is_checked,
+               MessageModel.author_id != user.id)
     )
     updated_messages = result.scalars().all()
 
     for message in updated_messages:
         message.is_checked = True
         await chat_manager.broadcast(
-            chat_id=id,
+            chat_id=chat_id,
             message={
                 "type": "message_read",
                 "data": {"id": message.id}
@@ -183,38 +164,20 @@ async def get_chat_by_id(db: Annotated[AsyncSession, Depends(get_db)],
     await db.commit()
 
     messages = await db.scalars(
-        select(Message_model)
-        .where(Message_model.chat_id == id,
-               Message_model.is_active)
-        .order_by(Message_model.message_date.asc())
+        select(MessageModel)
+        .where(MessageModel.chat_id == chat_id,
+               MessageModel.is_active)
+        .order_by(MessageModel.message_date.asc())
     )
     messages = messages.all()
 
     await db.refresh(user)
     await db.refresh(chat)
     await db.refresh(other_user)
-    notifications = await db.scalars(select(Notification_model)
-                                     .where(Notification_model.notification_receiver_id == user.id,
-                                            Notification_model.is_active)
-                                     .order_by(desc(Notification_model.created)))
 
-    new_notifications = await db.scalars(select(Notification_model)
-                                         .where(Notification_model.notification_receiver_id == user.id,
-                                                Notification_model.is_active,
-                                                ~Notification_model.is_checked)
-                                         .order_by(Notification_model.created))
-
-    new_messages = await db.scalars(
-        select(
-            Message_model.chat_id,
-            func.count(Message_model.id).label('unread_count')
-        )
-        .where(
-            Message_model.author_id != user.id,
-            ~Message_model.is_checked
-        )
-        .group_by(Message_model.chat_id)
-    )
+    notifications = await get_user_notifications(db, user.id)
+    new_notifications = await get_user_new_notifications(db, user.id)
+    new_messages = await get_unread_messages(db, user.id)
 
     return templates.TemplateResponse('chat.html',
                                       {'request': request,
@@ -229,40 +192,40 @@ async def get_chat_by_id(db: Annotated[AsyncSession, Depends(get_db)],
                                        })
 
 
-@chatRouter.post('/{id}/send')
+@chatRouter.post('/{chat_id}/send')
 async def post_send_message(db: Annotated[AsyncSession, Depends(get_db)],
                             message: SendMessage,
-                            user: User_model | None = Depends(get_current_user_or_none),
-                            id: int = Path(),
+                            user: UserModel | None = Depends(get_current_user_or_none),
+                            chat_id: int = Path(),
                             ):
     if not user:
         return RedirectResponse('/', status_code=303)
 
-    chat = await db.scalar(select(Chat_model)
-                           .where(Chat_model.id == id)
-                           .options(selectinload(Chat_model.users_associations)
-                                    .selectinload(User_Chat_model.user)))
+    chat = await db.scalar(select(ChatModel)
+                           .where(ChatModel.id == chat_id)
+                           .options(selectinload(ChatModel.users_associations)
+                                    .selectinload(UserChatModel.user)))
     if not chat:
         return RedirectResponse('/', status_code=303)
 
     users = [user.user_id for user in chat.users_associations]
 
-    friends = await db.scalar(select(Friends_model)
-                              .where(Friends_model.first_user_id == min(users),
-                                     Friends_model.second_user_id == max(users),
-                                     Friends_model.is_accepted))
+    friends = await db.scalar(select(FriendsModel)
+                              .where(FriendsModel.first_user_id == min(users),
+                                     FriendsModel.second_user_id == max(users),
+                                     FriendsModel.is_accepted))
     if not friends:
         return RedirectResponse('/chat/list', status_code=303)
 
     if user.id not in users:
         return RedirectResponse('/', status_code=303)
 
-    result = await db.execute(insert(Message_model).values(
+    result = await db.execute(insert(MessageModel).values(
         chat_id=chat.id,
         author_id=user.id,
         message=message.message,
         message_date=datetime.datetime.now()
-    ).returning(Message_model.id))
+    ).returning(MessageModel.id))
     message_id = result.scalars().one()
 
     message_response = {
@@ -276,7 +239,7 @@ async def post_send_message(db: Annotated[AsyncSession, Depends(get_db)],
             "is_edited": False
         }
     }
-    await chat_manager.broadcast(chat_id=id, message=message_response, exclude_user_id=user.id)
+    await chat_manager.broadcast(chat_id=chat_id, message=message_response, exclude_user_id=user.id)
     await db.commit()
     return {'status': status.HTTP_201_CREATED,
             'id': message_id}
@@ -284,13 +247,13 @@ async def post_send_message(db: Annotated[AsyncSession, Depends(get_db)],
 
 @chatRouter.delete('/{message_id}/delete')
 async def delete_message(db: Annotated[AsyncSession, Depends(get_db)],
-                         user: User_model | None = Depends(get_current_user_or_none),
+                         user: UserModel | None = Depends(get_current_user_or_none),
                          message_id: int = Path()):
     if not user:
         return RedirectResponse('/', status_code=303)
 
-    message = await db.scalar(select(Message_model)
-                              .where(Message_model.id == message_id))
+    message = await db.scalar(select(MessageModel)
+                              .where(MessageModel.id == message_id))
 
     if not message or message.author_id != user.id:
         return RedirectResponse('/', status_code=303)
@@ -312,13 +275,13 @@ async def delete_message(db: Annotated[AsyncSession, Depends(get_db)],
 @chatRouter.patch('/{message_id}/edit')
 async def patch_edit_message(db: Annotated[AsyncSession, Depends(get_db)],
                              edit_message: EditMessage,
-                             user: User_model | None = Depends(get_current_user_or_none),
+                             user: UserModel | None = Depends(get_current_user_or_none),
                              message_id: int = Path()):
     if not user:
         return RedirectResponse('/', status_code=303)
 
-    message = await db.scalar(select(Message_model)
-                              .where(Message_model.id == message_id))
+    message = await db.scalar(select(MessageModel)
+                              .where(MessageModel.id == message_id))
 
     if not message or message.author_id != user.id:
         return RedirectResponse('/', status_code=303)
@@ -363,9 +326,9 @@ async def websocket_chat(websocket: WebSocket,
         return
 
     chat = await db.scalar(
-        select(Chat_model)
-        .where(Chat_model.id == chat_id)
-        .options(selectinload(Chat_model.users_associations))
+        select(ChatModel)
+        .where(ChatModel.id == chat_id)
+        .options(selectinload(ChatModel.users_associations))
     )
     if not chat:
         await websocket.close(code=1003)
@@ -376,7 +339,7 @@ async def websocket_chat(websocket: WebSocket,
         await websocket.close(code=1008)
         return
 
-    await chat_manager.connect(chat_id, websocket, db, user.id)
+    await chat_manager.connect(chat_id, websocket, user.id)
     await chat_manager.send_user_activity(chat_id, user.id)
 
     try:
@@ -395,7 +358,7 @@ async def websocket_chat(websocket: WebSocket,
                 elif message.get("type") == "new_message":
                     text = message.get("text", "").strip()
                     if text:
-                        new_message = Message_model(
+                        new_message = MessageModel(
                             chat_id=chat_id,
                             author_id=user.id,
                             message=text,
@@ -424,11 +387,11 @@ async def websocket_chat(websocket: WebSocket,
 
                 if message.get("type") == "read_messages":
                     await db.execute(
-                        update(Message_model)
+                        update(MessageModel)
                         .where(
-                            Message_model.chat_id == chat_id,
-                            Message_model.author_id != user.id,
-                            ~Message_model.is_checked
+                            MessageModel.chat_id == chat_id,
+                            MessageModel.author_id != user.id,
+                            ~MessageModel.is_checked
                         )
                         .values(is_checked=True)
                     )
@@ -443,13 +406,13 @@ async def websocket_chat(websocket: WebSocket,
                 print("Invalid JSON received")
 
     except WebSocketDisconnect as e:
-        if e.code != 1000 and e.code != 1001:
-            await chat_manager.schedule_disconnect(chat_id, user.id, db)
+        if e.code not in (1000, 1001):
+            await chat_manager.schedule_disconnect(chat_id, user.id)
     except Exception as e:
         print(f"Unexpected error in WebSocket: {e}")
-        await chat_manager.schedule_disconnect(chat_id, user.id, db)
+        await chat_manager.schedule_disconnect(chat_id, user.id)
     finally:
-        await chat_manager.disconnect_by_user(chat_id, user.id, db)
+        await chat_manager.disconnect_by_user(chat_id, user.id)
 
         if websocket.client_state != WebSocketState.DISCONNECTED:
             try:
@@ -461,18 +424,18 @@ async def websocket_chat(websocket: WebSocket,
 @chatRouter.post('/{chat_id}/mark_read')
 async def mark_messages_read(
         db: Annotated[AsyncSession, Depends(get_db)],
-        user: User_model | None = Depends(get_current_user_or_none),
+        user: UserModel | None = Depends(get_current_user_or_none),
         chat_id: int = Path()
 ):
     if not user:
         return {"status": "error", "message": "Unauthorized"}
 
     result = await db.execute(
-        select(Message_model)
+        select(MessageModel)
         .where(
-            Message_model.chat_id == chat_id,
-            ~Message_model.is_checked,
-            Message_model.author_id != user.id
+            MessageModel.chat_id == chat_id,
+            ~MessageModel.is_checked,
+            MessageModel.author_id != user.id
         )
     )
     unread_messages = result.scalars().all()
@@ -482,8 +445,8 @@ async def mark_messages_read(
 
     message_ids = [msg.id for msg in unread_messages]
     await db.execute(
-        update(Message_model)
-        .where(Message_model.id.in_(message_ids))
+        update(MessageModel)
+        .where(MessageModel.id.in_(message_ids))
         .values(is_checked=True)
     )
     await db.commit()

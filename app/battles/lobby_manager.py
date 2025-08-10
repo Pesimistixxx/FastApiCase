@@ -7,9 +7,9 @@ from sqlalchemy import select, delete
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
-from app.auth.models import User_model
-from app.battles.models import Battle_model
-from app.models_associations import User_Battle_model
+from app.auth.models import UserModel
+from app.battles.models import BattleModel
+from app.models_associations import UserBattleModel
 
 
 class LobbyManager:
@@ -51,15 +51,15 @@ class LobbyManager:
                     print(f"Error closing old connection: {e}")
             self.active_connections[battle_id][user_id] = websocket
 
-        battle = await db.get(Battle_model, battle_id)
+        battle = await db.get(BattleModel, battle_id)
         if not battle:
             await websocket.close(code=4000)
             return
 
         await self.send_users_update(battle_id, db)
 
-        result = await db.execute(select(User_Battle_model)
-                                  .where(User_Battle_model.battle_id == battle_id))
+        result = await db.execute(select(UserBattleModel)
+                                  .where(UserBattleModel.battle_id == battle_id))
         player_count = len(result.scalars().all())
         await self.broadcast(battle_id, {
             "type": "player_count",
@@ -107,14 +107,14 @@ class LobbyManager:
                                  user_id: int,
                                  db: AsyncSession):
 
-        battle = await db.get(Battle_model, battle_id)
+        battle = await db.get(BattleModel, battle_id)
         if not battle:
             return
 
         user_battle = await db.scalar(
-            select(User_Battle_model)
-            .where(User_Battle_model.battle_id == battle_id,
-                   User_Battle_model.user_id == user_id)
+            select(UserBattleModel)
+            .where(UserBattleModel.battle_id == battle_id,
+                   UserBattleModel.user_id == user_id)
         )
 
         if not user_battle:
@@ -127,16 +127,16 @@ class LobbyManager:
                 if battle_id in self.active_connections:
                     connections_to_close = list(self.active_connections[battle_id].values())
                     del self.active_connections[battle_id]
-                    keys_to_remove = [k for k in self.pending_disconnects.keys() if k[0] == battle_id]
+                    keys_to_remove = [k for k in self.pending_disconnects if k[0] == battle_id]
                     for key in keys_to_remove:
                         task = self.pending_disconnects.pop(key)
                         if not task.done():
                             task.cancel()
 
             users_in_battle_result = await db.scalars(
-                select(User_model)
-                .join(User_Battle_model, User_model.id == User_Battle_model.user_id)
-                .where(User_Battle_model.battle_id == battle_id)
+                select(UserModel)
+                .join(UserBattleModel, UserModel.id == UserBattleModel.user_id)
+                .where(UserBattleModel.battle_id == battle_id)
             )
             users_in_battle = users_in_battle_result.all()
 
@@ -144,8 +144,8 @@ class LobbyManager:
                 user.balance += battle.price
 
             await db.execute(
-                delete(User_Battle_model)
-                .where(User_Battle_model.battle_id == battle_id)
+                delete(UserBattleModel)
+                .where(UserBattleModel.battle_id == battle_id)
             )
             await db.delete(battle)
             await db.commit()
@@ -164,14 +164,14 @@ class LobbyManager:
                     print(f"Unexpected error closing websocket: {e}")
 
         elif not battle.is_started:
-            user = await db.scalar(select(User_model).where(User_model.id == user_id))
+            user = await db.scalar(select(UserModel).where(UserModel.id == user_id))
             if user:
                 user.balance += battle.price
 
             await db.execute(
-                delete(User_Battle_model)
-                .where(User_Battle_model.battle_id == battle_id,
-                       User_Battle_model.user_id == user_id)
+                delete(UserBattleModel)
+                .where(UserBattleModel.battle_id == battle_id,
+                       UserBattleModel.user_id == user_id)
             )
             await db.commit()
 
@@ -184,8 +184,8 @@ class LobbyManager:
 
             await self.send_users_update(battle_id, db)
 
-            result = await db.execute(select(User_Battle_model)
-                                      .where(User_Battle_model.battle_id == battle_id))
+            result = await db.execute(select(UserBattleModel)
+                                      .where(UserBattleModel.battle_id == battle_id))
             player_count = len(result.scalars().all())
             await self.broadcast(battle_id, {
                 "type": "player_count",
@@ -194,6 +194,7 @@ class LobbyManager:
 
     async def broadcast(self, battle_id: int, message: dict):
         async with self.lock:
+            connections = []
             if battle_id in self.active_connections:
                 connections = list(self.active_connections[battle_id].values())
 
@@ -227,9 +228,9 @@ class LobbyManager:
                                 battle_id: int,
                                 db: AsyncSession):
         battle = await db.scalar(
-            select(Battle_model)
-            .where(Battle_model.id == battle_id)
-            .options(selectinload(Battle_model.users).selectinload(User_Battle_model.user))
+            select(BattleModel)
+            .where(BattleModel.id == battle_id)
+            .options(selectinload(BattleModel.users).selectinload(UserBattleModel.user))
         )
 
         if not battle:
@@ -250,12 +251,12 @@ class LobbyManager:
             "users": users_data
         })
 
-    async def send_case_result(self, battle_id: int, user_id: int, skin_ids: List[int], round: int):
+    async def send_case_result(self, battle_id: int, user_id: int, skin_ids: List[int], round_i: int):
         await self.broadcast(battle_id, {
             "type": "case_result",
             "user_id": user_id,
             "skin_ids": skin_ids,
-            "round": round
+            "round": round_i
         })
 
     async def send_battle_end(self, battle_id: int, winner_id: int):
@@ -273,7 +274,7 @@ class LobbyManager:
         async with self.lock:
             if battle_id in self.active_connections:
                 del self.active_connections[battle_id]
-            keys_to_remove = [k for k in self.pending_disconnects.keys() if k[0] == battle_id]
+            keys_to_remove = [k for k in self.pending_disconnects if k[0] == battle_id]
             for key in keys_to_remove:
                 task = self.pending_disconnects.pop(key)
                 if not task.done():

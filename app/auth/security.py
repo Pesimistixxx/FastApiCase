@@ -6,13 +6,13 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from fastapi import Depends, Request, HTTPException, status
 
 from db.db_depends import get_db
-from app.auth.models import Session_model, User_model
+from app.auth.models import SessionModel, UserModel
 
 
 async def verify_session(session_id: str,
                          db: AsyncSession):
-    session = await db.scalar(select(Session_model).where(
-        Session_model.session_token == session_id
+    session = await db.scalar(select(SessionModel).where(
+        SessionModel.session_token == session_id
     ))
 
     if not session:
@@ -21,16 +21,16 @@ async def verify_session(session_id: str,
             detail='You are not authorized'
         )
     if session.expires <= datetime.datetime.now():
-        await db.execute(delete(Session_model).where(
-            Session_model.id == session.id
+        await db.execute(delete(SessionModel).where(
+            SessionModel.id == session.id
         ))
         await db.commit()
         return None
 
     user_id = session.user_id
-    user = await db.scalar(select(User_model).where(
-        User_model.id == user_id,
-        User_model.is_active
+    user = await db.scalar(select(UserModel).where(
+        UserModel.id == user_id,
+        UserModel.is_active
     ))
 
     if not user:

@@ -1,20 +1,20 @@
 import asyncio
 import datetime
 import os
-import pytz
 import logging
+import pytz
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 import httpx
 from dotenv import load_dotenv
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 
-from app.skin.models import Skin_model
-from app.models_associations import Case_Skin_model  # noqa: F401
-from app.case.models import Case_model  # noqa: F401
-from app.auth.models import User_model  # noqa: F401
-from app.battles.models import Battle_model  # noqa: F401
-from app.notification.models import Notification_model  # noqa: F401
+from app.skin.models import SkinModel
+from app.models_associations import CaseSkinModel  # noqa: F401
+from app.case.models import CaseModel  # noqa: F401
+from app.auth.models import UserModel  # noqa: F401
+from app.battles.models import BattleModel  # noqa: F401
+from app.notification.models import NotificationModel  # noqa: F401
 from db.db_depends import get_db
 
 load_dotenv()
@@ -29,9 +29,9 @@ logger = logging.getLogger(__name__)
 
 async def fetch_steam_prices(db: AsyncSession, client: httpx.AsyncClient):
     try:
-        result = await db.execute(select(Skin_model)
-                                  .where(Skin_model.is_active,
-                                         Skin_model.is_trackable))
+        result = await db.execute(select(SkinModel)
+                                  .where(SkinModel.is_active,
+                                         SkinModel.is_trackable))
         items = result.scalars().all()
 
         for item in items:
@@ -44,7 +44,7 @@ async def fetch_steam_prices(db: AsyncSession, client: httpx.AsyncClient):
             response = await client.get('https://steamcommunity.com/market/priceoverview/', params=params)
             data = response.json()
 
-            if response.status_code == 429 or response.status_code == 502:
+            if response.status_code in (429, 502):
                 logger.warning("Too many requests. Waiting...")
                 await asyncio.sleep(60)
                 continue

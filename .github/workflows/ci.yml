@@ -18,6 +18,9 @@ jobs:
       - name: Run Flake8
         run:
           flake8 .
+      - name: Run pylint
+        run:
+          pylint .
       - name: Run Tests
         env:
           POSTGRES_USER: ${{ secrets.POSTGRES_USER }}

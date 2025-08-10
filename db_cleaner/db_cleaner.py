@@ -1,8 +1,8 @@
 import asyncio
 import datetime
 import os
-import pytz
 import logging
+import pytz
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from dotenv import load_dotenv
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -10,13 +10,13 @@ from sqlalchemy import delete, select, update
 from sqlalchemy.orm import selectinload
 
 from db.db_depends import get_db
-from app.case.models import Case_model  # noqa: F401
-from app.skin.models import Skin_model  # noqa: F401
-from app.models_associations import Case_Skin_model  # noqa: F401
-from app.notification.models import Notification_model  # noqa: F401
-from app.models_associations import User_Skin_model
-from app.battles.models import Battle_model
-from app.auth.models import Session_model, User_model
+from app.case.models import CaseModel  # noqa: F401
+from app.skin.models import SkinModel  # noqa: F401
+from app.models_associations import CaseSkinModel  # noqa: F401
+from app.notification.models import NotificationModel  # noqa: F401
+from app.models_associations import UserSkinModel
+from app.battles.models import BattleModel
+from app.auth.models import SessionModel, UserModel
 
 load_dotenv()
 
@@ -30,8 +30,8 @@ logger = logging.getLogger(__name__)
 
 async def clean_expired_sessions(db: AsyncSession):
     try:
-        await db.execute(delete(Session_model).where(
-            Session_model.expires <= datetime.datetime.now()
+        await db.execute(delete(SessionModel).where(
+            SessionModel.expires <= datetime.datetime.now()
         ))
 
         await db.commit()
@@ -42,8 +42,8 @@ async def clean_expired_sessions(db: AsyncSession):
 
 async def clean_unused_skins(db: AsyncSession):
     try:
-        await db.execute(delete(User_Skin_model)
-                         .where(~User_Skin_model.is_active))
+        await db.execute(delete(UserSkinModel)
+                         .where(~UserSkinModel.is_active))
         await db.commit()
     except Exception as e:
         logger.error(f"Ошибка при очистки сессий: {e}")
@@ -52,11 +52,11 @@ async def clean_unused_skins(db: AsyncSession):
 
 async def clean_expired_battles(db: AsyncSession):
     try:
-        result = await db.scalars(select(Battle_model)
-                                  .where(Battle_model.created
+        result = await db.scalars(select(BattleModel)
+                                  .where(BattleModel.created
                                          + datetime.timedelta(hours=1)
                                          <= datetime.datetime.now())
-                                  .options(selectinload(Battle_model.users)))
+                                  .options(selectinload(BattleModel.users)))
 
         deletable_battles = result.all()
 
@@ -65,12 +65,12 @@ async def clean_expired_battles(db: AsyncSession):
 
         total_refund = sum(battle.price for battle in deletable_battles if battle.is_active for _ in battle.users)
         await db.execute(
-            update(User_model)
-            .where(User_model.id.in_(user_ids))
-            .values(balance=User_model.balance + total_refund)
+            update(UserModel)
+            .where(UserModel.id.in_(user_ids))
+            .values(balance=UserModel.balance + total_refund)
         )
 
-        await db.execute(delete(Battle_model).where(Battle_model.id.in_(battle_ids)))
+        await db.execute(delete(BattleModel).where(BattleModel.id.in_(battle_ids)))
         await db.commit()
 
     except Exception as e:

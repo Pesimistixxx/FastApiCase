@@ -1,34 +1,34 @@
-from fastapi import APIRouter, Depends, Path, HTTPException, status
 from typing import Annotated
+import pandas as pd
+from fastapi import APIRouter, Depends, Path, HTTPException, status
+from fastapi.responses import RedirectResponse
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, insert, desc
-import pandas as pd
 from sqlalchemy.orm import selectinload
-from fastapi.responses import RedirectResponse
 
-from app.auth.models import User_model
+from app.auth.models import UserModel
 from app.auth.security import get_user, get_current_user_or_none
-from app.models_associations import User_Skin_model
-from app.skin.models import Skin_model
+from app.models_associations import UserSkinModel
+from app.skin.models import SkinModel
 from db.db_depends import get_db
 skinRouter = APIRouter(prefix='/skin', tags=['skin'])
 
 
 @skinRouter.get('/list')
 async def get_skin_list(db: Annotated[AsyncSession, Depends(get_db)]):
-    skins = await db.scalars(select(Skin_model).where(
-        Skin_model.is_active
+    skins = await db.scalars(select(SkinModel).where(
+        SkinModel.is_active
     ))
     return skins.all()
 
 
 @skinRouter.post('/sell/all')
 async def post_sell_all_skins(db: Annotated[AsyncSession, Depends(get_db)],
-                              user: User_model = Depends(get_user)):
-    result = await db.scalars(select(User_Skin_model).where(
-        User_Skin_model.user_id == user.id,
-        User_Skin_model.is_active
-    ).options(selectinload(User_Skin_model.skin)))
+                              user: UserModel = Depends(get_user)):
+    result = await db.scalars(select(UserSkinModel).where(
+        UserSkinModel.user_id == user.id,
+        UserSkinModel.is_active
+    ).options(selectinload(UserSkinModel.skin)))
     if not result:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
@@ -53,15 +53,15 @@ async def post_sell_all_skins(db: Annotated[AsyncSession, Depends(get_db)],
             'sold_count': sold_cnt}
 
 
-@skinRouter.post('/sell/{id}')
+@skinRouter.post('/sell/{skin_id}')
 async def post_sell_skin(db: Annotated[AsyncSession, Depends(get_db)],
-                         id: int = Path(),
-                         user: User_model = Depends(get_user)):
-    user_skin = await db.scalar(select(User_Skin_model).where(
-        User_Skin_model.id == id,
-        User_Skin_model.user_id == user.id,
-        User_Skin_model.is_active
-    ).options(selectinload(User_Skin_model.skin)))
+                         skin_id: int = Path(),
+                         user: UserModel = Depends(get_user)):
+    user_skin = await db.scalar(select(UserSkinModel).where(
+        UserSkinModel.id == skin_id,
+        UserSkinModel.user_id == user.id,
+        UserSkinModel.is_active
+    ).options(selectinload(UserSkinModel.skin)))
 
     if not user_skin:
         raise HTTPException(
@@ -81,17 +81,17 @@ async def post_sell_skin(db: Annotated[AsyncSession, Depends(get_db)],
 @skinRouter.get('/{name}')
 async def get_skin(db: Annotated[AsyncSession, Depends(get_db)],
                    name: str = Path()):
-    skin = await db.scalar(select(Skin_model).where(
-        Skin_model.is_active,
-        Skin_model.name == name
+    skin = await db.scalar(select(SkinModel).where(
+        SkinModel.is_active,
+        SkinModel.name == name
     ))
-    prev_skin = await db.scalar(select(Skin_model).where(
-        Skin_model.is_active,
-        Skin_model.id < skin.id
+    prev_skin = await db.scalar(select(SkinModel).where(
+        SkinModel.is_active,
+        SkinModel.id < skin.id
     ).order_by(desc('id')))
-    next_skin = await db.scalar(select(Skin_model).where(
-        Skin_model.is_active,
-        Skin_model.id > skin.id
+    next_skin = await db.scalar(select(SkinModel).where(
+        SkinModel.is_active,
+        SkinModel.id > skin.id
     ).order_by('id'))
     if not skin:
         raise HTTPException(
@@ -105,16 +105,16 @@ async def get_skin(db: Annotated[AsyncSession, Depends(get_db)],
 
 @skinRouter.post('/update')
 async def post_add_all_skins(db: Annotated[AsyncSession, Depends(get_db)],
-                             user: User_model | None = Depends(get_current_user_or_none)):
+                             user: UserModel | None = Depends(get_current_user_or_none)):
     if not user or not user.is_admin:
         return RedirectResponse('/')
 
     df = pd.read_csv('skins_with_filenames.csv')
-    existing_tags_result = await db.execute(select(Skin_model.tag))
+    existing_tags_result = await db.execute(select(SkinModel.tag))
     existing_tags = {tag[0] for tag in existing_tags_result.all()}
     new_skins = []
 
-    for index, row in df.iterrows():
+    for _, row in df.iterrows():
         if row['tag'] not in existing_tags:
             new_skins.append({
                 "name": row['name'],
@@ -123,7 +123,7 @@ async def post_add_all_skins(db: Annotated[AsyncSession, Depends(get_db)],
                 "image": row['image']
             })
     if new_skins:
-        await db.execute(insert(Skin_model), new_skins)
+        await db.execute(insert(SkinModel), new_skins)
         await db.commit()
 
     return {"status": "success", "added": len(new_skins)}
@@ -131,6 +131,6 @@ async def post_add_all_skins(db: Annotated[AsyncSession, Depends(get_db)],
 
 # @skinRouter.post('/delete_all_skins')
 # async def post_delete_all_skins(db: Annotated[AsyncSession, Depends(get_db)]):
-#     await db.execute(delete(Skin_model))
+#     await db.execute(delete(SkinModel))
 #     await db.commit()
 #     return "SUCCESS"

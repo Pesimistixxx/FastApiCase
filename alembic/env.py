@@ -13,7 +13,7 @@ from db.base import Base
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.
 config = context.config
-db_url = settings.ASYNC_DATABASE_URL
+db_url = settings.async_database_url
 
 config.set_main_option("sqlalchemy.url", db_url)
 
@@ -26,15 +26,15 @@ if config.config_file_name is not None:
 # for 'autogenerate' support
 # from myapp import mymodel
 # target_metadata = mymodel.Base.metadata
-from app.auth.models import User_model, Session_model
-from app.skin.models import Skin_model
-from app.case.models import Case_model
-from app.battles.models import Battle_model
+from app.auth.models import UserModel, SessionModel
+from app.skin.models import SkinModel
+from app.case.models import CaseModel
+from app.battles.models import BattleModel
 from app import models_associations
-from app.chat.models import Chat_model, Message_model
-from app.notification.models import Notification_model
-from app.models_associations import User_Chat_model, User_Battle_model, User_Skin_model, Case_Skin_model, User_Achievement_model
-from app.achievement.models import Achievement_model
+from app.chat.models import ChatModel, MessageModel
+from app.notification.models import NotificationModel
+from app.models_associations import UserChatModel, UserBattleModel, UserSkinModel, CaseSkinModel, UserAchievementModel
+from app.achievement.models import AchievementModel
 target_metadata = Base.metadata
 
 # other values from the config, defined by the needs of env.py,

@@ -7,21 +7,21 @@ from sqlalchemy.orm import Mapped, mapped_column, relationship
 from db.base import Base
 
 if TYPE_CHECKING:
-    from app.models_associations import User_Chat_model
-    from app.auth.models import User_model
+    from app.models_associations import UserChatModel
+    from app.auth.models import UserModel
 
 
-class Chat_model(Base):
+class ChatModel(Base):
     __tablename__ = 'chats'
 
     id: Mapped[int] = mapped_column(primary_key=True)
     creation_date: Mapped[datetime] = mapped_column(DateTime, nullable=False, default=datetime.now())
 
-    users_associations: Mapped[List["User_Chat_model"]] = relationship("User_Chat_model", back_populates="chat")
-    messages: Mapped[List["Message_model"]] = relationship("Message_model", back_populates="chat")
+    users_associations: Mapped[List["UserChatModel"]] = relationship("UserChatModel", back_populates="chat")
+    messages: Mapped[List["MessageModel"]] = relationship("MessageModel", back_populates="chat")
 
 
-class Message_model(Base):
+class MessageModel(Base):
     __tablename__ = 'messages'
 
     id: Mapped[int] = mapped_column(primary_key=True)
@@ -33,5 +33,5 @@ class Message_model(Base):
     is_checked: Mapped[bool] = mapped_column(default=False, nullable=False)
     is_edited: Mapped[bool] = mapped_column(default=False, nullable=False)
 
-    user: Mapped["User_model"] = relationship("User_model", back_populates="messages")
-    chat: Mapped["Chat_model"] = relationship("Chat_model", back_populates="messages")
+    user: Mapped["UserModel"] = relationship("UserModel", back_populates="messages")
+    chat: Mapped["ChatModel"] = relationship("ChatModel", back_populates="messages")

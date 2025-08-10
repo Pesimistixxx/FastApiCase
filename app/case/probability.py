@@ -2,7 +2,7 @@ import math
 import random
 from typing import Sequence
 
-from app.skin.models import Skin_model
+from app.skin.models import SkinModel
 
 
 def calculate_probabilities(skins, sigma: int, math_exception: int):
@@ -25,7 +25,7 @@ def calculate_probabilities(skins, sigma: int, math_exception: int):
     return probabilities
 
 
-def get_item_by_probability(skins: Sequence[Skin_model], sigma: int, math_exception: int, k: int):
+def get_item_by_probability(skins: Sequence[SkinModel], sigma: int, math_exception: int, k: int):
     probabilities = calculate_probabilities(skins, sigma, math_exception)
 
     skins_random = random.choices(skins, weights=probabilities, k=k)

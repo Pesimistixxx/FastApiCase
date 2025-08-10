@@ -1,17 +1,14 @@
 from typing import Annotated
-
-from fastapi import APIRouter, Depends, Request
-from sqlalchemy import select, desc, func
+from sqlalchemy import select, desc
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy.orm import selectinload
-from starlette.templating import Jinja2Templates
+from fastapi import APIRouter, Depends, Request
+from fastapi.templating import Jinja2Templates
 
-from app.auth.models import User_model
-from app.case.models import Case_model
-from app.chat.models import Message_model
-from app.notification.models import Notification_model
-from db.db_depends import get_db
+from app.auth.models import UserModel
+from app.case.models import CaseModel
 from app.auth.security import get_current_user_or_none
+from app.utils.db_queries import get_user_notifications, get_unread_messages, get_user_new_notifications
+from db.db_depends import get_db
 
 topRouter = APIRouter(prefix='/top', tags=['users', 'top'])
 templates = Jinja2Templates(directory='templates')
@@ -20,29 +17,29 @@ templates = Jinja2Templates(directory='templates')
 @topRouter.get('/')
 async def get_top(db: Annotated[AsyncSession, Depends(get_db)],
                   request: Request,
-                  user: User_model | None = Depends(get_current_user_or_none)):
-    top_cases_open = await db.scalars(select(User_model).order_by(desc(User_model.case_opened)).limit(10))
-    top_upgrades_cnt = await db.scalars(select(User_model).order_by(desc(User_model.upgrades_cnt)).limit(10))
-    top_contracts_cnt = await db.scalars(select(User_model).order_by(desc(User_model.contracts_cnt)).limit(10))
-    top_case_created = await db.scalars(select(User_model).order_by(desc(User_model.cases_create)).limit(10))
-    top_case_luck = await db.scalars(select(User_model)
-                                     .where(User_model.case_opened >= 100)
+                  user: UserModel | None = Depends(get_current_user_or_none)):
+    top_cases_open = await db.scalars(select(UserModel).order_by(desc(UserModel.case_opened)).limit(10))
+    top_upgrades_cnt = await db.scalars(select(UserModel).order_by(desc(UserModel.upgrades_cnt)).limit(10))
+    top_contracts_cnt = await db.scalars(select(UserModel).order_by(desc(UserModel.contracts_cnt)).limit(10))
+    top_case_created = await db.scalars(select(UserModel).order_by(desc(UserModel.cases_create)).limit(10))
+    top_case_luck = await db.scalars(select(UserModel)
+                                     .where(UserModel.case_opened >= 100)
                                      .order_by(
-        desc(User_model.successful_cases_cnt / (User_model.case_opened + 1)))
+        desc(UserModel.successful_cases_cnt / (UserModel.case_opened + 1)))
         .limit(10))
-    top_upgrades_luck = await db.scalars(select(User_model)
-                                         .where(User_model.upgrades_cnt >= 50)
+    top_upgrades_luck = await db.scalars(select(UserModel)
+                                         .where(UserModel.upgrades_cnt >= 50)
                                          .order_by(
-        desc(User_model.successful_upgrades_cnt / (User_model.upgrades_cnt + 1)))
+        desc(UserModel.successful_upgrades_cnt / (UserModel.upgrades_cnt + 1)))
         .limit(10))
-    top_contracts_luck = await db.scalars(select(User_model).where(User_model.contracts_cnt >= 50).order_by(
-        desc(User_model.successful_contracts_cnt / (User_model.contracts_cnt + 1))).limit(10))
-    top_activity = await db.scalars(select(User_model).order_by(desc(User_model.activity_points)).limit(10))
-    top_authors = await db.scalars(select(User_model)
-                                   .order_by(desc(User_model.author_case_opened))
+    top_contracts_luck = await db.scalars(select(UserModel).where(UserModel.contracts_cnt >= 50).order_by(
+        desc(UserModel.successful_contracts_cnt / (UserModel.contracts_cnt + 1))).limit(10))
+    top_activity = await db.scalars(select(UserModel).order_by(desc(UserModel.activity_points)).limit(10))
+    top_authors = await db.scalars(select(UserModel)
+                                   .order_by(desc(UserModel.author_case_opened))
                                    .limit(10))
-    top_cases = await db.scalars(select(Case_model)
-                                 .order_by(desc(Case_model.opened_count))
+    top_cases = await db.scalars(select(CaseModel)
+                                 .order_by(desc(CaseModel.opened_count))
                                  .limit(10))
 
     top_cases_open_dict = {user.username: user.case_opened for user in top_cases_open.all()}
@@ -60,28 +57,10 @@ async def get_top(db: Annotated[AsyncSession, Depends(get_db)],
     top_cases_dict = {case.name: case.opened_count for case in top_cases.all()}
 
     if user:
-        notifications = await db.scalars(select(Notification_model)
-                                         .where(Notification_model.notification_receiver_id == user.id,
-                                                Notification_model.is_active)
-                                         .order_by(desc(Notification_model.created))
-                                         .options(selectinload(Notification_model.notification_sender)))
+        notifications = await get_user_notifications(db, user.id)
+        new_notifications = await get_user_new_notifications(db, user.id)
+        new_messages = await get_unread_messages(db, user.id)
 
-        new_notifications = await db.scalars(select(Notification_model)
-                                             .where(Notification_model.notification_receiver_id == user.id,
-                                                    Notification_model.is_active,
-                                                    ~Notification_model.is_checked)
-                                             .order_by(Notification_model.created))
-        new_messages = await db.scalars(
-            select(
-                Message_model.chat_id,
-                func.count(Message_model.id).label('unread_count')
-            )
-            .where(
-                Message_model.author_id != user.id,
-                ~Message_model.is_checked
-            )
-            .group_by(Message_model.chat_id)
-        )
         return templates.TemplateResponse('top.html', {'request': request,
                                                        'user': user,
                                                        'top_cases_open': top_cases_open_dict,

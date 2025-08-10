@@ -4,7 +4,7 @@ from sqlalchemy.orm import Mapped, mapped_column, relationship
 from db.base import Base
 
 
-class Skin_model(Base):
+class SkinModel(Base):
     __tablename__ = 'skins'
 
     id: Mapped[int] = mapped_column(primary_key=True, index=True)
@@ -16,13 +16,13 @@ class Skin_model(Base):
     image: Mapped[str]
     is_trackable: Mapped[bool] = mapped_column(nullable=False, default=True, server_default='True')
 
-    case_associations: Mapped[List["Case_Skin_model"]] = relationship(back_populates="skin")
+    case_associations: Mapped[List["CaseSkinModel"]] = relationship(back_populates="skin")
 
-    cases: Mapped[List["Case_model"]] = relationship(
-        "Case_model",
+    cases: Mapped[List["CaseModel"]] = relationship(
+        "CaseModel",
         secondary="cases_skins",
         viewonly=True,
         overlaps="case_associations"
     )
 
-    users: Mapped[List["User_Skin_model"]] = relationship("User_Skin_model", back_populates="skin")
+    users: Mapped[List["UserSkinModel"]] = relationship("UserSkinModel", back_populates="skin")

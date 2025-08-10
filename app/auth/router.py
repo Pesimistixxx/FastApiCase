@@ -1,25 +1,26 @@
 import datetime
+import re
+from typing import Annotated
 import secrets
 import bcrypt
-import re
-from fastapi import APIRouter, Depends, status, Path, Request, Response
-from fastapi.templating import Jinja2Templates
-from typing import Annotated
+from sqlalchemy.orm import selectinload
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, insert, desc, delete, update, func
 from sqlalchemy.exc import IntegrityError
+from fastapi import APIRouter, Depends, status, Path, Request, Response
+from fastapi.templating import Jinja2Templates
+from fastapi.responses import JSONResponse, RedirectResponse
 from passlib.context import CryptContext
-from sqlalchemy.orm import selectinload
-from starlette.responses import JSONResponse, RedirectResponse
 
-from app.auth.models import User_model, Session_model, Friends_model
+from app.auth.models import UserModel, SessionModel, FriendsModel
 from app.auth.schemas import UserRegister, UserLogin
-from app.case.models import Case_model
-from app.chat.models import Chat_model, Message_model
-from app.notification.models import Notification_model
-from db.db_depends import get_db
+from app.case.models import CaseModel
+from app.chat.models import ChatModel
+from app.notification.models import NotificationModel
+from app.utils.db_queries import get_user_notifications, get_unread_messages, get_user_new_notifications
 from app.auth.security import get_user, get_current_user_or_none
-from app.models_associations import User_Skin_model, User_Chat_model
+from app.models_associations import UserSkinModel, UserChatModel
+from db.db_depends import get_db
 
 authRouter = APIRouter(prefix='/user', tags=['user, auth, profile'])
 bcrypt_context = CryptContext(schemes=['bcrypt'], deprecated='auto')
@@ -28,11 +29,11 @@ templates = Jinja2Templates(directory='templates')
 
 @authRouter.get('/list')
 async def get_all_users(db: Annotated[AsyncSession, Depends(get_db)],
-                        user: User_model | None = Depends(get_current_user_or_none)):
+                        user: UserModel | None = Depends(get_current_user_or_none)):
     if not user or not user.is_admin:
         return RedirectResponse('/')
-    users_list = await db.scalars(select(User_model).where(
-        User_model.is_active
+    users_list = await db.scalars(select(UserModel).where(
+        UserModel.is_active
     ))
     return users_list.all()
 
@@ -52,7 +53,7 @@ async def post_create_user(db: Annotated[AsyncSession, Depends(get_db)],
                            register_inp: UserRegister,
                            ):
     try:
-        user = User_model(
+        user = UserModel(
             username=register_inp.username,
             name=register_inp.name,
             email=register_inp.email,
@@ -73,7 +74,7 @@ async def post_create_user(db: Annotated[AsyncSession, Depends(get_db)],
                             content={'message': {e.orig}})
 
     session_token = secrets.token_hex(16)
-    await db.execute(insert(Session_model).values(
+    await db.execute(insert(SessionModel).values(
         session_token=session_token,
         user_id=user.id,
         expires=datetime.datetime.now() + datetime.timedelta(hours=24)
@@ -96,8 +97,8 @@ async def post_create_user(db: Annotated[AsyncSession, Depends(get_db)],
 @authRouter.post('/login')
 async def post_login_user(db: Annotated[AsyncSession, Depends(get_db)],
                           login_inp: UserLogin):
-    user = await db.scalar(select(User_model)
-                           .where(login_inp.username == User_model.username))
+    user = await db.scalar(select(UserModel)
+                           .where(login_inp.username == UserModel.username))
     if not user:
         return JSONResponse(
             status_code=status.HTTP_404_NOT_FOUND,
@@ -111,7 +112,7 @@ async def post_login_user(db: Annotated[AsyncSession, Depends(get_db)],
         )
 
     session_token = secrets.token_hex(16)
-    await db.execute(insert(Session_model).values(
+    await db.execute(insert(SessionModel).values(
         session_token=session_token,
         user_id=user.id,
         expires=datetime.datetime.now() + datetime.timedelta(hours=24)
@@ -135,47 +136,28 @@ async def post_login_user(db: Annotated[AsyncSession, Depends(get_db)],
 @authRouter.get('/profile')
 async def get_user_profile(request: Request,
                            db: Annotated[AsyncSession, Depends(get_db)],
-                           user: User_model = Depends(get_current_user_or_none)
+                           user: UserModel = Depends(get_current_user_or_none)
                            ):
     if not user:
         return RedirectResponse('/')
     all_skins = await db.scalars(
-        select(User_Skin_model)
+        select(UserSkinModel)
         .where(
-            User_Skin_model.user_id == user.id,
-            User_Skin_model.is_active
+            UserSkinModel.user_id == user.id,
+            UserSkinModel.is_active
         )
-        .options(selectinload(User_Skin_model.skin))
-        .order_by(desc(User_Skin_model.id))
+        .options(selectinload(UserSkinModel.skin))
+        .order_by(desc(UserSkinModel.id))
     )
     all_skins_list = all_skins.all()
-    my_cases = await db.scalars(select(Case_model)
-                                .where(Case_model.author_id == user.id)
-                                .order_by(Case_model.is_approved))
+    my_cases = await db.scalars(select(CaseModel)
+                                .where(CaseModel.author_id == user.id)
+                                .order_by(CaseModel.is_approved))
     total_sum = sum(skin.skin.price for skin in all_skins_list)
 
-    notifications = await db.scalars(select(Notification_model)
-                                     .where(Notification_model.notification_receiver_id == user.id,
-                                            Notification_model.is_active)
-                                     .order_by(desc(Notification_model.created))
-                                     .options(selectinload(Notification_model.notification_sender)))
-
-    new_notifications = await db.scalars(select(Notification_model)
-                                         .where(Notification_model.notification_receiver_id == user.id,
-                                                Notification_model.is_active,
-                                                ~Notification_model.is_checked)
-                                         .order_by(Notification_model.created))
-    new_messages = await db.scalars(
-        select(
-            Message_model.chat_id,
-            func.count(Message_model.id).label('unread_count')
-        )
-        .where(
-            Message_model.author_id != user.id,
-            ~Message_model.is_checked
-        )
-        .group_by(Message_model.chat_id)
-    )
+    notifications = await get_user_notifications(db, user.id)
+    new_notifications = await get_user_new_notifications(db, user.id)
+    new_messages = await get_unread_messages(db, user.id)
 
     return templates.TemplateResponse("my_profile.html",
                                       {
@@ -192,16 +174,16 @@ async def get_user_profile(request: Request,
 
 @authRouter.get('/sessions')
 async def get_sessions_list(db: Annotated[AsyncSession, Depends(get_db)],
-                            user: User_model | None = Depends(get_current_user_or_none)):
+                            user: UserModel | None = Depends(get_current_user_or_none)):
     if not user or not user.is_admin:
         return RedirectResponse('/')
-    sessions = await db.scalars((select(Session_model)))
+    sessions = await db.scalars((select(SessionModel)))
     return sessions.all()
 
 
 @authRouter.post('/add_money/{amount}')
 async def post_add_money_to_account(db: Annotated[AsyncSession, Depends(get_db)],
-                                    user: User_model = Depends(get_user),
+                                    user: UserModel = Depends(get_user),
                                     amount: float = Path()):
     new_balance = user.balance + amount
     user.balance = new_balance
@@ -217,10 +199,10 @@ async def post_add_money_to_account(db: Annotated[AsyncSession, Depends(get_db)]
 @authRouter.post('/logout')
 async def logout_user(db: Annotated[AsyncSession, Depends(get_db)],
                       response: Response,
-                      user: User_model = Depends(get_user)
+                      user: UserModel = Depends(get_user)
                       ):
-    await db.execute(delete(Session_model).where(
-        Session_model.user_id == user.id
+    await db.execute(delete(SessionModel).where(
+        SessionModel.user_id == user.id
     ))
     await db.commit()
 
@@ -238,38 +220,27 @@ async def logout_user(db: Annotated[AsyncSession, Depends(get_db)],
 @authRouter.get('/profile/{username}')
 async def get_another_user_profile(request: Request,
                                    db: Annotated[AsyncSession, Depends(get_db)],
-                                   user: User_model | None = Depends(get_current_user_or_none),
+                                   user: UserModel | None = Depends(get_current_user_or_none),
                                    username: str = Path()):
-    profile_user = await db.scalar(select(User_model)
-                                   .where(User_model.is_active,
-                                          User_model.username == username))
+    profile_user = await db.scalar(select(UserModel)
+                                   .where(UserModel.is_active,
+                                          UserModel.username == username))
     if not profile_user:
         return RedirectResponse('/')
 
-    profile_cases = await db.scalars(select(Case_model)
-                                     .where(Case_model.author_id == profile_user.id,
-                                            Case_model.is_active,
-                                            Case_model.is_approved))
+    profile_cases = await db.scalars(select(CaseModel)
+                                     .where(CaseModel.author_id == profile_user.id,
+                                            CaseModel.is_active,
+                                            CaseModel.is_approved))
 
     if user:
-        notifications = await db.scalars(select(Notification_model)
-                                         .where(Notification_model.notification_receiver_id == user.id,
-                                                Notification_model.is_active)
-                                         .options(selectinload(Notification_model.notification_sender))
-                                         .order_by(desc(Notification_model.created)))
+        notifications = await get_user_notifications(db, user.id)
+        new_notifications = await get_user_new_notifications(db, user.id)
+        new_messages = await get_unread_messages(db, user.id)
+        friend_request = await db.scalar(select(FriendsModel)
+                                         .where(FriendsModel.first_user_id == min(profile_user.id, user.id),
+                                                FriendsModel.second_user_id == max(profile_user.id, user.id)))
 
-        new_notifications = await db.scalars(select(Notification_model)
-                                             .where(Notification_model.notification_receiver_id == user.id,
-                                                    Notification_model.is_active,
-                                                    ~Notification_model.is_checked)
-                                             .order_by(Notification_model.created))
-
-        friend_request = await db.scalar(select(Friends_model)
-                                         .where(Friends_model.first_user_id == min(profile_user.id, user.id),
-                                                Friends_model.second_user_id == max(profile_user.id, user.id)))
-        new_messages = await db.scalars(select(User_Chat_model)
-                                        .where(User_Chat_model.user_id == user.id,
-                                               User_Chat_model.unread_messages > 0))
         return templates.TemplateResponse('user_profile.html', {'request': request,
                                                                 'user': user,
                                                                 'profile_user': profile_user,
@@ -289,25 +260,25 @@ async def get_another_user_profile(request: Request,
 
 @authRouter.post('/request/{username}')
 async def post_request_friend(db: Annotated[AsyncSession, Depends(get_db)],
-                              user: User_model | None = Depends(get_current_user_or_none),
+                              user: UserModel | None = Depends(get_current_user_or_none),
                               username: str = Path()):
     if not user:
         return RedirectResponse('/', status_code=303)
 
-    friend_user = await db.scalar(select(User_model)
-                                  .where(User_model.is_active,
-                                         User_model.username == username))
+    friend_user = await db.scalar(select(UserModel)
+                                  .where(UserModel.is_active,
+                                         UserModel.username == username))
     if not friend_user:
         return {
             'status': status.HTTP_404_NOT_FOUND,
             'detail': 'user not found'
         }
 
-    await db.execute(insert(Friends_model)
+    await db.execute(insert(FriendsModel)
                      .values(first_user_id=min(friend_user.id, user.id),
                              second_user_id=max(friend_user.id, user.id),
                              requester_id=user.id))
-    await db.execute(insert(Notification_model)
+    await db.execute(insert(NotificationModel)
                      .values(text=f'{user.username} хочет добавить вас в друзья',
                              type='request',
                              notification_receiver_id=friend_user.id,
@@ -320,14 +291,14 @@ async def post_request_friend(db: Annotated[AsyncSession, Depends(get_db)],
 
 @authRouter.post('/accept/{username}')
 async def post_accept_friend(db: Annotated[AsyncSession, Depends(get_db)],
-                             user: User_model | None = Depends(get_current_user_or_none),
+                             user: UserModel | None = Depends(get_current_user_or_none),
                              username: str = Path()):
     if not user:
         return RedirectResponse('/', status_code=303)
 
-    friend_user = await db.scalar(select(User_model)
-                                  .where(User_model.is_active,
-                                         User_model.username == username))
+    friend_user = await db.scalar(select(UserModel)
+                                  .where(UserModel.is_active,
+                                         UserModel.username == username))
 
     if not friend_user:
         return {
@@ -335,24 +306,24 @@ async def post_accept_friend(db: Annotated[AsyncSession, Depends(get_db)],
             'detail': 'user not found'
         }
 
-    friend_request = await db.scalar(select(Friends_model)
-                                     .where(Friends_model.first_user_id == min(friend_user.id, user.id),
-                                            Friends_model.second_user_id == max(friend_user.id, user.id),
-                                            ~Friends_model.is_accepted,
-                                            Friends_model.requester_id != user.id))
+    friend_request = await db.scalar(select(FriendsModel)
+                                     .where(FriendsModel.first_user_id == min(friend_user.id, user.id),
+                                            FriendsModel.second_user_id == max(friend_user.id, user.id),
+                                            ~FriendsModel.is_accepted,
+                                            FriendsModel.requester_id != user.id))
     if not friend_request:
         return {
             'status': status.HTTP_404_NOT_FOUND,
             'detail': 'request not found'
         }
-    await db.execute(update(Notification_model)
-                     .where(Notification_model.notification_sender_id == friend_user.id,
-                            Notification_model.notification_receiver_id == user.id,
-                            Notification_model.type == 'request',
-                            Notification_model.is_active)
+    await db.execute(update(NotificationModel)
+                     .where(NotificationModel.notification_sender_id == friend_user.id,
+                            NotificationModel.notification_receiver_id == user.id,
+                            NotificationModel.type == 'request',
+                            NotificationModel.is_active)
                      .values(is_active=False))
     friend_request.is_accepted = True
-    await db.execute(insert(Notification_model)
+    await db.execute(insert(NotificationModel)
                      .values(text=f'{user.username} принял вашу заявку в друзья',
                              type='text',
                              notification_receiver_id=friend_user.id,
@@ -360,18 +331,18 @@ async def post_accept_friend(db: Annotated[AsyncSession, Depends(get_db)],
                              ))
 
     existing_chat_query = (
-        select(User_Chat_model.chat_id)
-        .where(User_Chat_model.user_id.in_([user.id, friend_user.id]))
-        .group_by(User_Chat_model.chat_id)
-        .having(func.count() == 2)
+        select(UserChatModel.chat_id)
+        .where(UserChatModel.user_id.in_([user.id, friend_user.id]))
+        .group_by(UserChatModel.chat_id)
+        .having(func.count() == 2)   # pylint: disable=not-callable
     )
     existing_chat = await db.execute(existing_chat_query)
     existing_chat_id = existing_chat.scalar_one_or_none()
 
     if existing_chat_id is None:
-        result = await db.execute(insert(Chat_model).returning(Chat_model.id))
+        result = await db.execute(insert(ChatModel).returning(ChatModel.id))
         chat_id = result.scalar_one()
-        await db.execute(insert(User_Chat_model).values(
+        await db.execute(insert(UserChatModel).values(
             [
                 {'chat_id': chat_id, 'user_id': user.id},
                 {'chat_id': chat_id, 'user_id': friend_user.id}
@@ -383,14 +354,14 @@ async def post_accept_friend(db: Annotated[AsyncSession, Depends(get_db)],
 
 @authRouter.post('/reject/{username}')
 async def post_reject_friend(db: Annotated[AsyncSession, Depends(get_db)],
-                             user: User_model | None = Depends(get_current_user_or_none),
+                             user: UserModel | None = Depends(get_current_user_or_none),
                              username: str = Path()):
     if not user:
         return RedirectResponse('/', status_code=303)
 
-    friend_user = await db.scalar(select(User_model)
-                                  .where(User_model.is_active,
-                                         User_model.username == username))
+    friend_user = await db.scalar(select(UserModel)
+                                  .where(UserModel.is_active,
+                                         UserModel.username == username))
 
     if not friend_user:
         return {
@@ -398,30 +369,30 @@ async def post_reject_friend(db: Annotated[AsyncSession, Depends(get_db)],
             'detail': 'user not found'
         }
 
-    friend_request = await db.scalar(select(Friends_model)
-                                     .where(Friends_model.first_user_id == min(friend_user.id, user.id),
-                                            Friends_model.second_user_id == max(friend_user.id, user.id),
-                                            ~Friends_model.is_accepted,
-                                            Friends_model.requester_id != user.id))
+    friend_request = await db.scalar(select(FriendsModel)
+                                     .where(FriendsModel.first_user_id == min(friend_user.id, user.id),
+                                            FriendsModel.second_user_id == max(friend_user.id, user.id),
+                                            ~FriendsModel.is_accepted,
+                                            FriendsModel.requester_id != user.id))
     if not friend_request:
         return {
             'status': status.HTTP_404_NOT_FOUND,
             'detail': 'request not found'
         }
-    await db.execute(delete(Friends_model)
-                     .where(Friends_model.first_user_id == min(friend_user.id, user.id),
-                            Friends_model.second_user_id == max(friend_user.id, user.id),
-                            ~Friends_model.is_accepted,
-                            Friends_model.requester_id != user.id))
+    await db.execute(delete(FriendsModel)
+                     .where(FriendsModel.first_user_id == min(friend_user.id, user.id),
+                            FriendsModel.second_user_id == max(friend_user.id, user.id),
+                            ~FriendsModel.is_accepted,
+                            FriendsModel.requester_id != user.id))
 
-    await db.execute(update(Notification_model)
-                     .where(Notification_model.notification_sender_id == friend_user.id,
-                            Notification_model.notification_receiver_id == user.id,
-                            Notification_model.type == 'request',
-                            Notification_model.is_active)
+    await db.execute(update(NotificationModel)
+                     .where(NotificationModel.notification_sender_id == friend_user.id,
+                            NotificationModel.notification_receiver_id == user.id,
+                            NotificationModel.type == 'request',
+                            NotificationModel.is_active)
                      .values(is_active=False))
 
-    await db.execute(insert(Notification_model)
+    await db.execute(insert(NotificationModel)
                      .values(text=f'{user.username} отклонил вашу заявку в друзья',
                              type='text',
                              notification_receiver_id=friend_user.id,
@@ -433,29 +404,29 @@ async def post_reject_friend(db: Annotated[AsyncSession, Depends(get_db)],
 
 @authRouter.post('/cancel/{username}')
 async def post_request_friend_cancel(db: Annotated[AsyncSession, Depends(get_db)],
-                                     user: User_model | None = Depends(get_current_user_or_none),
+                                     user: UserModel | None = Depends(get_current_user_or_none),
                                      username: str = Path()):
     if not user:
         return RedirectResponse('/', status_code=303)
 
-    friend_user = await db.scalar(select(User_model)
-                                  .where(User_model.is_active,
-                                         User_model.username == username))
+    friend_user = await db.scalar(select(UserModel)
+                                  .where(UserModel.is_active,
+                                         UserModel.username == username))
     if not friend_user:
         return {
             'status': status.HTTP_404_NOT_FOUND,
             'detail': 'user not found'
         }
 
-    await db.execute(delete(Friends_model)
-                     .where(Friends_model.first_user_id == min(friend_user.id, user.id),
-                            Friends_model.second_user_id == max(friend_user.id, user.id),
-                            Friends_model.requester_id == user.id))
+    await db.execute(delete(FriendsModel)
+                     .where(FriendsModel.first_user_id == min(friend_user.id, user.id),
+                            FriendsModel.second_user_id == max(friend_user.id, user.id),
+                            FriendsModel.requester_id == user.id))
 
-    await db.execute(delete(Notification_model)
-                     .where(Notification_model.notification_receiver_id == friend_user.id,
-                            Notification_model.text == f'{user.username} хочет добавить вас в друзья',
-                            Notification_model.is_active))
+    await db.execute(delete(NotificationModel)
+                     .where(NotificationModel.notification_receiver_id == friend_user.id,
+                            NotificationModel.text == f'{user.username} хочет добавить вас в друзья',
+                            NotificationModel.is_active))
     await db.commit()
     return {'status': status.HTTP_200_OK,
             'detail': 'request created'}
@@ -463,24 +434,24 @@ async def post_request_friend_cancel(db: Annotated[AsyncSession, Depends(get_db)
 
 @authRouter.post('/friend/delete/{username}')
 async def post_friend_delete(db: Annotated[AsyncSession, Depends(get_db)],
-                             user: User_model | None = Depends(get_current_user_or_none),
+                             user: UserModel | None = Depends(get_current_user_or_none),
                              username: str = Path()):
     if not user:
         return RedirectResponse('/', status_code=303)
 
-    friend_user = await db.scalar(select(User_model)
-                                  .where(User_model.is_active,
-                                         User_model.username == username))
+    friend_user = await db.scalar(select(UserModel)
+                                  .where(UserModel.is_active,
+                                         UserModel.username == username))
     if not friend_user:
         return {
             'status': status.HTTP_404_NOT_FOUND,
             'detail': 'user not found'
         }
 
-    friend_record = await db.scalar(select(Friends_model).where(
-        Friends_model.first_user_id == min(user.id, friend_user.id),
-        Friends_model.second_user_id == max(user.id, friend_user.id),
-        Friends_model.is_accepted
+    friend_record = await db.scalar(select(FriendsModel).where(
+        FriendsModel.first_user_id == min(user.id, friend_user.id),
+        FriendsModel.second_user_id == max(user.id, friend_user.id),
+        FriendsModel.is_accepted
     ))
 
     if not friend_record:
@@ -491,7 +462,7 @@ async def post_friend_delete(db: Annotated[AsyncSession, Depends(get_db)],
 
     await db.delete(friend_record)
 
-    await db.execute(insert(Notification_model)
+    await db.execute(insert(NotificationModel)
                      .values(text=f'{user.username} удалил вас из друзей :(',
                              type='text',
                              notification_receiver_id=friend_user.id,

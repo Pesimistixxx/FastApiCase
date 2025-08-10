@@ -5,12 +5,12 @@ from sqlalchemy.orm import Mapped, mapped_column, relationship
 from db.base import Base
 
 if TYPE_CHECKING:
-    from app.skin.models import Skin_model
-    from app.auth.models import User_model
-    from app.battles.models import Battle_model
+    from app.skin.models import SkinModel
+    from app.auth.models import UserModel
+    from app.battles.models import BattleModel
 
 
-class Case_model(Base):
+class CaseModel(Base):
     __tablename__ = 'cases'
 
     id: Mapped[int] = mapped_column(primary_key=True)
@@ -24,11 +24,11 @@ class Case_model(Base):
     author_id: Mapped[int] = mapped_column(ForeignKey('users.id'), nullable=True)
     opened_count: Mapped[int] = mapped_column(default=0, server_default='0', nullable=False)
 
-    skin_associations: Mapped[List["app.models_associations.Case_Skin_model"]] = relationship(back_populates="case")
-    author: Mapped[List["User_model"]] = relationship("User_model", back_populates="case")
-    battle: Mapped[["Battle_model"]] = relationship("Battle_model", back_populates="case")
-    skins: Mapped[List["Skin_model"]] = relationship(
-        "Skin_model",
+    skin_associations: Mapped[List["app.models_associations.CaseSkinModel"]] = relationship(back_populates="case")
+    author: Mapped[List["UserModel"]] = relationship("UserModel", back_populates="case")
+    battle: Mapped[["BattleModel"]] = relationship("BattleModel", back_populates="case")
+    skins: Mapped[List["SkinModel"]] = relationship(
+        "SkinModel",
         secondary="cases_skins",
         viewonly=True,
         overlaps="skin_associations")

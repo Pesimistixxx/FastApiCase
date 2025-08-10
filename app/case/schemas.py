@@ -1,6 +1,6 @@
+from typing import List
 from fastapi import Form
 from pydantic import BaseModel, Field
-from typing import List
 
 
 class CaseCreate(BaseModel):

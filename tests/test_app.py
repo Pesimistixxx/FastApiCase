@@ -1,5 +1,5 @@
 import asyncio
-
+import uuid
 import pytest
 from httpx import AsyncClient, ASGITransport
 from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession, async_sessionmaker
@@ -7,6 +7,8 @@ from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession, async_sess
 from app.main import app
 from db.base import Base
 from db.db_depends import get_db
+
+# pylint: disable=redefined-outer-name
 
 
 @pytest.fixture(scope="module")
@@ -77,7 +79,6 @@ async def test_get_register(async_client):
 
 @pytest.mark.asyncio
 async def test_post_register(async_client):
-    import uuid
     username = f"user_{uuid.uuid4().hex[:8]}"
     email = f"{username}@example.com"
     response = await async_client.post(

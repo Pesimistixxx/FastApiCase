@@ -3,7 +3,6 @@ import datetime
 from typing import Dict, Tuple
 from fastapi import WebSocket
 from fastapi.websockets import WebSocketState
-from sqlalchemy.ext.asyncio import AsyncSession
 
 
 class ChatConnectionManager:
@@ -16,7 +15,6 @@ class ChatConnectionManager:
     async def connect(self,
                       chat_id: int,
                       websocket: WebSocket,
-                      db: AsyncSession,
                       user_id: int):
         if websocket.client_state == WebSocketState.DISCONNECTED:
             return
@@ -49,8 +47,7 @@ class ChatConnectionManager:
 
     async def schedule_disconnect(self,
                                   chat_id: int,
-                                  user_id: int,
-                                  db: AsyncSession):
+                                  user_id: int):
         disconnect_key = (chat_id, user_id)
 
         if disconnect_key in self.pending_disconnects:
@@ -70,7 +67,7 @@ class ChatConnectionManager:
                     print(f"User {user_id} reconnected, canceling disconnect")
                     return
 
-            await self.disconnect_by_user(chat_id, user_id, db)
+            await self.disconnect_by_user(chat_id, user_id)
 
             async with self.lock:
                 if disconnect_key in self.pending_disconnects:
@@ -81,8 +78,7 @@ class ChatConnectionManager:
 
     async def disconnect_by_user(self,
                                  chat_id: int,
-                                 user_id: int,
-                                 db: AsyncSession):
+                                 user_id: int):
         async with self.lock:
             if (chat_id in self.active_connections
                     and user_id in self.active_connections[chat_id]):
@@ -111,11 +107,11 @@ class ChatConnectionManager:
                     tasks.append(ws.send_json(message))
                 except Exception as e:
                     print(f"Error sending message to user {user_id}: {e}")
-                    ws._should_remove = True
+                    ws.should_remove = True
 
         async with self.lock:
             for user_id, ws in list(self.active_connections[chat_id].items()):
-                if hasattr(ws, '_should_remove'):
+                if hasattr(ws, 'should_remove'):
                     del self.active_connections[chat_id][user_id]
 
         if tasks:
@@ -137,7 +133,7 @@ class ChatConnectionManager:
             if chat_id in self.active_connections:
                 del self.active_connections[chat_id]
 
-            keys_to_remove = [k for k in self.pending_disconnects.keys() if k[0] == chat_id]
+            keys_to_remove = [k for k in self.pending_disconnects if k[0] == chat_id]
             for key in keys_to_remove:
                 task = self.pending_disconnects.pop(key)
                 if not task.done():

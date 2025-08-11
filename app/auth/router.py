@@ -191,7 +191,7 @@ async def get_user_profile(request: Request,
                                           'new_messages_cnt': len(new_messages.all()),
                                           'notifications': notifications.all(),
                                           'friends': friends.all(),
-                                          'achievements': [row for row in achievements],
+                                          'achievements': list(achievements),
                                           'user_achievements': user_achievements.all(),
                                           'total_users': total_users
                                       })

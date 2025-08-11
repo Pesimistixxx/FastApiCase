@@ -300,7 +300,7 @@ async def websocket_lobby(websocket: WebSocket,
                             user_object = await db.scalar(select(UserModel)
                                                           .where(UserModel.id == user_id))
                             await check_battle_achievements(db=db, user=user_object)
-                            user_object.battles_cnt + 1
+                            user_object.battles_cnt += 1
 
                         await db.commit()
                         await manager.send_battle_started(battle_id)

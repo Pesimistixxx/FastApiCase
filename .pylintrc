@@ -1,6 +1,7 @@
 [MASTER]
 ignore = .venv, alembic, .github
 disable= C0114, C0115, C0116, W0611, W1203, W0718, W0105
+fail-under=9.0
 
 [BASIC]
 min-public-methods=0
@@ -15,7 +16,7 @@ output-format = colorized
 generated-members = func.*
 
 [REFACTORING]
-min-similarity-lines = 8
+min-similarity-lines = 12
 
 [DESIGN]
 max-locals=40

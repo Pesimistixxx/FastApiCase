@@ -56,6 +56,16 @@ services:
     env_file: .env
     depends_on:
       - app
+  wordle_tracker:
+    image: wordle_tracker:latest
+    build:
+      context: .
+      dockerfile: wordle_tracker/Dockerfile
+    environment:
+      POSTGRES_HOST: db
+    env_file: .env
+    depends_on:
+      - app
 
 volumes:
   postgres_data:

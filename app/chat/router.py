@@ -10,14 +10,17 @@ from fastapi.templating import Jinja2Templates
 from fastapi.websockets import WebSocketDisconnect, WebSocket
 from fastapi.websockets import WebSocketState
 
+from app.achievement.models import AchievementModel
 from app.auth.models import UserModel, FriendsModel
 from app.auth.security import get_current_user_or_none, verify_session
 from app.chat.chat_manager import chat_manager
 from app.chat.models import ChatModel, MessageModel
 from app.chat.schemas import SendMessage, EditMessage
-from app.models_associations import UserChatModel
+from app.models_associations import UserChatModel, UserAchievementModel
+from app.notification.models import NotificationModel
 from app.utils.db_queries import get_user_notifications, get_unread_messages, get_user_new_notifications
 from db.db_depends import get_db
+from wordle_tracker.models import WordleModel
 
 chatRouter = APIRouter(prefix='/chat', tags=['user, chat, messages'])
 templates = Jinja2Templates(directory='templates')
@@ -227,6 +230,36 @@ async def post_send_message(db: Annotated[AsyncSession, Depends(get_db)],
         message_date=datetime.datetime.now()
     ).returning(MessageModel.id))
     message_id = result.scalars().one()
+
+    wordle_word = await db.scalar(
+        select(WordleModel)
+        .order_by(WordleModel.created.desc())
+        .limit(1)
+    )
+    if message.message == wordle_word.word:
+        achievement = await db.scalar(
+            select(AchievementModel).where(AchievementModel.name == 'Пользователь @WordleCrackerBot')
+        )
+        exists_query = select(UserAchievementModel).where(
+            UserAchievementModel.achievement_id == achievement.id,
+            UserAchievementModel.user_id == user.id
+        )
+        user_achievement = await db.scalar(exists_query)
+        if not user_achievement:
+            await db.execute(
+                insert(NotificationModel).values(
+                    notification_receiver_id=user.id,
+                    type='achievement',
+                    text='Поздравляем, вы получили достижение Пользователь @WordleCrackerBot'
+                )
+            )
+            user.achievements_cnt += 1
+            await db.execute(
+                insert(UserAchievementModel).values(
+                    user_id=user.id,
+                    achievement_id=achievement.id
+                )
+            )
 
     message_response = {
         "type": "new_message",

@@ -12,6 +12,7 @@ from fastapi.templating import Jinja2Templates
 from fastapi.responses import JSONResponse, RedirectResponse
 from passlib.context import CryptContext
 
+from app.achievement.models import AchievementModel
 from app.auth.models import UserModel, SessionModel, FriendsModel
 from app.auth.schemas import UserRegister, UserLogin
 from app.case.models import CaseModel
@@ -19,7 +20,7 @@ from app.chat.models import ChatModel
 from app.notification.models import NotificationModel
 from app.utils.db_queries import get_user_notifications, get_unread_messages, get_user_new_notifications
 from app.auth.security import get_user, get_current_user_or_none
-from app.models_associations import UserSkinModel, UserChatModel
+from app.models_associations import UserSkinModel, UserChatModel, UserAchievementModel
 from db.db_depends import get_db
 
 authRouter = APIRouter(prefix='/user', tags=['user, auth, profile'])
@@ -154,11 +155,31 @@ async def get_user_profile(request: Request,
                                 .where(CaseModel.author_id == user.id)
                                 .order_by(CaseModel.is_approved))
     total_sum = sum(skin.skin.price for skin in all_skins_list)
+    friends_1 = await db.scalars(select(FriendsModel.first_user_id)
+                                 .where(FriendsModel.second_user_id == user.id,
+                                        FriendsModel.is_accepted))
+    friends_2 = await db.scalars(select(FriendsModel.second_user_id)
+                                 .where(FriendsModel.first_user_id == user.id,
+                                        FriendsModel.is_accepted))
+    all_friends_ids = list(set(friends_1.all() + friends_2.all()))
+    friends = await db.scalars(select(UserModel)
+                               .where(UserModel.id.in_(all_friends_ids)))
 
     notifications = await get_user_notifications(db, user.id)
     new_notifications = await get_user_new_notifications(db, user.id)
     new_messages = await get_unread_messages(db, user.id)
-
+    achievements = await db.execute(
+        select(
+            AchievementModel,
+            func.count(UserAchievementModel.id).label('popularity')  # pylint: disable=not-callable
+        )
+        .where(AchievementModel.is_active)
+        .join(UserAchievementModel, AchievementModel.id == UserAchievementModel.achievement_id, isouter=True)
+        .group_by(AchievementModel.id)
+        .order_by(desc(func.count(UserAchievementModel.id))))  # pylint: disable=not-callable
+    user_achievements = await db.scalars(select(UserAchievementModel.achievement_id)
+                                         .where(UserAchievementModel.user_id == user.id))
+    total_users = await db.scalar(select(func.count(UserModel.id)))  # pylint: disable=not-callable
     return templates.TemplateResponse("my_profile.html",
                                       {
                                           "request": request,
@@ -169,6 +190,10 @@ async def get_user_profile(request: Request,
                                           'notifications_cnt': len(new_notifications.all()),
                                           'new_messages_cnt': len(new_messages.all()),
                                           'notifications': notifications.all(),
+                                          'friends': friends.all(),
+                                          'achievements': [row for row in achievements],
+                                          'user_achievements': user_achievements.all(),
+                                          'total_users': total_users
                                       })
 
 
@@ -232,6 +257,28 @@ async def get_another_user_profile(request: Request,
                                      .where(CaseModel.author_id == profile_user.id,
                                             CaseModel.is_active,
                                             CaseModel.is_approved))
+    friends_1 = await db.scalars(select(FriendsModel.first_user_id)
+                                 .where(FriendsModel.second_user_id == profile_user.id,
+                                        FriendsModel.is_accepted))
+    friends_2 = await db.scalars(select(FriendsModel.second_user_id)
+                                 .where(FriendsModel.first_user_id == profile_user.id,
+                                        FriendsModel.is_accepted))
+    all_friends_ids = list(set(friends_1.all() + friends_2.all()))
+    friends = await db.scalars(select(UserModel)
+                               .where(UserModel.id.in_(all_friends_ids)))
+
+    achievements = await db.execute(
+        select(
+            AchievementModel,
+            func.count(UserAchievementModel.id).label('popularity')  # pylint: disable=not-callable
+        )
+        .where(AchievementModel.is_active)
+        .join(UserAchievementModel, AchievementModel.id == UserAchievementModel.achievement_id, isouter=True)
+        .group_by(AchievementModel.id)
+        .order_by(desc(func.count(UserAchievementModel.id))))  # pylint: disable=not-callable
+    user_achievements = await db.scalars(select(UserAchievementModel.achievement_id)
+                                         .where(UserAchievementModel.user_id == profile_user.id))
+    total_users = await db.scalar(select(func.count(UserModel.id)))  # pylint: disable=not-callable
 
     if user:
         notifications = await get_user_notifications(db, user.id)
@@ -248,7 +295,11 @@ async def get_another_user_profile(request: Request,
                                                                 'friend_request': friend_request,
                                                                 'notifications': notifications.all(),
                                                                 'notifications_cnt': len(new_notifications.all()),
-                                                                'new_messages_cnt': len(new_messages.all())
+                                                                'new_messages_cnt': len(new_messages.all()),
+                                                                'achievements': achievements.all(),
+                                                                'user_achievements': user_achievements.all(),
+                                                                'total_users': total_users,
+                                                                'friends': friends.all()
                                                                 })
 
     return templates.TemplateResponse('user_profile.html', {'request': request,
@@ -334,7 +385,7 @@ async def post_accept_friend(db: Annotated[AsyncSession, Depends(get_db)],
         select(UserChatModel.chat_id)
         .where(UserChatModel.user_id.in_([user.id, friend_user.id]))
         .group_by(UserChatModel.chat_id)
-        .having(func.count() == 2)   # pylint: disable=not-callable
+        .having(func.count() == 2)  # pylint: disable=not-callable
     )
     existing_chat = await db.execute(existing_chat_query)
     existing_chat_id = existing_chat.scalar_one_or_none()

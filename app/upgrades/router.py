@@ -8,15 +8,60 @@ from fastapi.templating import Jinja2Templates
 from fastapi.exceptions import HTTPException
 from fastapi.responses import RedirectResponse
 
+from app.achievement.models import AchievementModel
 from app.auth.models import UserModel
 from app.auth.security import get_current_user_or_none
-from app.models_associations import UserSkinModel
+from app.models_associations import UserSkinModel, UserAchievementModel
+from app.notification.models import NotificationModel
 from app.skin.models import SkinModel
 from app.utils.db_queries import get_user_notifications, get_user_new_notifications, get_unread_messages
 from db.db_depends import get_db
 
 upgradeRouter = APIRouter(prefix='/upgrade', tags=['skin', 'upgrade'])
 templates = Jinja2Templates(directory='templates')
+
+
+async def check_upgrade_achievements(
+        db: AsyncSession,
+        user: UserModel,
+):
+    achievements_map = {
+        10: ('Рыжий Ап', 'Поздравляем, вы получили достижение Рыжий Ап'),
+        100: ('100грейд', 'Поздравляем, вы получили достижение 100грейд'),
+        1000: ('Жабгрейдер', 'Поздравляем, вы получили достижение Жабгрейдер'),
+        10000: ('Квартира на 1%', 'Поздравляем, вы получили достижение Квартира на 1%'),
+    }
+
+    for threshold, (name, message) in achievements_map.items():
+        if user.upgrades_cnt < threshold <= user.upgrades_cnt + 1:
+            achievement = await db.scalar(
+                select(AchievementModel).where(AchievementModel.name == name)
+            )
+            if not achievement:
+                continue
+
+            exists_query = select(UserAchievementModel).where(
+                UserAchievementModel.achievement_id == achievement.id,
+                UserAchievementModel.user_id == user.id
+            )
+            user_achievement = await db.scalar(exists_query)
+
+            if not user_achievement:
+                await db.execute(
+                    insert(NotificationModel).values(
+                        notification_receiver_id=user.id,
+                        type='achievement',
+                        text=message
+                    )
+                )
+
+                user.achievements_cnt += 1
+                await db.execute(
+                    insert(UserAchievementModel).values(
+                        user_id=user.id,
+                        achievement_id=achievement.id
+                    )
+                )
 
 
 @upgradeRouter.get('/')
@@ -82,10 +127,47 @@ async def post_upgrade(db: Annotated[AsyncSession, Depends(get_db)],
         )
 
     user_skin.is_active = False
+    await check_upgrade_achievements(db=db, user=user)
+    if chance == 10000:
+        achievement = await db.scalar(select(AchievementModel)
+                                      .where(AchievementModel.name == 'Ценитель'))
+        user_achievement = await db.scalar(select(UserAchievementModel)
+                                           .where(UserAchievementModel.user_id == user.id,
+                                                  UserAchievementModel.achievement_id == achievement.id))
+        if not user_achievement:
+            await db.execute(insert(NotificationModel).values(
+                notification_receiver_id=user.id,
+                type='achievement',
+                text='Поздравляем, вы получили достижение Ценитель'
+            ))
+            user.achievements_cnt += 1
+            await db.execute(insert(UserAchievementModel).values(
+                user_id=user.id,
+                achievement_id=achievement.id
+            ))
+
     user.upgrades_cnt += 1
     user.activity_points += 15
 
     if randint < chance:
+        if chance <= 100:
+            achievement = await db.scalar(select(AchievementModel)
+                                          .where(AchievementModel.name == 'Везунчик'))
+            user_achievement = await db.scalar(select(UserAchievementModel)
+                                               .where(UserAchievementModel.user_id == user.id,
+                                                      UserAchievementModel.achievement_id == achievement.id))
+            if not user_achievement:
+                await db.execute(insert(NotificationModel).values(
+                    notification_receiver_id=user.id,
+                    type='achievement',
+                    text='Поздравляем, вы получили достижение Везунчик'
+                ))
+                user.achievements_cnt += 1
+                await db.execute(insert(UserAchievementModel).values(
+                    user_id=user.id,
+                    achievement_id=achievement.id
+                ))
+
         result = await db.execute(insert(UserSkinModel).values(
             user_id=user.id,
             skin_id=market_skin_id
@@ -98,7 +180,23 @@ async def post_upgrade(db: Annotated[AsyncSession, Depends(get_db)],
         return {'is_success': True,
                 'randint': randint / 100,
                 'skin_id': user_skin_id}
-
+    if chance >= 9900:
+        achievement = await db.scalar(select(AchievementModel)
+                                      .where(AchievementModel.name == 'Неудачник'))
+        user_achievement = await db.scalar(select(UserAchievementModel)
+                                           .where(UserAchievementModel.user_id == user.id,
+                                                  UserAchievementModel.achievement_id == achievement.id))
+        if not user_achievement:
+            await db.execute(insert(NotificationModel).values(
+                notification_receiver_id=user.id,
+                type='achievement',
+                text='Поздравляем, вы получили достижение Неудачник'
+            ))
+            user.achievements_cnt += 1
+            await db.execute(insert(UserAchievementModel).values(
+                user_id=user.id,
+                achievement_id=achievement.id
+            ))
     await db.commit()
     return {'is_success': False,
             'randint': randint / 100}

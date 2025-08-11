@@ -35,6 +35,7 @@ from app.chat.models import ChatModel, MessageModel
 from app.notification.models import NotificationModel
 from app.models_associations import UserChatModel, UserBattleModel, UserSkinModel, CaseSkinModel, UserAchievementModel
 from app.achievement.models import AchievementModel
+from wordle_tracker.models import WordleModel
 target_metadata = Base.metadata
 
 # other values from the config, defined by the needs of env.py,

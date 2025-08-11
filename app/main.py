@@ -1,6 +1,6 @@
 from typing import Annotated
 import uvicorn
-from sqlalchemy import select, desc, func
+from sqlalchemy import select, desc
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 from fastapi import FastAPI, Request, Depends
@@ -16,15 +16,14 @@ from app.auth.router import authRouter
 from app.battles.router import battleRouter
 from app.case.models import CaseModel
 from app.case.router import caseRouter
-from app.chat.models import MessageModel
 from app.chat.router import chatRouter
 from app.contracts.router import contractRouter
 from app.models_associations import UserSkinModel
-from app.notification.models import NotificationModel
 from app.notification.router import notificationRouter
 from app.skin.router import skinRouter
 from app.tops.router import topRouter
 from app.upgrades.router import upgradeRouter
+from app.utils.db_queries import get_unread_messages, get_user_new_notifications, get_user_notifications
 from db.db_depends import get_db
 
 app = FastAPI(docs_url=None,
@@ -73,28 +72,10 @@ async def get_main_page(request: Request,
     ).order_by(desc('id')))
 
     if user:
-        notifications = await db.scalars(select(NotificationModel)
-                                         .where(NotificationModel.notification_receiver_id == user.id,
-                                                NotificationModel.is_active)
-                                         .order_by(desc(NotificationModel.created))
-                                         .options(selectinload(NotificationModel.notification_sender)))
+        notifications = await get_user_notifications(db, user.id)
+        new_notifications = await get_user_new_notifications(db, user.id)
+        new_messages = await get_unread_messages(db, user.id)
 
-        new_notifications = await db.scalars(select(NotificationModel)
-                                             .where(NotificationModel.notification_receiver_id == user.id,
-                                                    NotificationModel.is_active,
-                                                    ~NotificationModel.is_checked)
-                                             .order_by(NotificationModel.created))
-        new_messages = await db.scalars(
-            select(
-                MessageModel.chat_id,
-                func.count(MessageModel.id).label('unread_count')  # pylint: disable=not-callable
-            )
-            .where(
-                MessageModel.author_id != user.id,
-                ~MessageModel.is_checked
-            )
-            .group_by(MessageModel.chat_id)
-        )
         return templates.TemplateResponse('main.html', {'request': request,
                                                         'user': user,
                                                         'last_skins': last_skins,

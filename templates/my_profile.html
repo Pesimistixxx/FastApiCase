@@ -43,7 +43,72 @@
         .balance {
             font-size: 18px;
             color: #aeeaff;
-            margin-bottom: 50px;
+            margin-bottom: 10px;
+        }
+
+        .friends-section {
+            margin-bottom: 30px;
+        }
+
+        .friends-title {
+            font-size: 18px;
+            font-weight: bold;
+            margin-bottom: 15px;
+            color: #ffffff;
+        }
+
+        .friends-list {
+            display: flex;
+            overflow-x: auto;
+            gap: 15px;
+            padding-bottom: 10px;
+            scrollbar-width: thin;
+            scrollbar-color: #2979ff #1e1e1e;
+        }
+
+        .friends-list::-webkit-scrollbar {
+            height: 6px;
+        }
+
+        .friends-list::-webkit-scrollbar-track {
+            background: #1e1e1e;
+            border-radius: 3px;
+        }
+
+        .friends-list::-webkit-scrollbar-thumb {
+            background-color: #2979ff;
+            border-radius: 3px;
+        }
+
+        .friend-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-width: 80px;
+        }
+
+        .friend-avatar {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 2px solid #2979ff;
+            margin-bottom: 5px;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+
+        .friend-avatar:hover {
+            transform: scale(1.05);
+        }
+
+        .friend-name {
+            font-size: 12px;
+            text-align: center;
+            max-width: 80px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
         }
 
         .skins-title {
@@ -232,6 +297,109 @@
             justify-content: center;
             gap: 8px;
         }
+
+        .achievements-section {
+            margin: 30px 0;
+        }
+
+        .achievements-title {
+            font-size: 20px;
+            font-weight: bold;
+            margin-bottom: 20px;
+            color: #ffffff;
+        }
+
+        .achievements-grid {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            grid-gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .achievement-item {
+            background-color: #242424;
+            border-radius: 8px;
+            padding: 10px;
+            text-align: center;
+            border: 1px solid #444;
+        }
+
+        .achievement-item.locked {
+            opacity: 0.6;
+        }
+
+        .achievement-item img {
+            width: 50px;
+            height: 50px;
+            object-fit: cover;
+            border-radius: 4px;
+            margin-bottom: 5px;
+        }
+
+        .achievement-name {
+            font-size: 12px;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+
+        .achievement-desc {
+            font-size: 12px;
+            color: #aaa;
+            margin-bottom: 5px;
+        }
+
+        .achievement-popularity {
+            font-size: 10px;
+            color: #4CAF50;
+        }
+
+        .achievements-pagination {
+            display: flex;
+            justify-content: center;
+            gap: 8px;
+            margin-top: 15px;
+        }
+
+        .overlay-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(18,22,30,0.65);
+            z-index: 10000;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            overflow-y: auto;
+            padding: 20px;
+            box-sizing: border-box;
+        }
+
+        .overlay-content {
+            background: #23272e;
+            border-radius: 16px;
+            max-width: 800px;
+            width: calc(100% - 40px);
+            margin: 20px auto;
+            box-shadow: 0 2px 24px #2979ff33;
+            padding: 32px 24px 24px;
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+
+        .close-overlay {
+            position: absolute;
+            top: 18px;
+            right: 24px;
+            font-size: 28px;
+            color: #aaa;
+            cursor: pointer;
+        }
     </style>
 </head>
 <body>
@@ -244,14 +412,39 @@
                      class="avatar"
                      onerror="this.onerror=null; this.src='https://via.placeholder.com/100'">
 
-    <div class="username">{{username}}</div>
+    <div class="username">{{user.username}}</div>
 
-    <div class="balance">Баланс: {{balance}}</div>
-    <button id="toggleCasesBtn" style="margin-bottom:18px; margin-top:10px; background:#2979ff; color:#fff; border:none; border-radius:6px; padding:10px 24px; font-size:16px; font-weight:bold; cursor:pointer;">Мои кейсы</button>
+    <div class="balance">Баланс: {{ "%.2f"|format(user.balance) }}</div>
 
-    <div id="myCasesOverlay" style="display:none; position:fixed; left:0; top:0; width:100vw; height:100vh; background:rgba(18,22,30,0.65); z-index:10000; align-items:center; justify-content:center;">
-        <div style="background:#23272e; border-radius:16px; max-width:600px; width:90vw; margin:0 auto; box-shadow:0 2px 24px #2979ff33; padding:32px 24px 24px 24px; position:relative; display:flex; flex-direction:column; align-items:center;">
-            <span id="closeCasesOverlay" style="position:absolute; top:18px; right:24px; font-size:28px; color:#aaa; cursor:pointer;">&times;</span>
+    <div class="friends-section">
+        <div class="friends-title">Мои друзья</div>
+        <div class="friends-list">
+            {% if friends and friends|length > 0 %}
+                {% for friend in friends %}
+                    <div class="friend-item">
+                        <a href="/user/profile/{{friend.username}}">
+                            <img src="/static/avatars/{{friend.avatar}}"
+                                 alt="{{ friend.username }}"
+                                 class="friend-avatar"
+                                 onerror="this.onerror=null; this.src='https://via.placeholder.com/60'">
+                        </a>
+                        <div class="friend-name">{{ friend.username }}</div>
+                    </div>
+                {% endfor %}
+            {% else %}
+                <div style="color: #777; font-size: 14px;">У вас пока нет друзей</div>
+            {% endif %}
+        </div>
+    </div>
+
+    <div style="display: flex; gap: 10px; justify-content: center; margin-bottom: 20px;">
+        <button id="toggleCasesBtn" style="background:#2979ff; color:#fff; border:none; border-radius:6px; padding:10px 24px; font-size:16px; font-weight:bold; cursor:pointer;">Мои кейсы</button>
+        <button id="toggleAchievementsBtn" style="background:#2979ff; color:#fff; border:none; border-radius:6px; padding:10px 24px; font-size:16px; font-weight:bold; cursor:pointer;">Мои достижения</button>
+    </div>
+
+    <div id="myCasesOverlay" class="overlay-container">
+        <div class="overlay-content">
+            <span id="closeCasesOverlay" class="close-overlay">&times;</span>
             <div style="font-size:22px; color:#aeeaff; font-weight:bold; margin-bottom:18px;">Ваши кейсы</div>
             {% if my_cases and my_cases|length > 0 %}
             <ul id="myCasesList" style="list-style:none; padding:0; margin:0; width:100%; display:flex; flex-direction:column; gap:12px;"></ul>
@@ -262,16 +455,26 @@
         </div>
     </div>
 
+    <div id="myAchievementsOverlay" class="overlay-container">
+        <div class="overlay-content">
+            <span id="closeAchievementsOverlay" class="close-overlay">&times;</span>
+            <div style="font-size:22px; color:#aeeaff; font-weight:bold; margin-bottom:18px;">Ваши достижения</div>
+
+            <div class="achievements-grid" id="achievementsGrid"></div>
+            <div class="achievements-pagination" id="achievementsPagination"></div>
+        </div>
+    </div>
+
     <div class="skins-title">Выпавшие скины</div>
     <div class="sell-all-container" id="sellAllContainer">
-        <button id="sellAllButton" class="sell-all-button">Продать все за <span id="totalPrice">{{ skins_price }}</span></button>
+        <button id="sellAllButton" class="sell-all-button">Продать все за <span id="totalPrice">{{ "%.2f"|format(skins_price) }}</span></button>
     </div>
 
     <div class="skins-grid">
         {% for skin in last_skins %}
             <div class="skin-item">
                 <div data-user-skin-id="{{ skin.id }}" class="skin-price">
-                  {{ skin.skin.price }}
+                  {{ "%.2f"|format(skin.skin.price) }}
                 </div>
                 <button class="sell-button">×</button>
                  <img src="/static/skins/{{skin.skin.image}}"
@@ -297,6 +500,7 @@
 
 <script>
     let initialTotalPrice = parseFloat("{{ skins_price }}") || 0;
+    const TOTAL_USERS = {{ total_users }};
 
     function updateTotalPrice() {
         const sellAllButton = document.getElementById('sellAllButton');
@@ -505,17 +709,42 @@
 
         function openMyCasesOverlay() {
             document.getElementById('myCasesOverlay').style.display = 'flex';
+            document.body.style.overflow = 'hidden';
         }
+
         function closeMyCasesOverlay() {
             document.getElementById('myCasesOverlay').style.display = 'none';
+            document.body.style.overflow = '';
         }
+
+        function openMyAchievementsOverlay() {
+            document.getElementById('myAchievementsOverlay').style.display = 'flex';
+            document.body.style.overflow = 'hidden';
+            renderAchievementsPage(1);
+        }
+
+        function closeMyAchievementsOverlay() {
+            document.getElementById('myAchievementsOverlay').style.display = 'none';
+            document.body.style.overflow = '';
+        }
+
         document.getElementById('toggleCasesBtn').onclick = openMyCasesOverlay;
         document.getElementById('closeCasesOverlay').onclick = closeMyCasesOverlay;
+        document.getElementById('toggleAchievementsBtn').onclick = openMyAchievementsOverlay;
+        document.getElementById('closeAchievementsOverlay').onclick = closeMyAchievementsOverlay;
 
         if (document.getElementById('myCasesOverlay')) {
             document.getElementById('myCasesOverlay').addEventListener('mousedown', function(e) {
                 if (e.target === document.getElementById('myCasesOverlay')) {
                     closeMyCasesOverlay();
+                }
+            });
+        }
+
+        if (document.getElementById('myAchievementsOverlay')) {
+            document.getElementById('myAchievementsOverlay').addEventListener('mousedown', function(e) {
+                if (e.target === document.getElementById('myAchievementsOverlay')) {
+                    closeMyAchievementsOverlay();
                 }
             });
         }
@@ -634,6 +863,104 @@
         }
 
         showMyCasesPage(myCasesCurrentPage);
+
+        const allAchievements = [
+            {% for achievement, popularity in achievements %}
+            {
+                id: {{ achievement.id }},
+                name: {{ achievement.name | tojson }},
+                image: {{ achievement.image | tojson }},
+                description: {{ achievement.description | tojson }},
+                popularity: {{ popularity }},
+                popularity_percent: {{ (popularity / total_users * 100 if total_users > 0 else 0) | round(2) }},
+                is_unlocked: {{ 'true' if achievement.id in user_achievements else 'false' }}
+            }{% if not loop.last %},{% endif %}
+            {% endfor %}
+        ].sort((a, b) => {
+            if (a.is_unlocked && !b.is_unlocked) return -1;
+            if (!a.is_unlocked && b.is_unlocked) return 1;
+            return b.popularity - a.popularity;
+        });
+
+        const userAchievements = [
+            {% for achievement_id in user_achievements %}
+            {{ achievement_id }}{% if not loop.last %},{% endif %}
+            {% endfor %}
+        ];
+
+        const ACHIEVEMENTS_PER_PAGE = 20;
+        let achievementsCurrentPage = 1;
+
+        function renderAchievementsPage(page) {
+            const grid = document.getElementById('achievementsGrid');
+            grid.innerHTML = '';
+
+            const start = (page-1)*ACHIEVEMENTS_PER_PAGE;
+            const end = start + ACHIEVEMENTS_PER_PAGE;
+            const achievementsToShow = allAchievements.slice(start, end);
+
+            achievementsToShow.forEach(achievement => {
+                const achievementItem = document.createElement('div');
+                achievementItem.className = `achievement-item ${achievement.is_unlocked ? '' : 'locked'}`;
+
+                achievementItem.innerHTML = `
+                    <img src="/static/achievements/${achievement.image}" alt="${achievement.name}"
+                         style="filter: ${achievement.is_unlocked ? 'none' : 'grayscale(100%)'};">
+                    <div class="achievement-name">${achievement.name}</div>
+                    <div class="achievement-desc">${achievement.description}</div>
+                    <div class="achievement-popularity">${achievement.popularity_percent}% пользователей</div>
+                `;
+
+                grid.appendChild(achievementItem);
+            });
+
+            renderAchievementsPagination(page);
+        }
+
+        function renderAchievementsPagination(page) {
+            const pagination = document.getElementById('achievementsPagination');
+            pagination.innerHTML = '';
+
+            const totalPages = Math.ceil(allAchievements.length / ACHIEVEMENTS_PER_PAGE);
+            if (totalPages <= 1) return;
+
+            let pages = [];
+            if (totalPages <= 5) {
+                for (let i = 1; i <= totalPages; i++) pages.push(i);
+            } else {
+                if (page <= 3) {
+                    pages = [1, 2, 3, 4, '...', totalPages];
+                } else if (page >= totalPages - 2) {
+                    pages = [1, '...', totalPages - 3, totalPages - 2, totalPages - 1, totalPages];
+                } else {
+                    pages = [1, '...', page - 1, page, page + 1, '...', totalPages];
+                }
+            }
+
+            let lastWasDots = false;
+            pages.forEach(p => {
+                if (p === '...') {
+                    if (!lastWasDots) {
+                        const span = document.createElement('span');
+                        span.textContent = '...';
+                        span.style = 'padding: 6px 12px; color: #fff;';
+                        pagination.appendChild(span);
+                        lastWasDots = true;
+                    }
+                } else {
+                    const btn = document.createElement('button');
+                    btn.textContent = p;
+                    btn.style = 'padding: 6px 12px; border-radius: 4px; border: none; background:' + (p === page ? '#2979ff' : '#222') + '; color: #fff; margin: 0 2px; cursor:pointer;';
+                    if (p === page) btn.disabled = true;
+                    btn.onclick = () => {
+                        achievementsCurrentPage = p;
+                        renderAchievementsPage(achievementsCurrentPage);
+                    };
+                    pagination.appendChild(btn);
+                    lastWasDots = false;
+                }
+            });
+        }
     });
 </script>
 </body>

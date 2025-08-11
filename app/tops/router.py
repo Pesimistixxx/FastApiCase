@@ -41,6 +41,11 @@ async def get_top(db: Annotated[AsyncSession, Depends(get_db)],
     top_cases = await db.scalars(select(CaseModel)
                                  .order_by(desc(CaseModel.opened_count))
                                  .limit(10))
+    top_battles = await db.scalars(select(UserModel).order_by(desc(UserModel.battles_cnt)).limit(10))
+    top_battles_luck = await db.scalars(select(UserModel).where(UserModel.battles_cnt >= 50).order_by(
+        desc(UserModel.battles_won / (UserModel.battles_cnt + 1))).limit(10))
+    top_battles_streak = await db.scalars(select(UserModel).order_by(desc(UserModel.battles_streak)).limit(10))
+    top_achievements = await db.scalars(select(UserModel).order_by(desc(UserModel.achievements_cnt)).limit(10))
 
     top_cases_open_dict = {user.username: user.case_opened for user in top_cases_open.all()}
     top_upgrades_cnt_dict = {user.username: user.upgrades_cnt for user in top_upgrades_cnt.all()}
@@ -52,9 +57,14 @@ async def get_top(db: Annotated[AsyncSession, Depends(get_db)],
                               user in top_upgrades_luck}
     top_contracts_luck_dict = {user.username: f'{user.successful_contracts_cnt / (user.contracts_cnt + 1) * 100:.2f}'
                                for user in top_contracts_luck}
+    top_battles_luck_dict = {user.username: f'{user.battles_won / (user.battles_cnt + 1) * 100:.2f}'
+                             for user in top_battles_luck}
     top_activity_dict = {user.username: user.activity_points for user in top_activity.all()}
     top_authors_dict = {user.username: user.author_case_opened for user in top_authors.all()}
     top_cases_dict = {case.name: case.opened_count for case in top_cases.all()}
+    top_battles_dict = {user.username: user.battles_cnt for user in top_battles.all()}
+    top_battles_streak_dict = {user.username: user.battles_streak for user in top_battles_streak.all()}
+    top_achievements_dict = {user.username: user.achievements_cnt for user in top_achievements.all()}
 
     if user:
         notifications = await get_user_notifications(db, user.id)
@@ -73,6 +83,10 @@ async def get_top(db: Annotated[AsyncSession, Depends(get_db)],
                                                        'top_activity': top_activity_dict,
                                                        'top_authors': top_authors_dict,
                                                        'top_cases': top_cases_dict,
+                                                       'top_battles_cnt': top_battles_dict,
+                                                       'top_battles_luck': top_battles_luck_dict,
+                                                       'top_battles_streak': top_battles_streak_dict,
+                                                       'top_achievements_cnt': top_achievements_dict,
                                                        'notifications_cnt': len(new_notifications.all()),
                                                        'new_messages_cnt': len(new_messages.all()),
                                                        'notifications': notifications.all(),
@@ -89,4 +103,9 @@ async def get_top(db: Annotated[AsyncSession, Depends(get_db)],
                                                    'top_activity': top_activity_dict,
                                                    'top_authors': top_authors_dict,
                                                    'top_cases': top_cases_dict,
+                                                   'top_battles_cnt': top_battles_dict,
+                                                   'top_battles_luck': top_battles_luck_dict,
+                                                   'top_battles_streak': top_battles_streak_dict,
+                                                   'top_achievements_cnt': top_achievements_dict,
+                                                   'username': user.username,
                                                    'user': None})

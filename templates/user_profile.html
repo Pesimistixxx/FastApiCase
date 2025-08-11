@@ -16,14 +16,19 @@
         }
         .profile-container {
             display: flex;
-            align-items: flex-start;
-            gap: 32px;
+            flex-direction: column;
             max-width: 700px;
             margin: 40px auto 0 auto;
             background-color: #1e1e1e;
             border-radius: 10px;
             padding: 30px;
             box-shadow: 0 0 15px rgba(255, 255, 255, 0.1);
+            gap: 24px;
+        }
+        .profile-header {
+            display: flex;
+            gap: 32px;
+            align-items: flex-start;
         }
         .avatar-container {
             display: flex;
@@ -74,6 +79,181 @@
         .friend-btn.delete {
             background: #f44336;
         }
+        .profile-info {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 12px;
+        }
+        .profile-username {
+            font-size: 22px;
+            font-weight: bold;
+            color: #2979ff;
+        }
+        .profile-stats {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            margin-top: 8px;
+        }
+        .stat-item {
+            font-size: 16px;
+            background: #242424;
+            padding: 8px 12px;
+            border-radius: 6px;
+        }
+        .stat-value {
+            color: #aeeaff;
+            font-weight: bold;
+        }
+        .profile-actions {
+            display: flex;
+            gap: 12px;
+            margin-top: 16px;
+        }
+        .action-btn {
+            background: #2979ff;
+            color: #fff;
+            border: none;
+            border-radius: 6px;
+            padding: 10px 16px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+        .action-btn:hover {
+            background: #1a68e6;
+        }
+        .friends-section {
+            margin-top: 24px;
+        }
+        .friends-title {
+            font-size: 18px;
+            font-weight: bold;
+            margin-bottom: 15px;
+            color: #ffffff;
+        }
+        .friends-list {
+            display: flex;
+            overflow-x: auto;
+            gap: 15px;
+            padding-bottom: 10px;
+            scrollbar-width: thin;
+            scrollbar-color: #2979ff #1e1e1e;
+        }
+        .friends-list::-webkit-scrollbar {
+            height: 6px;
+        }
+        .friends-list::-webkit-scrollbar-track {
+            background: #1e1e1e;
+            border-radius: 3px;
+        }
+        .friends-list::-webkit-scrollbar-thumb {
+            background-color: #2979ff;
+            border-radius: 3px;
+        }
+        .friend-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-width: 80px;
+        }
+        .friend-avatar {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 2px solid #2979ff;
+            margin-bottom: 5px;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+        .friend-avatar:hover {
+            transform: scale(1.05);
+        }
+        .friend-name {
+            font-size: 12px;
+            text-align: center;
+            max-width: 80px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .achievements-section {
+            margin-top: 24px;
+        }
+        .section-title {
+            font-size: 20px;
+            font-weight: bold;
+            margin-bottom: 16px;
+            color: #ffffff;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .achievements-grid {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 12px;
+        }
+        .achievement-item {
+            background: #242424;
+            border-radius: 8px;
+            padding: 12px;
+            text-align: center;
+            border: 1px solid #444;
+            transition: transform 0.2s;
+        }
+        .achievement-item:hover {
+            transform: translateY(-3px);
+        }
+        .achievement-item.locked {
+            opacity: 0.6;
+        }
+        .achievement-item img {
+            width: 50px;
+            height: 50px;
+            object-fit: cover;
+            border-radius: 4px;
+            margin-bottom: 8px;
+            filter: grayscale(100%);
+        }
+        .achievement-item.unlocked img {
+            filter: none;
+        }
+        .achievement-name {
+            font-size: 12px;
+            font-weight: bold;
+            margin-bottom: 4px;
+        }
+        .achievement-desc {
+            font-size: 12px;
+            color: #aaa;
+            margin-bottom: 4px;
+        }
+        .achievement-popularity {
+            font-size: 10px;
+            color: #4CAF50;
+        }
+        .achievements-pagination {
+            display: flex;
+            justify-content: center;
+            gap: 8px;
+            margin-top: 16px;
+        }
+        .pagination-btn {
+            padding: 6px 12px;
+            border-radius: 4px;
+            border: none;
+            background: #222;
+            color: #fff;
+            cursor: pointer;
+        }
+        .pagination-btn.active {
+            background: #2979ff;
+        }
         .notification {
             position: fixed;
             bottom: 20px;
@@ -90,104 +270,67 @@
         .notification.error {
             background-color: #f44336;
         }
-        .modal {
+        .cases-overlay {
             position: fixed;
             top: 0;
             left: 0;
             width: 100%;
             height: 100%;
-            background-color: rgba(0,0,0,0.7);
-            display: flex;
-            justify-content: center;
+            background: rgba(18,22,30,0.65);
+            z-index: 10000;
+            display: none;
             align-items: center;
-            z-index: 1000;
-            opacity: 0;
-            pointer-events: none;
-            transition: opacity 0.3s ease;
-        }
-        .modal.active {
-            opacity: 1;
-            pointer-events: all;
-        }
-        .modal-content {
-            background-color: #2a2a2a;
-            padding: 30px;
-            border-radius: 10px;
-            width: 300px;
-            text-align: center;
-            transform: translateY(-20px);
-            transition: transform 0.3s ease;
-        }
-        .modal.active .modal-content {
-            transform: translateY(0);
-        }
-        .modal-buttons {
-            display: flex;
             justify-content: center;
-            gap: 15px;
-            margin-top: 25px;
         }
-        .modal-buttons button {
-            padding: 8px 20px;
-            border: none;
-            border-radius: 4px;
+        .overlay-content {
+            background: #23272e;
+            border-radius: 16px;
+            max-width: 600px;
+            width: 90%;
+            max-height: 80vh;
+            overflow-y: auto;
+            padding: 24px;
+            position: relative;
+        }
+        .close-overlay {
+            position: absolute;
+            top: 16px;
+            right: 16px;
+            font-size: 24px;
+            color: #aaa;
             cursor: pointer;
         }
-        #confirm-sell {
-            background-color: #4CAF50;
-            color: white;
+        .cases-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
         }
-        #cancel-sell {
-            background-color: #f44336;
-            color: white;
-        }
-        .sell-all-container {
-            margin-bottom: 20px;
-            text-align: center;
-        }
-        .sell-all-button {
-            background-color: #4caf50;
-            color: white;
-            border: none;
-            padding: 10px 20px;
-            font-size: 16px;
-            border-radius: 4px;
-            cursor: pointer;
-            transition: background-color 0.3s;
-        }
-        .sell-all-button:hover {
-            background-color: #388e3c;
-        }
-        .sell-all-button:disabled {
-            background-color: #666;
-            cursor: not-allowed;
-        }
-        .notification-item {
-            background: #1e1e1e;
+        .case-item {
+            background: #181d23;
+            border-radius: 8px;
             padding: 12px;
-            border-radius: 6px;
-            margin-bottom: 8px;
-            border-left: 3px solid #2979ff;
             display: flex;
-            justify-content: space-between;
             align-items: center;
+            gap: 16px;
+            cursor: pointer;
+            transition: background 0.2s;
         }
-        .notification-content {
-            flex-grow: 1;
+        .case-item:hover {
+            background: #1f252e;
         }
-        .notification-text {
-            font-size: 14px;
-            color: #ccc;
+        .case-item img {
+            width: 48px;
+            height: 48px;
+            border-radius: 8px;
+            object-fit: cover;
+            border: 1px solid #2979ff;
         }
-        .notification-time {
-            font-size: 12px;
-            color: #777;
-            margin-top: 5px;
-        }
-        .notification-actions {
-            display: flex;
-            gap: 8px;
-            margin-left: 10px;
+        .case-name {
+            font-size: 16px;
+            font-weight: bold;
         }
     </style>
 </head>
@@ -195,86 +338,128 @@
     {% include 'includes/navbar.html' %}
 
     <div class="profile-container">
-        <div class="avatar-container">
-            <img src="/static/avatars/{{profile_user.avatar}}"
-                 alt="Аватар"
-                 class="avatar">
-            {% if user and user.username != profile_user.username %}
-            <div class="friend-buttons" id="friendButtons">
-                <button id="sendFriendRequestBtn" class="friend-btn" title="Отправить заявку в друзья"
-                    style="display: {% if not friend_request %}flex{% else %}none{% endif %};">
-                    <i class="fas fa-user-plus"></i>
-                </button>
-                <button id="cancelFriendRequestBtn" class="friend-btn cancel" title="Отменить заявку"
-                    style="display: {% if friend_request and not friend_request.is_accepted and friend_request.requester_id == user.id %}flex{% else %}none{% endif %};">
-                    <i class="fas fa-times"></i>
-                </button>
-                <button id="acceptFriendRequestBtn" class="friend-btn accept" title="Принять заявку"
-                    style="display: {% if friend_request and not friend_request.is_accepted and friend_request.requester_id != user.id %}flex{% else %}none{% endif %};">
-                    <i class="fas fa-check"></i>
-                </button>
-                <button id="rejectFriendRequestBtn" class="friend-btn reject" title="Отклонить заявку"
-                    style="display: {% if friend_request and not friend_request.is_accepted and friend_request.requester_id != user.id %}flex{% else %}none{% endif %};">
-                    <i class="fas fa-times"></i>
-                </button>
-                <button id="deleteFriendBtn" class="friend-btn delete" title="Удалить из друзей"
-                    style="display: {% if friend_request and friend_request.is_accepted %}flex{% else %}none{% endif %};">
-                    <i class="fas fa-user-times"></i>
-                </button>
+        <div class="profile-header">
+            <div class="avatar-container">
+                <img src="/static/avatars/{{profile_user.avatar}}"
+                     alt="Аватар"
+                     class="avatar"
+                     onerror="this.onerror=null; this.src='https://via.placeholder.com/120'">
+                {% if user and user.username != profile_user.username %}
+                <div class="friend-buttons" id="friendButtons">
+                    <button id="sendFriendRequestBtn" class="friend-btn" title="Отправить заявку в друзья"
+                        style="display: {% if not friend_request %}flex{% else %}none{% endif %};">
+                        <i class="fas fa-user-plus"></i>
+                    </button>
+                    <button id="cancelFriendRequestBtn" class="friend-btn cancel" title="Отменить заявку"
+                        style="display: {% if friend_request and not friend_request.is_accepted and friend_request.requester_id == user.id %}flex{% else %}none{% endif %};">
+                        <i class="fas fa-times"></i>
+                    </button>
+                    <button id="acceptFriendRequestBtn" class="friend-btn accept" title="Принять заявку"
+                        style="display: {% if friend_request and not friend_request.is_accepted and friend_request.requester_id != user.id %}flex{% else %}none{% endif %};">
+                        <i class="fas fa-check"></i>
+                    </button>
+                    <button id="rejectFriendRequestBtn" class="friend-btn reject" title="Отклонить заявку"
+                        style="display: {% if friend_request and not friend_request.is_accepted and friend_request.requester_id != user.id %}flex{% else %}none{% endif %};">
+                        <i class="fas fa-times"></i>
+                    </button>
+                    <button id="deleteFriendBtn" class="friend-btn delete" title="Удалить из друзей"
+                        style="display: {% if friend_request and friend_request.is_accepted %}flex{% else %}none{% endif %};">
+                        <i class="fas fa-user-times"></i>
+                    </button>
+                </div>
+                {% endif %}
+            </div>
+
+            <div class="profile-info">
+                <h1 class="profile-username">{{profile_user.username}}</h1>
+                <div class="profile-stats">
+                    <div class="stat-item">Активность: <span class="stat-value">{{profile_user.activity_points}}</span></div>
+                    <div class="stat-item">Кейсы: <span class="stat-value">{{profile_user.case_opened}}</span></div>
+                    <div class="stat-item">Апгрейды: <span class="stat-value">{{profile_user.upgrades_cnt}}</span></div>
+                    <div class="stat-item">Контракты: <span class="stat-value">{{profile_user.contracts_cnt}}</span></div>
+                    <div class="stat-item">Победы в баттлах: <span class="stat-value">{{profile_user.battles_won}}</span></div>
+                    <div class="stat-item">Стрик побед: <span class="stat-value">{{profile_user.battles_streak}}</span></div>
+                    <div class="stat-item">Достижения: <span class="stat-value">{{profile_user.achievements_cnt}}</span></div>
+                </div>
+
+                <div class="profile-actions">
+                    <button id="toggleCasesBtn" class="action-btn">
+                        <i class="fas"></i> Кейсы пользователя
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <div class="friends-section">
+            <div class="friends-title">Друзья {{profile_user.username}}</div>
+            <div class="friends-list">
+                {% if friends and friends|length > 0 %}
+                    {% for friend in friends %}
+                        <div class="friend-item">
+                            <a href="/user/profile/{{friend.username}}">
+                                <img src="/static/avatars/{{friend.avatar}}"
+                                     alt="{{ friend.username }}"
+                                     class="friend-avatar"
+                                     onerror="this.onerror=null; this.src='https://via.placeholder.com/60'">
+                            </a>
+                            <div class="friend-name">{{ friend.username }}</div>
+                        </div>
+                    {% endfor %}
+                {% else %}
+                    <div style="color: #777; font-size: 14px;">У пользователя пока нет друзей</div>
+                {% endif %}
+            </div>
+        </div>
+
+        <div class="achievements-section">
+            <h2 class="section-title">
+                <i class="fas fa-trophy"></i> Достижения
+            </h2>
+
+            <div class="achievements-grid" id="achievementsGrid">
+                {% for achievement, popularity in achievements %}
+                <div class="achievement-item {% if achievement.id in user_achievements %}unlocked{% else %}locked{% endif %}"
+                     data-id="{{ achievement.id }}"
+                     data-unlocked="{% if achievement.id in user_achievements %}true{% else %}false{% endif %}"
+                     data-popularity="{{ popularity }}">
+                    <img src="/static/achievements/{{achievement.image}}"
+                         alt="{{achievement.name}}"
+                         onerror="this.onerror=null; this.src='https://via.placeholder.com/50'">
+                    <div class="achievement-name">{{achievement.name}}</div>
+                    <div class="achievement-desc">{{achievement.description}}</div>
+                    <div class="achievement-popularity">{{ (popularity / total_users * 100) | round(2) }}% игроков</div>
+                </div>
+                {% endfor %}
+            </div>
+
+            {% if achievements|length > 20 %}
+            <div class="achievements-pagination" id="achievementsPagination">
             </div>
             {% endif %}
         </div>
-        <div style="flex: 1; display: flex; flex-direction: column; align-items: flex-start; gap: 12px;">
-            <div style="font-size: 22px; font-weight: bold;">Имя пользователя: <span style="color: #2979ff;">{{profile_user.username}}</span></div>
-            <div style="font-size: 18px;">Имя: <span style="color: #fff;">{{profile_user.name}}</span></div>
-            <div style="font-size: 16px;">Активность: <span style="color: #aeeaff;">{{profile_user.activity_points}}</span></div>
-            <div style="font-size: 16px;">Открыто кейсов: <span style="color: #aeeaff;">{{profile_user.case_opened}}</span></div>
-            <div style="font-size: 16px;">Совершено апгрейдов: <span style="color: #aeeaff;">{{profile_user.upgrades_cnt}}</span></div>
-            <div style="font-size: 16px;">Совершено контрактов: <span style="color: #aeeaff;">{{profile_user.contracts_cnt}}</span></div>
-            <button id="toggleCasesBtn" style="margin-top:18px; background:#2979ff; color:#fff; border:none; border-radius:6px; padding:10px 24px; font-size:16px; font-weight:bold; cursor:pointer;">Кейсы пользователя</button>
-        </div>
     </div>
 
-    <div id="myCasesOverlay" style="display:none; position:fixed; left:0; top:0; width:100vw; height:100vh; background:rgba(18,22,30,0.65); z-index:10000; align-items:center; justify-content:center;">
-        <div style="background:#23272e; border-radius:16px; max-width:600px; width:90vw; margin:0 auto; box-shadow:0 2px 24px #2979ff33; padding:32px 24px 24px 24px; position:relative; display:flex; flex-direction:column; align-items:center;">
-            <span id="closeCasesOverlay" style="position:absolute; top:18px; right:24px; font-size:28px; color:#aaa; cursor:pointer;">&times;</span>
-            <div style="font-size:22px; color:#aeeaff; font-weight:bold; margin-bottom:18px;">Кейсы пользователя</div>
-            <ul id="myCasesList" style="list-style:none; padding:0; margin:0; width:100%; display:flex; flex-direction:column; gap:12px;"></ul>
-            <div id="myCasesPagination" style="margin-top:18px; display:flex; justify-content:center; gap:8px;"></div>
-        </div>
-    </div>
+    <div id="casesOverlay" class="cases-overlay">
+        <div class="overlay-content">
+            <span id="closeCasesOverlay" class="close-overlay">&times;</span>
+            <h2 style="font-size:22px; color:#aeeaff; font-weight:bold; margin-bottom:18px;">
+                <i class="fas fa-box-open"></i> Кейсы пользователя
+            </h2>
 
-    <div id="notificationsOverlay" style="display:none; position:fixed; left:0; top:0; width:100vw; height:100vh; background:rgba(18,22,30,0.65); z-index:10000; align-items:center; justify-content:center;">
-        <div style="background:#23272e; border-radius:16px; max-width:500px; width:90vw; margin:0 auto; box-shadow:0 2px 24px #2979ff33; padding:32px 24px 24px 24px; position:relative; display:flex; flex-direction:column; align-items:center;">
-            <span id="closeNotificationsOverlay" style="position:absolute; top:18px; right:24px; font-size:28px; color:#aaa; cursor:pointer;">&times;</span>
-            <div style="font-size:22px; color:#aeeaff; font-weight:bold; margin-bottom:18px;">Уведомления</div>
-            <ul id="notificationsList" style="list-style:none; padding:0; margin:0; width:100%; display:flex; flex-direction:column; gap:12px; max-height:60vh; overflow-y:auto;">
-                {% for notification in notifications %}
-                <li class="notification-item">
-                    <div class="notification-content">
-                        <div class="notification-text">{{ notification.text }}</div>
-                        <div class="notification-time">{{ notification.created.strftime('%d.%m.%Y %H:%M') }}</div>
-                    </div>
-                    {% if notification.type == 'request' %}
-                    {% set sender_username = notification.notification_sender.username %}
-                    <div class="notification-actions">
-                        <form class="accept-form" data-username="{{ sender_username }}" method="POST">
-                            <button type="submit" class="friend-btn accept">
-                                <i class="fas fa-check"></i>
-                            </button>
-                        </form>
-                        <form class="reject-form" data-username="{{ sender_username }}" method="POST">
-                            <button type="submit" class="friend-btn reject">
-                                <i class="fas fa-times"></i>
-                            </button>
-                        </form>
-                    </div>
-                    {% endif %}
+            {% if profile_cases %}
+            <ul class="cases-list">
+                {% for case in profile_cases %}
+                <li class="case-item" onclick="window.location.href='/case/{{case.name}}'">
+                    <img src="/static/cases/{{case.image}}"
+                         alt="{{case.name}}"
+                         onerror="this.onerror=null; this.src='https://via.placeholder.com/48'">
+                    <div class="case-name">{{case.name}}</div>
                 </li>
-                {% else %}
-                <li style="text-align:center; color:#777;">Нет уведомлений</li>
                 {% endfor %}
             </ul>
+            {% else %}
+            <p style="color:#aaa; text-align:center;">Пользователь еще не создал кейсов</p>
+            {% endif %}
         </div>
     </div>
 
@@ -292,15 +477,7 @@
 
         document.addEventListener('DOMContentLoaded', function() {
             const profileUsername = {{ profile_user.username | tojson }};
-            const currentUsername = "{{ username }}";
-            const friendButtonsContainer = document.getElementById('friendButtons');
-
-            document.getElementById('myCasesOverlay').addEventListener('click', function(e) {
-                if (e.target === this) this.style.display = 'none';
-            });
-            document.getElementById('notificationsOverlay').addEventListener('click', function(e) {
-                if (e.target === this) this.style.display = 'none';
-            });
+            const currentUsername = {{ user.username | tojson if user else 'null' }};
 
             const friendButtons = [
                 'sendFriendRequestBtn',
@@ -332,36 +509,31 @@
                                 headers: { 'Content-Type': 'application/json' }
                             });
 
-                            const contentType = response.headers.get('content-type');
-                            if (contentType && contentType.includes('application/json')) {
-                                const result = await response.json();
-                                if (response.ok) {
-                                    const successMessages = {
-                                        sendFriendRequestBtn: 'Заявка отправлена!',
-                                        cancelFriendRequestBtn: 'Заявка отменена',
-                                        acceptFriendRequestBtn: 'Заявка принята!',
-                                        rejectFriendRequestBtn: 'Заявка отклонена',
-                                        deleteFriendBtn: 'Удален из друзей'
-                                    };
+                            const result = await response.json();
+                            if (response.ok) {
+                                const successMessages = {
+                                    sendFriendRequestBtn: 'Заявка отправлена!',
+                                    cancelFriendRequestBtn: 'Заявка отменена',
+                                    acceptFriendRequestBtn: 'Заявка принята!',
+                                    rejectFriendRequestBtn: 'Заявка отклонена',
+                                    deleteFriendBtn: 'Удален из друзей'
+                                };
 
-                                    showNotification(successMessages[btnId]);
+                                showNotification(successMessages[btnId]);
 
-                                    document.querySelectorAll('.friend-btn').forEach(b => b.style.display = 'none');
+                                document.querySelectorAll('.friend-btn').forEach(b => b.style.display = 'none');
 
-                                    if (btnId === 'sendFriendRequestBtn') {
-                                        document.getElementById('cancelFriendRequestBtn').style.display = 'flex';
-                                    } else if (btnId === 'cancelFriendRequestBtn' || btnId === 'rejectFriendRequestBtn') {
-                                        document.getElementById('sendFriendRequestBtn').style.display = 'flex';
-                                    } else if (btnId === 'acceptFriendRequestBtn') {
-                                        document.getElementById('deleteFriendBtn').style.display = 'flex';
-                                    } else {
-                                        document.getElementById('sendFriendRequestBtn').style.display = 'flex';
-                                    }
+                                if (btnId === 'sendFriendRequestBtn') {
+                                    document.getElementById('cancelFriendRequestBtn').style.display = 'flex';
+                                } else if (btnId === 'cancelFriendRequestBtn' || btnId === 'rejectFriendRequestBtn') {
+                                    document.getElementById('sendFriendRequestBtn').style.display = 'flex';
+                                } else if (btnId === 'acceptFriendRequestBtn') {
+                                    document.getElementById('deleteFriendBtn').style.display = 'flex';
                                 } else {
-                                    throw new Error(result.detail || 'Ошибка операции');
+                                    document.getElementById('sendFriendRequestBtn').style.display = 'flex';
                                 }
                             } else {
-                                throw new Error('Ошибка сервера');
+                                throw new Error(result.detail || 'Ошибка операции');
                             }
                         } catch (error) {
                             showNotification(error.message, true);
@@ -373,173 +545,107 @@
                 }
             });
 
-            document.querySelectorAll('.accept-form').forEach(form => {
-                form.addEventListener('submit', async function(e) {
-                    e.preventDefault();
-                    const username = this.getAttribute('data-username');
-                    const button = this.querySelector('button');
-                    const originalHtml = button.innerHTML;
+            const casesOverlay = document.getElementById('casesOverlay');
+            const toggleCasesBtn = document.getElementById('toggleCasesBtn');
+            const closeCasesOverlay = document.getElementById('closeCasesOverlay');
 
-                    button.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
-                    button.disabled = true;
-
-                    try {
-                        const response = await fetch(`/user/accept/${encodeURIComponent(username)}`, {
-                            method: 'POST',
-                            headers: { 'Content-Type': 'application/json' }
-                        });
-
-                        const contentType = response.headers.get('content-type');
-                        if (contentType && contentType.includes('application/json')) {
-                            const result = await response.json();
-                            if (response.ok) {
-                                showNotification('Заявка принята!');
-                                location.reload();
-                            } else {
-                                throw new Error(result.detail || 'Ошибка при принятии заявки');
-                            }
-                        } else {
-                            throw new Error('Ошибка сервера');
-                        }
-                    } catch (error) {
-                        showNotification(error.message, true);
-                    } finally {
-                        button.innerHTML = originalHtml;
-                        button.disabled = false;
-                    }
-                });
-            });
-
-            document.querySelectorAll('.reject-form').forEach(form => {
-                form.addEventListener('submit', async function(e) {
-                    e.preventDefault();
-                    const username = this.getAttribute('data-username');
-                    const button = this.querySelector('button');
-                    const originalHtml = button.innerHTML;
-
-                    button.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
-                    button.disabled = true;
-
-                    try {
-                        const response = await fetch(`/user/reject/${encodeURIComponent(username)}`, {
-                            method: 'POST',
-                            headers: { 'Content-Type': 'application/json' }
-                        });
-
-                        const contentType = response.headers.get('content-type');
-                        if (contentType && contentType.includes('application/json')) {
-                            const result = await response.json();
-                            if (response.ok) {
-                                showNotification('Заявка отклонена');
-                                location.reload();
-                            } else {
-                                throw new Error(result.detail || 'Ошибка при отклонении заявки');
-                            }
-                        } else {
-                            throw new Error('Ошибка сервера');
-                        }
-                    } catch (error) {
-                        showNotification(error.message, true);
-                    } finally {
-                        button.innerHTML = originalHtml;
-                        button.disabled = false;
-                    }
-                });
-            });
-
-            // Кейсы пользователя
-            const toggleBtn = document.getElementById('toggleCasesBtn');
-            const overlay = document.getElementById('myCasesOverlay');
-            const closeBtn = document.getElementById('closeCasesOverlay');
-            if (toggleBtn) toggleBtn.onclick = () => overlay.style.display = 'flex';
-            if (closeBtn) closeBtn.onclick = () => overlay.style.display = 'none';
-
-            const myCases = [
-            {% for case in profile_cases %}
-                {
-                    name: {{ case.name | tojson }},
-                    image: {{ case.image | tojson }},
-                    is_active: {{ case.is_active | tojson }},
-                    is_approved: {{ case.is_approved | tojson }}
-                }{% if not loop.last %},{% endif %}
-            {% endfor %}
-            ];
-
-            const CASES_PER_PAGE = 5;
-            let myCasesCurrentPage = 1;
-
-            function renderMyCasesPage(page) {
-                const list = document.getElementById('myCasesList');
-                list.innerHTML = '';
-                const start = (page - 1) * CASES_PER_PAGE;
-                const end = start + CASES_PER_PAGE;
-                const casesToShow = myCases.slice(start, end);
-
-                casesToShow.forEach(caseObj => {
-                    const li = document.createElement('li');
-                    li.style = 'background:#181d23; border-radius:8px; padding:14px 18px; display:flex; align-items:center; gap:18px; position:relative; cursor:pointer;';
-                    const isActive = caseObj.is_active && caseObj.is_approved;
-
-                    if (isActive) {
-                        li.addEventListener('click', () => window.location.href = '/case/' + encodeURIComponent(caseObj.name));
-                    }
-
-                    li.innerHTML = `
-                        <img src="/static/cases/${caseObj.image}" alt="${caseObj.name}" style="width:48px; height:48px; border-radius:8px; object-fit:cover; background:#222; border:1px solid #2979ff;">
-                        <div style="font-size:16px; color:#fff; font-weight:bold;">${caseObj.name}</div>
-                    `;
-                    list.appendChild(li);
+            if (toggleCasesBtn) {
+                toggleCasesBtn.addEventListener('click', () => {
+                    casesOverlay.style.display = 'flex';
+                    document.body.style.overflow = 'hidden';
                 });
             }
 
-            function renderMyCasesPagination(page) {
-                const pag = document.getElementById('myCasesPagination');
-                pag.innerHTML = '';
-                const totalPages = Math.ceil(myCases.length / CASES_PER_PAGE);
-                if (totalPages <= 1) return;
+            if (closeCasesOverlay) {
+                closeCasesOverlay.addEventListener('click', () => {
+                    casesOverlay.style.display = 'none';
+                    document.body.style.overflow = '';
+                });
+            }
 
-                const pages = [];
-                if (totalPages <= 5) {
-                    for (let i = 1; i <= totalPages; i++) pages.push(i);
-                } else {
-                    if (page <= 3) {
-                        pages.push(1, 2, 3, 4, '...', totalPages);
-                    } else if (page >= totalPages - 2) {
-                        pages.push(1, '...', totalPages - 3, totalPages - 2, totalPages - 1, totalPages);
-                    } else {
-                        pages.push(1, '...', page - 1, page, page + 1, '...', totalPages);
-                    }
+            casesOverlay.addEventListener('click', (e) => {
+                if (e.target === casesOverlay) {
+                    casesOverlay.style.display = 'none';
+                    document.body.style.overflow = '';
+                }
+            });
+
+            const achievementsGrid = document.getElementById('achievementsGrid');
+            const achievementsPagination = document.getElementById('achievementsPagination');
+
+            if (achievementsGrid) {
+                const achievements = Array.from(achievementsGrid.children).map(item => ({
+                    element: item,
+                    id: item.dataset.id,
+                    unlocked: item.dataset.unlocked === 'true',
+                    popularity: parseInt(item.dataset.popularity)
+                }));
+
+                achievements.sort((a, b) => {
+                    if (a.unlocked && !b.unlocked) return -1;
+                    if (!a.unlocked && b.unlocked) return 1;
+                    return b.popularity - a.popularity;
+                });
+
+                achievements.forEach(ach => achievementsGrid.appendChild(ach.element));
+
+                const ACHIEVEMENTS_PER_PAGE = 20;
+                let currentPage = 1;
+                const totalPages = Math.ceil(achievements.length / ACHIEVEMENTS_PER_PAGE);
+
+                function showPage(page) {
+                    achievements.forEach((item, index) => {
+                        const start = (page - 1) * ACHIEVEMENTS_PER_PAGE;
+                        const end = start + ACHIEVEMENTS_PER_PAGE;
+                        item.element.style.display = (index >= start && index < end) ? 'block' : 'none';
+                    });
+                    renderPagination(page);
                 }
 
-                let lastWasDots = false;
-                pages.forEach(p => {
-                    if (p === '...') {
-                        if (!lastWasDots) {
-                            const span = document.createElement('span');
-                            span.textContent = '...';
-                            span.style = 'padding: 6px 12px; color: #fff;';
-                            pag.appendChild(span);
-                            lastWasDots = true;
-                        }
+                function renderPagination(page) {
+                    achievementsPagination.innerHTML = '';
+
+                    if (totalPages <= 1) return;
+
+                    const pages = [];
+                    if (totalPages <= 5) {
+                        for (let i = 1; i <= totalPages; i++) pages.push(i);
                     } else {
-                        const btn = document.createElement('button');
-                        btn.textContent = p;
-                        btn.style = `padding: 6px 12px; border-radius: 4px; border: none; background: ${p === page ? '#2979ff' : '#222'}; color: #fff; margin: 0 2px; cursor:pointer;`;
-                        if (p === page) btn.disabled = true;
-                        btn.onclick = () => showMyCasesPage(p);
-                        pag.appendChild(btn);
-                        lastWasDots = false;
+                        if (page <= 3) {
+                            pages.push(1, 2, 3, 4, '...', totalPages);
+                        } else if (page >= totalPages - 2) {
+                            pages.push(1, '...', totalPages - 3, totalPages - 2, totalPages - 1, totalPages);
+                        } else {
+                            pages.push(1, '...', page - 1, page, page + 1, '...', totalPages);
+                        }
                     }
-                });
-            }
 
-            function showMyCasesPage(page) {
-                myCasesCurrentPage = page;
-                renderMyCasesPage(page);
-                renderMyCasesPagination(page);
-            }
+                    let lastWasDots = false;
+                    pages.forEach(p => {
+                        if (p === '...') {
+                            if (!lastWasDots) {
+                                const span = document.createElement('span');
+                                span.textContent = '...';
+                                span.style = 'padding: 6px 12px; color: #fff;';
+                                achievementsPagination.appendChild(span);
+                                lastWasDots = true;
+                            }
+                        } else {
+                            const btn = document.createElement('button');
+                            btn.textContent = p;
+                            btn.className = 'pagination-btn';
+                            if (p === page) btn.classList.add('active');
+                            btn.addEventListener('click', () => showPage(p));
+                            achievementsPagination.appendChild(btn);
+                            lastWasDots = false;
+                        }
+                    });
+                }
 
-            showMyCasesPage(myCasesCurrentPage);
+                if (achievements.length > ACHIEVEMENTS_PER_PAGE) {
+                    showPage(1);
+                }
+            }
         });
     </script>
 </body>

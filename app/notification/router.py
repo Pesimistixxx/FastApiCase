@@ -22,6 +22,6 @@ async def post_check_notifications(db: Annotated[AsyncSession, Depends(get_db)],
     await db.execute(update(NotificationModel)
                      .where(NotificationModel.notification_receiver_id == user.id,
                             ~NotificationModel.is_checked,
-                            NotificationModel.type == 'text')
+                            NotificationModel.type != 'request')
                      .values(is_checked=True))
     await db.commit()

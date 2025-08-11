@@ -280,7 +280,7 @@
 
 <div class="contracts-container">
     <div class="draw-area-block">
-        <div class="contract-price-label" id="contractPriceLabel">Цена: от 0 до 0</div>
+        <div class="contract-price-label" id="contractPriceLabel">Цена: —</div>
         <div style="display: flex; flex-direction: row; align-items: center; justify-content: center; gap: 0;">
             <div class="canvas-tools" style="flex-direction: column; align-items: flex-end; gap: 18px; margin-right: 18px;">
                 <button class="canvas-tool-btn canvas-eraser-btn" title="Ластик"><i class="fas fa-eraser"></i></button>
@@ -574,7 +574,16 @@
         document.getElementById('droppedSkinName').textContent = skin.name;
         document.getElementById('droppedSkinPrice').textContent = `Цена: ${skin.price}`;
         document.getElementById('sellDroppedSkinBtn').textContent = `Продать за ${skin.price}`;
-        document.getElementById('droppedSkinModal').style.display = 'flex';
+
+        const modal = document.getElementById('droppedSkinModal');
+        modal.style.display = 'flex';
+
+        modal.addEventListener('click', function(e) {
+            if (e.target === modal) {
+                modal.style.display = 'none';
+            }
+        });
+
         document.getElementById('takeDroppedSkinBtn').onclick = function() {
             const userSkinsGrid = document.getElementById('userSkinsGrid');
             if (userSkinsGrid && skin.id && skin.image && skin.name && skin.price) {
@@ -592,8 +601,9 @@
                 div.onclick = userSkinClickHandler;
                 userSkinsGrid.prepend(div);
             }
-            document.getElementById('droppedSkinModal').style.display = 'none';
+            modal.style.display = 'none';
         };
+
         document.getElementById('sellDroppedSkinBtn').onclick = async function() {
             try {
                 const resp = await fetch(`/skin/sell/${id}`, { method: 'POST' });
@@ -605,7 +615,7 @@
                         });
                     }
                     showNotification('Скин продан!');
-                    document.getElementById('droppedSkinModal').style.display = 'none';
+                    modal.style.display = 'none';
                 } else {
                     showNotification('Ошибка при продаже скина');
                 }
@@ -613,8 +623,9 @@
                 showNotification('Ошибка при продаже скина');
             }
         };
+
         document.getElementById('droppedSkinClose').onclick = function() {
-            document.getElementById('droppedSkinModal').style.display = 'none';
+            modal.style.display = 'none';
         };
     }
 </script>

@@ -2,6 +2,7 @@ from sqlalchemy import select, func
 from sqlalchemy.orm import selectinload
 
 from app.chat.models import MessageModel
+from app.models_associations import UserChatModel
 from app.notification.models import NotificationModel
 
 
@@ -32,9 +33,14 @@ async def get_unread_messages(db, user_id):
             MessageModel.chat_id,
             func.count(MessageModel.id).label('unread_count')  # pylint: disable=not-callable
         )
+        .join(
+            UserChatModel,
+            UserChatModel.chat_id == MessageModel.chat_id
+        )
         .where(
             MessageModel.author_id != user_id,
-            ~MessageModel.is_checked
+            ~MessageModel.is_checked,
+            UserChatModel.user_id == user_id
         )
         .group_by(MessageModel.chat_id)
     )

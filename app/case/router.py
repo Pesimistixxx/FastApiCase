@@ -1,6 +1,6 @@
 import asyncio
 from typing import Annotated
-from sqlalchemy import select, insert, desc, delete
+from sqlalchemy import select, insert, desc, delete, update
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
@@ -8,11 +8,12 @@ from fastapi import APIRouter, Depends, Path, HTTPException, status, Request
 from fastapi.responses import RedirectResponse
 from fastapi.templating import Jinja2Templates
 
+from app.achievement.models import AchievementModel
 from app.battles.lobby_manager import manager
 from app.auth.models import UserModel
 from app.auth.security import get_user, get_current_user_or_none
 from app.battles.models import BattleModel
-from app.models_associations import CaseSkinModel, UserSkinModel, UserBattleModel
+from app.models_associations import CaseSkinModel, UserSkinModel, UserBattleModel, UserAchievementModel
 from app.notification.models import NotificationModel
 from app.utils.db_queries import get_user_notifications, get_unread_messages, get_user_new_notifications
 from app.case.models import CaseModel
@@ -23,6 +24,93 @@ from db.db_depends import get_db
 
 caseRouter = APIRouter(prefix='/case', tags=['case'])
 templates = Jinja2Templates(directory='templates')
+
+
+async def check_case_achievements(
+        db: AsyncSession,
+        user: UserModel,
+        cases_opened: int
+):
+    achievements_map = {
+        100: ('Кейс Джуниор', 'Поздравляем, вы получили достижение Кейс Джуниор'),
+        1000: ('Кейс', 'Поздравляем, вы получили достижение Кейс'),
+        10000: ('Кейс Де Люкс', 'Поздравляем, вы получили достижение Кейс Де Люкс'),
+        100000: ('Биг Кейс', 'Поздравляем, вы получили достижение Биг Кейс'),
+        1000000: ('Мега Кейс', 'Поздравляем, вы получили достижение Мега Кейс')
+    }
+
+    for threshold, (name, message) in achievements_map.items():
+        if user.case_opened < threshold <= user.case_opened + cases_opened:
+            achievement = await db.scalar(
+                select(AchievementModel).where(AchievementModel.name == name)
+            )
+            if not achievement:
+                continue
+
+            exists_query = select(UserAchievementModel).where(
+                UserAchievementModel.achievement_id == achievement.id,
+                UserAchievementModel.user_id == user.id
+            )
+            user_achievement = await db.scalar(exists_query)
+
+            if not user_achievement:
+                await db.execute(
+                    insert(NotificationModel).values(
+                        notification_receiver_id=user.id,
+                        type='achievement',
+                        text=message
+                    )
+                )
+
+                user.achievements_cnt += 1
+                await db.execute(
+                    insert(UserAchievementModel).values(
+                        user_id=user.id,
+                        achievement_id=achievement.id
+                    )
+                )
+
+
+async def check_case_create_achievements(
+        db: AsyncSession,
+        user: UserModel,
+):
+    achievements_map = {
+        1: ('Создатель КС', 'Поздравляем, вы получили достижение Создатель КС'),
+        10: ('Кейсовый барон', 'Поздравляем, вы получили достижение Кейсовый барон'),
+        100: ('Кейсовый конвеер', 'Поздравляем, вы получили достижение Кейсовый конвеер'),
+    }
+
+    for threshold, (name, message) in achievements_map.items():
+        if user.cases_create < threshold <= user.cases_create + 1:
+            achievement = await db.scalar(
+                select(AchievementModel).where(AchievementModel.name == name)
+            )
+            if not achievement:
+                continue
+
+            exists_query = select(UserAchievementModel).where(
+                UserAchievementModel.achievement_id == achievement.id,
+                UserAchievementModel.user_id == user.id
+            )
+            user_achievement = await db.scalar(exists_query)
+
+            if not user_achievement:
+                await db.execute(
+                    insert(NotificationModel).values(
+                        notification_receiver_id=user.id,
+                        type='achievement',
+                        text=message
+                    )
+                )
+
+                user.achievements_cnt += 1
+                await db.execute(
+                    insert(UserAchievementModel).values(
+                        user_id=user.id,
+                        achievement_id=achievement.id
+                    )
+                )
 
 
 @caseRouter.get('/list')
@@ -200,6 +288,7 @@ async def patch_approve_case(db: Annotated[AsyncSession, Depends(get_db)],
                              .where(UserModel.id == case.author_id))
     if author:
         author.activity_points += 900
+        await check_case_create_achievements(db=db, user=author)
         author.cases_create += 1
         await db.execute(insert(NotificationModel)
                          .values(notification_receiver_id=author.id,
@@ -357,6 +446,8 @@ async def post_open_case(db: Annotated[AsyncSession, Depends(get_db)],
             status_code=status.HTTP_400_BAD_REQUEST,
             detail='Not enough money'
         )
+
+    await check_case_achievements(db=db, user=user, cases_opened=num_cases.cnt)
     user.case_opened += num_cases.cnt
     user.activity_points += num_cases.cnt
 
@@ -476,6 +567,43 @@ async def post_open_case_battle(db: Annotated[AsyncSession, Depends(get_db)],
             insert(UserSkinModel)
             .values(user_id=winner_id,
                     skin_id=skin.id))
+
+    await db.execute(update(UserModel)
+                     .where(UserModel.id == winner_id,)
+                     .values(battles_won=UserModel.battles_won + 1,
+                             battles_streak=UserModel.battles_streak + 1))
+    await db.execute(update(UserModel)
+                     .where(UserModel.id.in_(user_ids),
+                            UserModel.id != winner_id)
+                     .values(battles_streak=0))
+    winner = await db.scalar(select(UserModel)
+                             .where(UserModel.id == winner_id))
+    if winner.battles_streak == 5:
+        achievement = await db.scalar(
+            select(AchievementModel).where(AchievementModel.name == 'Друг админа')
+        )
+        exists_query = select(UserAchievementModel).where(
+            UserAchievementModel.achievement_id == achievement.id,
+            UserAchievementModel.user_id == winner_id
+        )
+        user_achievement = await db.scalar(exists_query)
+
+        if not user_achievement:
+            await db.execute(
+                insert(NotificationModel).values(
+                    notification_receiver_id=winner_id,
+                    type='achievement',
+                    text='Поздравляем, вы получили достижение Друг админа'
+                )
+            )
+
+            winner.achievements_cnt += 1
+            await db.execute(
+                insert(UserAchievementModel).values(
+                    user_id=winner_id,
+                    achievement_id=achievement.id
+                )
+            )
 
     for round_i in range(battle.case_cnt):
         for user_id, skins in items_by_player.items():

@@ -60,7 +60,7 @@ class UserAchievementModel(Base):
 
     id: Mapped[int] = mapped_column(primary_key=True)
     user_id: Mapped[int] = mapped_column(ForeignKey('users.id'))
-    chat_id: Mapped[int] = mapped_column(ForeignKey('achievements.id'))
+    achievement_id: Mapped[int] = mapped_column(ForeignKey('achievements.id'))
     achievement_date: Mapped[datetime] = mapped_column(DateTime, nullable=False, default=datetime.now())
 
     user: Mapped["UserModel"] = relationship("UserModel", back_populates="achievements")

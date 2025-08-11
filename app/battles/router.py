@@ -3,23 +3,67 @@ from typing import Annotated
 from fastapi import APIRouter, Depends, Request, status, Path, WebSocket, WebSocketDisconnect
 from fastapi.responses import RedirectResponse
 from fastapi.websockets import WebSocketState
-from sqlalchemy import select, insert, func, update
+from sqlalchemy import select, insert, func
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 from starlette.templating import Jinja2Templates
 
+from app.achievement.models import AchievementModel
 from app.auth.models import UserModel
 from app.auth.security import get_current_user_or_none, verify_session
 from app.battles.lobby_manager import manager
 from app.battles.models import BattleModel
 from app.battles.schemas import BattleCreate
 from app.case.models import CaseModel
-from app.models_associations import UserBattleModel
+from app.models_associations import UserBattleModel, UserAchievementModel
+from app.notification.models import NotificationModel
 from app.utils.db_queries import get_user_notifications, get_unread_messages, get_user_new_notifications
 from db.db_depends import get_db
 
 battleRouter = APIRouter(prefix='/battle', tags=['battle, user, skins'])
 templates = Jinja2Templates(directory='templates')
+
+
+async def check_battle_achievements(
+        db: AsyncSession,
+        user: UserModel,
+):
+    achievements_map = {
+        10: ('Гладиатор', 'Поздравляем, вы получили достижение Гладиатор'),
+        100: ('Самурай', 'Поздравляем, вы получили достижение Самурай'),
+        1000: ('Воин дракона', 'Поздравляем, вы получили достижение Воин дракона'),
+    }
+
+    for threshold, (name, message) in achievements_map.items():
+        if user.battles_cnt < threshold <= user.battles_cnt + 1:
+            achievement = await db.scalar(
+                select(AchievementModel).where(AchievementModel.name == name)
+            )
+            if not achievement:
+                continue
+
+            exists_query = select(UserAchievementModel).where(
+                UserAchievementModel.achievement_id == achievement.id,
+                UserAchievementModel.user_id == user.id
+            )
+            user_achievement = await db.scalar(exists_query)
+
+            if not user_achievement:
+                await db.execute(
+                    insert(NotificationModel).values(
+                        notification_receiver_id=user.id,
+                        type='achievement',
+                        text=message
+                    )
+                )
+
+                user.achievements_cnt += 1
+                await db.execute(
+                    insert(UserAchievementModel).values(
+                        user_id=user.id,
+                        achievement_id=achievement.id
+                    )
+                )
 
 
 @battleRouter.get('/')
@@ -251,10 +295,13 @@ async def websocket_lobby(websocket: WebSocket,
                         battle_to_start.is_started = True
                         await db.refresh(battle_to_start, ['users'])
                         user_ids = [ub.user_id for ub in battle_to_start.users]
-                        print(user_ids)
-                        await db.execute(update(UserModel).where(UserModel.id.in_(user_ids)).values(
-                            battles_cnt=UserModel.battles_cnt + 1
-                        ))
+
+                        for user_id in user_ids:
+                            user_object = await db.scalar(select(UserModel)
+                                                          .where(UserModel.id == user_id))
+                            await check_battle_achievements(db=db, user=user_object)
+                            user_object.battles_cnt + 1
+
                         await db.commit()
                         await manager.send_battle_started(battle_id)
 

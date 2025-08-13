@@ -107,5 +107,4 @@ async def get_top(db: Annotated[AsyncSession, Depends(get_db)],
                                                    'top_battles_luck': top_battles_luck_dict,
                                                    'top_battles_streak': top_battles_streak_dict,
                                                    'top_achievements_cnt': top_achievements_dict,
-                                                   'username': user.username,
                                                    'user': None})

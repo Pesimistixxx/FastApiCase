@@ -1,6 +1,10 @@
 import datetime
 import json
+import os
 from typing import Annotated
+
+import pytz
+from dotenv import load_dotenv
 from sqlalchemy.orm import selectinload
 from sqlalchemy import select, func, insert, update
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -22,8 +26,19 @@ from app.utils.db_queries import get_user_notifications, get_unread_messages, ge
 from db.db_depends import get_db
 from wordle_tracker.models import WordleModel
 
+load_dotenv()
+
 chatRouter = APIRouter(prefix='/chat', tags=['user, chat, messages'])
 templates = Jinja2Templates(directory='templates')
+
+tz = pytz.timezone(os.getenv("TIMEZONE", "UTC"))
+
+
+def get_current_time():
+    return datetime.datetime.now(tz=tz)
+
+
+templates.env.globals["now"] = get_current_time
 
 
 @chatRouter.get('/list')
@@ -227,7 +242,7 @@ async def post_send_message(db: Annotated[AsyncSession, Depends(get_db)],
         chat_id=chat.id,
         author_id=user.id,
         message=message.message,
-        message_date=datetime.datetime.now()
+        message_date=datetime.datetime.now(tz=tz)
     ).returning(MessageModel.id))
     message_id = result.scalars().one()
 
@@ -268,7 +283,7 @@ async def post_send_message(db: Annotated[AsyncSession, Depends(get_db)],
             "chat_id": chat.id,
             "author_id": user.id,
             "message": message.message,
-            "message_date": datetime.datetime.now().isoformat(),
+            "message_date": datetime.datetime.now(tz=tz).isoformat(),
             "is_edited": False
         }
     }
@@ -328,7 +343,7 @@ async def patch_edit_message(db: Annotated[AsyncSession, Depends(get_db)],
             "id": message_id,
             "message": edit_message.message,
             "is_edited": True,
-            "new_date": datetime.datetime.now().isoformat()
+            "new_date": datetime.datetime.now(tz=tz).isoformat()
         }
     }
 

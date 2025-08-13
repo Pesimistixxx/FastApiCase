@@ -24,12 +24,14 @@
             flex-direction: column;
             flex: 1;
             max-width: 1000px;
-            margin: 20px auto;
+            margin: 0 auto;
             width: 90%;
             background-color: #1e1e1e;
             border-radius: 10px;
             overflow: hidden;
             box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+            position: relative;
+            height: calc(100vh - 40px); /* Изменено */
         }
 
         .chat-header {
@@ -66,7 +68,8 @@
             padding: 20px;
             display: flex;
             flex-direction: column;
-            max-height: 60vh;
+            max-height: calc(100vh - 200px); /* Изменено */
+            min-height: 0;
         }
 
         .message {
@@ -262,6 +265,9 @@
             padding: 15px;
             background-color: #252525;
             border-top: 1px solid #333;
+            position: sticky; /* Изменено */
+            bottom: 0; /* Изменено */
+            z-index: 50; /* Изменено */
         }
 
         .message-input {

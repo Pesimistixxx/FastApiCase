@@ -28,7 +28,7 @@ class MessageModel(Base):
     author_id: Mapped[int] = mapped_column(ForeignKey('users.id'))
     chat_id: Mapped[int] = mapped_column(ForeignKey('chats.id'))
     message: Mapped[str] = mapped_column(nullable=False)
-    message_date: Mapped[datetime] = mapped_column(DateTime, nullable=False)
+    message_date: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
     is_active: Mapped[bool] = mapped_column(default=True)
     is_checked: Mapped[bool] = mapped_column(default=False, nullable=False)
     is_edited: Mapped[bool] = mapped_column(default=False, nullable=False)

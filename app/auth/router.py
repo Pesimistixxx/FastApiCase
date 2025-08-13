@@ -306,6 +306,10 @@ async def get_another_user_profile(request: Request,
                                                             'profile_cases': profile_cases.all(),
                                                             'user': None,
                                                             'profile_user': profile_user,
+                                                            'achievements': achievements.all(),
+                                                            'user_achievements': user_achievements.all(),
+                                                            'total_users': total_users,
+                                                            'friends': friends.all()
                                                             })
 
 

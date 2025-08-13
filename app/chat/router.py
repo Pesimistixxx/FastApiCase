@@ -33,6 +33,13 @@ templates = Jinja2Templates(directory='templates')
 tz = pytz.timezone(os.getenv("TIMEZONE", "UTC"))
 
 
+def get_current_time():
+    return datetime.datetime.now(tz=tz)
+
+
+templates.env.globals["now"] = get_current_time
+
+
 @chatRouter.get('/list')
 async def get_chat_list(db: Annotated[AsyncSession, Depends(get_db)],
                         request: Request,

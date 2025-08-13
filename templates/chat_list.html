@@ -208,9 +208,8 @@
                                 <div class="chat-name">{{ chat.other_user.username }}</div>
                                 {% if chat.last_message %}
                                     <div class="chat-time">
-                                        {% set now = datetime.now() %}
                                         {% set msg_date = chat.last_message.message_date %}
-                                        {% set diff = now - msg_date %}
+                                        {% set diff = now() - msg_date %}
                                         {% if diff.days == 0 %}
                                             {{ msg_date.strftime('%H:%M') }}
                                         {% elif diff.days == 1 %}
